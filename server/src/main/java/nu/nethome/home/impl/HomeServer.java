@@ -155,7 +155,8 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ValueIte
     }
 
     private boolean isLogRecordInBlacklist(LogRecord record) {
-        return record.getMessage().startsWith("Prefs file removed in background");
+        return record.getMessage().startsWith("Prefs file removed in background") ||
+            record.getMessage().startsWith("Could not open/create prefs root node");
     }
 
     public void run(HomeItemFactory factory, HomeItemLoader loader, PluginProvider pluginProvider) {

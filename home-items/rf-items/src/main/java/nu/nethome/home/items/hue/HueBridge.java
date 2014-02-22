@@ -54,7 +54,7 @@ public class HueBridge extends HomeItemAdapter {
     private static Logger logger = Logger.getLogger(HueBridge.class.getName());
 
     private String userName = "";
-    private String url = "http://192.168.1.174";
+    private String url = "";
     private String bridgeIdentity = "";
     private PhilipsHueBridge hueBridge;
     private int refreshInterval = 5;
