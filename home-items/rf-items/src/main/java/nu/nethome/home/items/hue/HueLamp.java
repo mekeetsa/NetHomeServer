@@ -198,7 +198,7 @@ public class HueLamp extends HomeItemAdapter implements HomeItem {
             hue = Integer.parseInt(colourParts[0]);
             saturation = Integer.parseInt(colourParts[1]);
             colorTemperature = 0;
-        } else {
+        } else if (color.length() > 0) {
             colorTemperature = Integer.parseInt(color);
         }
         this.color = color;

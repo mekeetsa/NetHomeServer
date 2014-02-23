@@ -74,9 +74,9 @@ public class TempWEB extends HttpServlet implements HomeItem {
     protected HashMap<Character, String> characterMap = new HashMap<Character, String>();
 
     // Public attributes
-    protected String webServer = "WEB-Server";
+    protected String webServer = "JettyWEB";
     protected String localURL = "/temp";
-    protected String thermometerList = "Thermometer";
+    protected String thermometerList = "";
 
     public TempWEB() {
         for (int i = 0; i < s_CharMap.length; i += 2) {
