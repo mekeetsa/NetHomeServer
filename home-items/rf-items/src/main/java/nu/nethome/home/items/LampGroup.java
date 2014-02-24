@@ -101,22 +101,18 @@ public class LampGroup extends HomeItemAdapter implements HomeItem {
 
     private void dim1() {
         tryPerformActionOnItems(lamps, "dim1", "on");
-        lampState = true;
     }
 
     private void dim2() {
         tryPerformActionOnItems(lamps, "dim2", "on");
-        lampState = true;
     }
 
     private void dim3() {
         tryPerformActionOnItems(lamps, "dim3", "on");
-        lampState = true;
     }
 
     private void dim4() {
         tryPerformActionOnItems(lamps, "dim4", "on");
-        lampState = true;
     }
 
     @Override
@@ -170,30 +166,37 @@ public class LampGroup extends HomeItemAdapter implements HomeItem {
     }
 
     public void performOn() {
+        lampState = true;
         commandQueue.add(Command.on);
     }
 
     public void performOff() {
+        lampState = false;
         commandQueue.add(Command.off);
     }
 
     public void performRecall() {
+        lampState = true;
         commandQueue.add(Command.recall);
     }
 
     public void performDim1() {
+        lampState = true;
         commandQueue.add(Command.dim1);
     }
 
     public void performDim2() {
+        lampState = true;
         commandQueue.add(Command.dim2);
     }
 
     public void performDim3() {
+        lampState = true;
         commandQueue.add(Command.dim3);
     }
 
     public void performDim4() {
+        lampState = true;
         commandQueue.add(Command.dim4);
     }
 
@@ -207,7 +210,6 @@ public class LampGroup extends HomeItemAdapter implements HomeItem {
 
     private void on() {
         performActionOnItems(lamps, "on");
-        lampState = true;
     }
 
     private void off() {
@@ -228,12 +230,10 @@ public class LampGroup extends HomeItemAdapter implements HomeItem {
             }
         }
         lampsOn = result.toString();
-        lampState = false;
     }
 
     private void recall() {
         performActionOnItems(lampsOn, "on");
-        lampState = true;
     }
 
     private void performActionOnItems(String items, String action) {
