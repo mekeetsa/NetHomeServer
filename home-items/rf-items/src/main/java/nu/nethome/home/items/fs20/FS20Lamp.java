@@ -28,9 +28,6 @@ import nu.nethome.util.plugin.Plugin;
 
 /**
  * @author Stefan
- *         <p/>
- *         TODO To change the template for this generated type comment go to
- *         Window - Preferences - Java - Code Style - Code Templates
  */
 @Plugin
 @HomeItemType(value="Lamps", creationEvents = FHZ1000PcPort.EVENT_TYPE_FS20_EVENT)
@@ -48,11 +45,15 @@ public class FS20Lamp extends HomeItemAdapter implements HomeItem {
             + "  <Action Name=\"off\" 	Method=\"off\" />"
             + "  <Action Name=\"bright\" 	Method=\"bright\" />"
             + "  <Action Name=\"dim\" 	Method=\"dim\" />"
-            + "  <Action Name=\"dim25\" 	Method=\"dim25\" />"
-            + "  <Action Name=\"dim50\" 	Method=\"dim50\" />"
-            + "  <Action Name=\"dim75\" 	Method=\"dim75\" />"
-            + "  <Action Name=\"dim100\" 	Method=\"dim100\" />"
-            + "  <Action Name=\"dimLoop\" 	Method=\"dimLoop\" />"
+            + "  <Attribute Name=\"OnDimLevel\" Type=\"String\" Get=\"getOnDimLevel\" 	Set=\"setOnDimLevel\" />"
+            + "  <Attribute Name=\"DimLevel1\" Type=\"String\" Get=\"getDimLevel1\" 	Set=\"setDimLevel1\" />"
+            + "  <Attribute Name=\"DimLevel2\" Type=\"String\" Get=\"getDimLevel2\" 	Set=\"setDimLevel2\" />"
+            + "  <Attribute Name=\"DimLevel3\" Type=\"String\" Get=\"getDimLevel3\" 	Set=\"setDimLevel3\" />"
+            + "  <Attribute Name=\"DimLevel4\" Type=\"String\" Get=\"getDimLevel4\" 	Set=\"setDimLevel4\" />"
+            + "  <Action Name=\"dim1\" 	Method=\"dim1\" />"
+            + "  <Action Name=\"dim2\" 	Method=\"dim2\" />"
+            + "  <Action Name=\"dim3\" 	Method=\"dim3\" />"
+            + "  <Action Name=\"dim4\" 	Method=\"dim4\" />"
             + "</HomeItem> ");
 
     protected boolean m_IsAddressed = false;
@@ -62,6 +63,11 @@ public class FS20Lamp extends HomeItemAdapter implements HomeItem {
     protected String houseCode = "11111124";
     protected String deviceCode = "1111";
     protected String fhz1000PcPort = "FHZ1000PcPort";
+    private int onDimLevel = 0;
+    private int dimLevel1 = 25;
+    private int dimLevel2 = 50;
+    private int dimLevel3 = 75;
+    private int dimLevel4 = 100;
 
     public FS20Lamp() {
     }
@@ -172,7 +178,11 @@ public class FS20Lamp extends HomeItemAdapter implements HomeItem {
     }
 
     public void on() {
-        sendCommand(FHZ1000PcPort.COMMAND_ON);
+        if (onDimLevel > 0) {
+            dimTo(onDimLevel);
+        } else {
+            sendCommand(FHZ1000PcPort.COMMAND_ON);
+        }
         isOn = true;
     }
 
@@ -188,7 +198,7 @@ public class FS20Lamp extends HomeItemAdapter implements HomeItem {
 
     public void dim() {
         sendCommand(FHZ1000PcPort.COMMAND_DIM_DOWN);
-        //isOn = false;
+        isOn = true;
     }
 
     public void toggle() {
@@ -198,27 +208,139 @@ public class FS20Lamp extends HomeItemAdapter implements HomeItem {
 
     public void dimLoop() {
         sendCommand(FHZ1000PcPort.COMMAND_DIM_LOOP);
-        //isOn = !isOn;
+        isOn = !isOn;
     }
 
-    public void dim25() {
-        sendCommand((byte) (FHZ1000PcPort.COMMAND_DIM1 + 4));
-        //isOn = false;
+    public void dim1() {
+        dimTo(dimLevel1);
+        isOn = true;
     }
 
-    public void dim50() {
-        sendCommand((byte) (FHZ1000PcPort.COMMAND_DIM1 + 8));
-        //isOn = false;
+    public void dim2() {
+        dimTo(dimLevel2);
+        isOn = true;
     }
 
-    public void dim75() {
-        sendCommand((byte) (FHZ1000PcPort.COMMAND_DIM1 + 12));
-        //isOn = false;
+    public void dim3() {
+        dimTo(dimLevel3);
+        isOn = true;
     }
 
-    public void dim100() {
-        sendCommand((byte) (FHZ1000PcPort.COMMAND_ON - 1));
-        //isOn = false;
+    public void dim4() {
+        dimTo(dimLevel4);
+        isOn = true;
+    }
+
+
+
+    public String getDimLevel1() {
+        return Integer.toString(dimLevel1);
+    }
+
+    /**
+     * Set the pre set dim level which can be used by the corresponding dim-action
+     *
+     * @param mDimLevel1 dimLevel level in % of full power, 0 = off, 100 = full power
+     */
+    public void setDimLevel1(String mDimLevel1) {
+        dimLevel1 = stringToDimLevel(mDimLevel1);
+    }
+
+    private int stringToDimLevel(String level) {
+        int newDimLevel = Integer.parseInt(level);
+        return toDimLevel(newDimLevel);
+    }
+
+    private int toDimLevel(int newDimLevel) {
+        if (newDimLevel < 0) {
+            return 0;
+        } else if (newDimLevel > 100) {
+            return 100;
+        }
+        return newDimLevel;
+    }
+
+
+    /**
+     * Get the pre set dim level
+     *
+     * @return current dim level setting
+     */
+    public String getDimLevel2() {
+        return Integer.toString(dimLevel2);
+    }
+
+    /**
+     * Set the pre set dim level which can be used by the corresponding dim-action
+     *
+     * @param mDimLevel2 dimLevel level in % of full power, 0 = off, 100 = full power
+     */
+    public void setDimLevel2(String mDimLevel2) {
+        dimLevel2 = stringToDimLevel(mDimLevel2);
+    }
+
+    /**
+     * Get the pre set dim level
+     *
+     * @return current dim level setting
+     */
+    public String getDimLevel3() {
+        return Integer.toString(dimLevel3);
+    }
+
+    /**
+     * Set the pre set dim level which can be used by the corresponding dim-action
+     *
+     * @param mDimLevel3 dimLevel level in % of full power, 0 = off, 100 = full power
+     */
+    public void setDimLevel3(String mDimLevel3) {
+        dimLevel3 = stringToDimLevel(mDimLevel3);
+    }
+
+    /**
+     * Get the pre set dim level
+     *
+     * @return current dim level setting
+     */
+    public String getDimLevel4() {
+        return Integer.toString(dimLevel4);
+    }
+
+    /**
+     * Set the pre set dim level which can be used by the corresponding dim-action
+     *
+     * @param mDimLevel4 dimLevel level in % of full power, 0 = off, 100 = full power
+     */
+    public void setDimLevel4(String mDimLevel4) {
+        dimLevel4 = stringToDimLevel(mDimLevel4);
+    }
+
+    /**
+     * Get the pre set dim level
+     *
+     * @return current dim level setting
+     */
+    public String getOnDimLevel() {
+        if (onDimLevel == 0) {
+            return "";
+        }
+        return Integer.toString(onDimLevel);
+    }
+
+    /**
+     * Set the pre set dim level which can be used by the corresponding dim-action
+     *
+     * @param level dimLevel level in % of full power, 0 = off, 100 = full power
+     */
+    public void setOnDimLevel(String level) {
+        if (level.length() == 0) {
+            onDimLevel = 0;
+        } else {
+            onDimLevel = stringToDimLevel(level);
+            if (isOn) {
+                dimTo(onDimLevel);
+            }
+        }
     }
 
     public void dimTo(int percent) {
