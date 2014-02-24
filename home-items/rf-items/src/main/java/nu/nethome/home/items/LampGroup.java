@@ -35,11 +35,13 @@ public class LampGroup extends HomeItemAdapter implements HomeItem {
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"LampGroup\" Category=\"Controls\" >"
+            + "  <Attribute Name=\"State\" 	Type=\"String\" Get=\"getState\" />"
             + "  <Attribute Name=\"Lamps\" 	Type=\"Items\" Get=\"getLamps\" 	Set=\"setLamps\" />"
             + "  <Attribute Name=\"Delay\" 	Type=\"StringList\" Get=\"getDelay\" 	Set=\"setDelay\">"
             + "     <item>0</item> <item>100</item> <item>200</item> <item>300</item> <item>500</item> <item>1000</item></Attribute>"
             + "  <Action Name=\"on\" 	Method=\"performOn\" />"
             + "  <Action Name=\"off\" 	Method=\"performOff\" />"
+            + "  <Action Name=\"toggle\" 	Method=\"toggle\" />"
             + "  <Action Name=\"recall\" 	Method=\"performRecall\" />"
             + "  <Action Name=\"dim1\" 	Method=\"performDim1\" />"
             + "  <Action Name=\"dim2\" 	Method=\"performDim2\" />"
@@ -57,6 +59,7 @@ public class LampGroup extends HomeItemAdapter implements HomeItem {
     private String lampsOn = "";
     private LinkedBlockingQueue<Command> commandQueue = new LinkedBlockingQueue<Command>(MAX_QUEUE_SIZE);
     private long delay = 300;
+    private boolean lampState = false;
 
 
     public void commandDistributorTask() {
@@ -81,7 +84,7 @@ public class LampGroup extends HomeItemAdapter implements HomeItem {
                         dim1();
                         break;
                     case dim2:
-                        dim3();
+                        dim2();
                         break;
                     case dim3:
                         dim3();
@@ -98,18 +101,22 @@ public class LampGroup extends HomeItemAdapter implements HomeItem {
 
     private void dim1() {
         tryPerformActionOnItems(lamps, "dim1", "on");
+        lampState = true;
     }
 
     private void dim2() {
         tryPerformActionOnItems(lamps, "dim2", "on");
+        lampState = true;
     }
 
     private void dim3() {
         tryPerformActionOnItems(lamps, "dim3", "on");
+        lampState = true;
     }
 
     private void dim4() {
         tryPerformActionOnItems(lamps, "dim4", "on");
+        lampState = true;
     }
 
     @Override
@@ -158,6 +165,10 @@ public class LampGroup extends HomeItemAdapter implements HomeItem {
         this.delay = Long.parseLong(delay);
     }
 
+    public String getState() {
+        return lampState ? "On" : "Off";
+    }
+
     public void performOn() {
         commandQueue.add(Command.on);
     }
@@ -186,8 +197,17 @@ public class LampGroup extends HomeItemAdapter implements HomeItem {
         commandQueue.add(Command.dim4);
     }
 
+    public void toggle() {
+        if (lampState) {
+            performOff();
+        } else {
+            performOn();
+        }
+    }
+
     private void on() {
         performActionOnItems(lamps, "on");
+        lampState = true;
     }
 
     private void off() {
@@ -208,10 +228,12 @@ public class LampGroup extends HomeItemAdapter implements HomeItem {
             }
         }
         lampsOn = result.toString();
+        lampState = false;
     }
 
     private void recall() {
         performActionOnItems(lampsOn, "on");
+        lampState = true;
     }
 
     private void performActionOnItems(String items, String action) {

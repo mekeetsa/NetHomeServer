@@ -20,6 +20,7 @@
 package nu.nethome.home.items;
 
 import nu.nethome.home.item.ExecutionFailure;
+import nu.nethome.home.item.HomeItemModel;
 import nu.nethome.home.item.HomeItemProxy;
 import nu.nethome.home.system.HomeService;
 import org.junit.After;
@@ -40,22 +41,31 @@ public class LampGroupTest {
     HomeItemProxy lampOff;
     LampGroup lampGroup;
     HomeService server;
+    HomeItemModel dimModel;
+    HomeItemModel nonDimModel;
 
     @Before
     public void setUp() throws Exception {
         lampGroup = new LampGroup();
+        dimModel = mock(HomeItemModel.class);
+        when(dimModel.hasAction(any(String.class))).thenReturn(true);
+        nonDimModel = mock(HomeItemModel.class);
+        when(nonDimModel.hasAction(any(String.class))).thenReturn(false);
 
         lampOn1 = mock(HomeItemProxy.class);
         when(lampOn1.getAttributeValue("State")).thenReturn("on");
         when(lampOn1.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE)).thenReturn("1");
+        when(lampOn1.getModel()).thenReturn(dimModel);
 
         lampOn2 = mock(HomeItemProxy.class);
         when(lampOn2.getAttributeValue("State")).thenReturn("on");
         when(lampOn2.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE)).thenReturn("3");
+        when(lampOn2.getModel()).thenReturn(nonDimModel);
 
         lampOff = mock(HomeItemProxy.class);
         when(lampOff.getAttributeValue("State")).thenReturn("off");
         when(lampOff.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE)).thenReturn("2");
+        when(lampOff.getModel()).thenReturn(dimModel);
 
         server = mock(HomeService.class);
         when(server.openInstance("1")).thenReturn(lampOn1);
@@ -79,6 +89,7 @@ public class LampGroupTest {
         verify(lampOn1, times(1)).callAction("on");
         verify(lampOn2, times(1)).callAction("on");
         verify(lampOff, times(1)).callAction("on");
+        assertThat(lampGroup.getState(), is("On"));
     }
 
     private void sleep(long delay) {
@@ -96,6 +107,7 @@ public class LampGroupTest {
         verify(lampOn1, times(1)).callAction("off");
         verify(lampOn2, times(1)).callAction("off");
         verify(lampOff, times(1)).callAction("off");
+        assertThat(lampGroup.getState(), is("Off"));
     }
 
     @Test
@@ -113,6 +125,7 @@ public class LampGroupTest {
         verify(lampOn1, times(1)).callAction("on");
         verify(lampOn2, times(1)).callAction("on");
         verify(lampOff, times(0)).callAction("on");
+        assertThat(lampGroup.getState(), is("On"));
     }
 
     @Test
@@ -127,5 +140,62 @@ public class LampGroupTest {
         verify(lampOn2, times(1)).callAction("off");
         sleep(400);
         verify(lampOff, times(1)).callAction("off");
+    }
+
+    @Test
+    public void canToggle() throws Exception {
+        lampGroup.toggle();
+        sleep(100);
+        verify(lampOn1, times(1)).callAction("on");
+        verify(lampOn2, times(1)).callAction("on");
+        verify(lampOff, times(1)).callAction("on");
+        assertThat(lampGroup.getState(), is("On"));
+
+        lampGroup.toggle();
+        sleep(100);
+        verify(lampOn1, times(1)).callAction("off");
+        verify(lampOn2, times(1)).callAction("off");
+        verify(lampOff, times(1)).callAction("off");
+        assertThat(lampGroup.getState(), is("Off"));
+    }
+
+    @Test
+    public void canDimToLevel1() throws ExecutionFailure {
+        lampGroup.performDim1();
+        sleep(100);
+        verify(lampOn1, times(1)).callAction("dim1");
+        verify(lampOn2, times(1)).callAction("on");
+        verify(lampOff, times(1)).callAction("dim1");
+        assertThat(lampGroup.getState(), is("On"));
+    }
+
+    @Test
+    public void canDimToLevel2() throws ExecutionFailure {
+        lampGroup.performDim2();
+        sleep(100);
+        verify(lampOn1, times(1)).callAction("dim2");
+        verify(lampOn2, times(1)).callAction("on");
+        verify(lampOff, times(1)).callAction("dim2");
+        assertThat(lampGroup.getState(), is("On"));
+    }
+
+    @Test
+    public void canDimToLevel3() throws ExecutionFailure {
+        lampGroup.performDim3();
+        sleep(100);
+        verify(lampOn1, times(1)).callAction("dim3");
+        verify(lampOn2, times(1)).callAction("on");
+        verify(lampOff, times(1)).callAction("dim3");
+        assertThat(lampGroup.getState(), is("On"));
+    }
+
+    @Test
+    public void canDimToLevel4() throws ExecutionFailure {
+        lampGroup.performDim4();
+        sleep(100);
+        verify(lampOn1, times(1)).callAction("dim4");
+        verify(lampOn2, times(1)).callAction("on");
+        verify(lampOff, times(1)).callAction("dim4");
+        assertThat(lampGroup.getState(), is("On"));
     }
 }
