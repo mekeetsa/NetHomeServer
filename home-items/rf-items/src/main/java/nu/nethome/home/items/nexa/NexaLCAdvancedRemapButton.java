@@ -39,7 +39,7 @@ import java.util.logging.Logger;
 public class NexaLCAdvancedRemapButton extends NexaLCRemapButton implements HomeItem {
 
     private static final String m_Model = ("<?xml version = \"1.0\"?> \n"
-            + "<HomeItem Class=\"NexaLCRemapButton\" Category=\"Controls\" >"
+            + "<HomeItem Class=\"NexaLCAdvancedRemapButton\" Category=\"Controls\" >"
             + "  <Attribute Name=\"State\" 	Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"Address\" 	Type=\"String\" Get=\"getAddress\" 	Set=\"setAddress\" />"
             + "  <Attribute Name=\"Button\" Type=\"String\" Get=\"getButton\" 	Set=\"setButton\" />"
@@ -60,7 +60,7 @@ public class NexaLCAdvancedRemapButton extends NexaLCRemapButton implements Home
             + "</HomeItem> ");
 
     private static Logger logger = Logger.getLogger(NexaLCAdvancedRemapButton.class.getName());
-    private long longPressTime = 500;
+    private long longPressTime = 1000;
     private String releaseLongOnCommand = "";
     private String releaseOnCommand = "";
     private String pressOnCommand = "";
