@@ -6,11 +6,12 @@
     <parent>
         <artifactId>open-nethome</artifactId>
         <groupId>nu.nethome</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>web-items</artifactId>
     <name>web-items</name>
+    <version>${NethomeVersion}</version>
     <url>http://maven.apache.org</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
