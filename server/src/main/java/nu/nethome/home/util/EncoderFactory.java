@@ -24,9 +24,7 @@ import nu.nethome.util.ps.FieldValue;
 import nu.nethome.util.ps.Message;
 import nu.nethome.util.ps.ProtocolEncoder;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class EncoderFactory {
 
@@ -92,6 +90,14 @@ public class EncoderFactory {
         int result = event.getAttributeInt("Repeat");
         if (result < 1) {
             result = foundEncoder.getInfo().getDefaultRepeatCount();
+        }
+        return result;
+    }
+
+    public List<String> getProtocolNames() {
+        List<String> result = new ArrayList<String>();
+        for (ProtocolEncoder encoder : encoders.values()) {
+            result.add(encoder.getInfo().getName());
         }
         return result;
     }

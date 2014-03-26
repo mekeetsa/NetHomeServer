@@ -69,9 +69,20 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
     private String portName = "COM14";
     private SendQueue sendQueue = new SendQueue(TIMEOUT_MILLISECONDS);
     private String receivedProtocols = "UPM,NexaL,Nexa";
+    private String transmittedProtocols;
+    private Set<String> transmittedProtocolSet = new HashSet<String>();
 
     public Tellstick() {
         encoderFactory = new EncoderFactory(Encoders.getAllTypes());
+        String separator = "";
+        StringBuilder protocols = new StringBuilder();
+        for (String name : encoderFactory.getProtocolNames()) {
+            transmittedProtocolSet.add(name);
+            protocols.append(separator);
+            protocols.append(name);
+            separator = ",";
+        }
+        transmittedProtocols = protocols.toString();
         addEventReceiver(new UPMEventReceiver(this));
         addEventReceiver(new NexaLEventReceiver(this));
         addEventReceiver(new NexaEventReceiver(this));
@@ -94,6 +105,13 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
         StringBuilder model = new StringBuilder();
         model.append(MODEL1);
         addPortItems(model);
+        addReceivedProtocolsAttribute(model);
+        addTransmittedProtocolsAttribute(model);
+        model.append(MODEL2);
+        return model.toString();
+    }
+
+    private void addReceivedProtocolsAttribute(StringBuilder model) {
         model.append("  <Attribute Name=\"ReceivedProtocols\" Type=\"Strings\" Get=\"getReceivedProtocols\" Set=\"setReceivedProtocols\" >");
         for (String protocol : supportedReceivedProtocols()) {
             model.append("<item>");
@@ -101,8 +119,16 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
             model.append("</item>");
         }
         model.append("  </Attribute>");
-        model.append(MODEL2);
-        return model.toString();
+    }
+
+    private void addTransmittedProtocolsAttribute(StringBuilder model) {
+        model.append("  <Attribute Name=\"TransmittedProtocols\" Type=\"Strings\" Get=\"getTransmittedProtocols\" Set=\"setTransmittedProtocols\" >");
+        for (String protocol : encoderFactory.getProtocolNames()) {
+            model.append("<item>");
+            model.append(protocol);
+            model.append("</item>");
+        }
+        model.append("  </Attribute>");
     }
 
     private void addPortItems(StringBuilder model) {
@@ -123,7 +149,7 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
             return false;
         }
         ProtocolEncoder foundEncoder = encoderFactory.getEncoder(event);
-        if (foundEncoder != null) {
+        if (foundEncoder != null && transmittedProtocolSet.contains(foundEncoder.getInfo().getName())) {
             try {
                 Message parameters = encoderFactory.extractMessage(event);
                 int repeat = calculateRepeat(event, foundEncoder);
@@ -188,6 +214,16 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
 
     public String getReceivedProtocols() {
         return receivedProtocols;
+    }
+
+    public void setTransmittedProtocols(String transmittedProtocols) {
+        transmittedProtocolSet.clear();
+        Collections.addAll(transmittedProtocolSet, transmittedProtocols.split(","));
+        this.transmittedProtocols = transmittedProtocols;
+    }
+
+    public String getTransmittedProtocols() {
+        return transmittedProtocols;
     }
 
     public void receivedTellstickEvent(String message) {
