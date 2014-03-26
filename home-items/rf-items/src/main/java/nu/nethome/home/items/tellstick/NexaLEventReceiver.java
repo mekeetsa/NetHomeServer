@@ -22,7 +22,7 @@ package nu.nethome.home.items.tellstick;
 import nu.nethome.coders.decoders.NexaLDecoder;
 import nu.nethome.util.ps.ProtocolDecoderSink;
 
-public class NexaLEventReceiver implements TellstickEventReceiver {
+public class NexaLEventReceiver extends TellstickEventReceiverAdaptor {
 
     NexaLDecoder decoder = new NexaLDecoder();
 
@@ -31,12 +31,17 @@ public class NexaLEventReceiver implements TellstickEventReceiver {
     }
 
     @Override
-    public void processEvent(TellstickEvent event) {
+    public void processActiveEvent(TellstickEvent event) {
         decoder.decodeMessage(event.getData());
     }
 
     @Override
     public String getEventType() {
         return "protocol:arctech;model:selflearning";
+    }
+
+    @Override
+    public String getProtocolName() {
+        return "NexaL";
     }
 }

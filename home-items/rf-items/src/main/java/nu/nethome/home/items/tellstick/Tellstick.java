@@ -29,9 +29,7 @@ import nu.nethome.util.plugin.Plugin;
 import nu.nethome.util.ps.*;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -70,6 +68,7 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
     private boolean receive = true;
     private String portName = "COM14";
     private SendQueue sendQueue = new SendQueue(TIMEOUT_MILLISECONDS);
+    private String receivedProtocols = "UPM,NexaL,Nexa";
 
     public Tellstick() {
         encoderFactory = new EncoderFactory(Encoders.getAllTypes());
@@ -82,10 +81,31 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
         eventReceivers.put(eventReceiver.getEventType(), eventReceiver);
     }
 
+    private List<String> supportedReceivedProtocols() {
+        List<String> result = new ArrayList<String>();
+        for (TellstickEventReceiver receiver : eventReceivers.values()) {
+            result.add(receiver.getProtocolName());
+        }
+        return result;
+    }
+
     @Override
     public String getModel() {
         StringBuilder model = new StringBuilder();
         model.append(MODEL1);
+        addPortItems(model);
+        model.append("  <Attribute Name=\"ReceivedProtocols\" Type=\"Strings\" Get=\"getReceivedProtocols\" Set=\"setReceivedProtocols\" >");
+        for (String protocol : supportedReceivedProtocols()) {
+            model.append("<item>");
+            model.append(protocol);
+            model.append("</item>");
+        }
+        model.append("  </Attribute>");
+        model.append(MODEL2);
+        return model.toString();
+    }
+
+    private void addPortItems(StringBuilder model) {
         List<String> ports = TellstickPort.listSerialPorts();
         model.append("<item>");
         model.append(portName);
@@ -96,8 +116,6 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
             model.append("</item>");
         }
         model.append("</Attribute>");
-        model.append(MODEL2);
-        return model.toString();
     }
 
     public boolean receiveEvent(Event event) {
@@ -157,6 +175,19 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
         } catch (IOException e) {
             logger.log(Level.WARNING, "failed to close serial port: " + portName, e);
         }
+    }
+
+    public void setReceivedProtocols(String protocols) {
+        Set<String> protocolSet = new HashSet<String>();
+        Collections.addAll(protocolSet, protocols.split(","));
+        for (TellstickEventReceiver receiver : eventReceivers.values()) {
+            receiver.setActive(protocolSet.contains(receiver.getProtocolName()));
+        }
+        this.receivedProtocols = protocols;
+    }
+
+    public String getReceivedProtocols() {
+        return receivedProtocols;
     }
 
     public void receivedTellstickEvent(String message) {

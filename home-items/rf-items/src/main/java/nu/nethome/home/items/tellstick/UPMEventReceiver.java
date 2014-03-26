@@ -22,7 +22,7 @@ package nu.nethome.home.items.tellstick;
 import nu.nethome.coders.decoders.UPMDecoder;
 import nu.nethome.util.ps.ProtocolDecoderSink;
 
-public class UPMEventReceiver implements TellstickEventReceiver {
+public class UPMEventReceiver extends TellstickEventReceiverAdaptor {
 
     UPMDecoder decoder = new UPMDecoder();
 
@@ -31,7 +31,7 @@ public class UPMEventReceiver implements TellstickEventReceiver {
     }
 
     @Override
-    public void processEvent(TellstickEvent event) {
+    public void processActiveEvent(TellstickEvent event) {
         long binaryData = event.getData() | 0xC00000000L;
         decoder.decodeMessage(binaryData);
     }
@@ -39,5 +39,10 @@ public class UPMEventReceiver implements TellstickEventReceiver {
     @Override
     public String getEventType() {
         return "protocol:mandolyn;model:temperaturehumidity";
+    }
+
+    @Override
+    public String getProtocolName() {
+        return "UPM";
     }
 }

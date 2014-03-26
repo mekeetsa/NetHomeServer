@@ -22,4 +22,7 @@ package nu.nethome.home.items.tellstick;
 public interface TellstickEventReceiver {
     void processEvent(TellstickEvent event);
     String getEventType();
+    String getProtocolName();
+    void setActive(boolean status);
+    boolean isActive();
 }

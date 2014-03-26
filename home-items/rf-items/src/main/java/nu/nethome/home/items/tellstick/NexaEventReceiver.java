@@ -22,7 +22,7 @@ package nu.nethome.home.items.tellstick;
 import nu.nethome.coders.decoders.NexaDecoder;
 import nu.nethome.util.ps.ProtocolDecoderSink;
 
-public class NexaEventReceiver implements TellstickEventReceiver {
+public class NexaEventReceiver extends TellstickEventReceiverAdaptor {
 
     NexaDecoder decoder = new NexaDecoder();
 
@@ -31,7 +31,7 @@ public class NexaEventReceiver implements TellstickEventReceiver {
     }
 
     @Override
-    public void processEvent(TellstickEvent event) {
+    public void processActiveEvent(TellstickEvent event) {
         long tellstickData = event.getData();
         long tellstickBitmask = 1;
         int nethomeData = 0;
@@ -49,5 +49,10 @@ public class NexaEventReceiver implements TellstickEventReceiver {
     @Override
     public String getEventType() {
         return "protocol:arctech;model:codeswitch";
+    }
+
+    @Override
+    public String getProtocolName() {
+        return "Nexa";
     }
 }
