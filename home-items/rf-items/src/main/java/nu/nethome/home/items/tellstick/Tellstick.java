@@ -47,10 +47,7 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
 
     private static final String MODEL1 = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"TellstickDuo\"  Category=\"Hardware\"  Morphing=\"true\" >"
-            + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
-            + "  <Attribute Name=\"Send\" Type=\"Boolean\" Get=\"isSend\" Set=\"setSend\" />"
-            + "  <Attribute Name=\"Receive\" Type=\"Boolean\" Get=\"isReceive\" Set=\"setReceive\" />"
-            + "  <Attribute Name=\"PortName\" Type=\"StringList\" Get=\"getPortName\" Set=\"setPortName\" >");
+            + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />");
 
     private static final String MODEL2 = ("  <Attribute Name=\"FirmwareVersion\" Type=\"String\" Get=\"getFirmwareVersion\" />"
             + "  <Attribute Name=\"ReceivedMessages\" Type=\"String\" Get=\"getReceivedMessages\" />"
@@ -64,8 +61,6 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
 
     private volatile int receivedMessages = 0;
     private volatile int sentMessages = 0;
-    private boolean send = true;
-    private boolean receive = true;
     private String portName = "COM14";
     private SendQueue sendQueue = new SendQueue(TIMEOUT_MILLISECONDS);
     private String receivedProtocols = "UPM,NexaL,Nexa";
@@ -104,9 +99,9 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
     public String getModel() {
         StringBuilder model = new StringBuilder();
         model.append(MODEL1);
-        addPortItems(model);
         addReceivedProtocolsAttribute(model);
         addTransmittedProtocolsAttribute(model);
+        addPortNameAttribute(model);
         model.append(MODEL2);
         return model.toString();
     }
@@ -131,21 +126,8 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
         model.append("  </Attribute>");
     }
 
-    private void addPortItems(StringBuilder model) {
-        List<String> ports = TellstickPort.listSerialPorts();
-        model.append("<item>");
-        model.append(portName);
-        model.append("</item>");
-        for (String port : ports) {
-            model.append("<item>");
-            model.append(port);
-            model.append("</item>");
-        }
-        model.append("</Attribute>");
-    }
-
     public boolean receiveEvent(Event event) {
-        if (!event.getAttribute("Direction").equals("Out") || tellstick == null || !send) {
+        if (!event.getAttribute("Direction").equals("Out") || tellstick == null) {
             return false;
         }
         ProtocolEncoder foundEncoder = encoderFactory.getEncoder(event);
@@ -167,6 +149,20 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
             }
         }
         return false;
+    }
+
+    private void addPortNameAttribute(StringBuilder model) {
+        model.append("  <Attribute Name=\"PortName\" Type=\"StringList\" Get=\"getPortName\" Set=\"setPortName\" >");
+        List<String> ports = TellstickPort.listSerialPorts();
+        model.append("<item>");
+        model.append(portName);
+        model.append("</item>");
+        for (String port : ports) {
+            model.append("<item>");
+            model.append(port);
+            model.append("</item>");
+        }
+        model.append("</Attribute>");
     }
 
     private int calculateRepeat(Event event, ProtocolEncoder foundEncoder) {
@@ -227,14 +223,12 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
     }
 
     public void receivedTellstickEvent(String message) {
-        if (receive) {
-            receivedMessages++;
-            logger.fine("Received from Tellstick: " + message);
-            if (message.startsWith(RECIEVED_ACK) || message.startsWith(RECIEVED_ACK_EXTENDED)) {
-                handleAck(message);
-            } else if (message.startsWith(RECIEVED_MESSAGE)) {
-                handleReceivedMessage(message);
-            }
+        receivedMessages++;
+        logger.fine("Received from Tellstick: " + message);
+        if (message.startsWith(RECIEVED_ACK) || message.startsWith(RECIEVED_ACK_EXTENDED)) {
+            handleAck(message);
+        } else if (message.startsWith(RECIEVED_MESSAGE)) {
+            handleReceivedMessage(message);
         }
     }
 
@@ -313,21 +307,5 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
 
     public String getFirmwareVersion() {
         return tellstick != null ? tellstick.getFirmwareVersion() : "";
-    }
-
-    public String isSend() {
-        return send ? "Yes" : "No";
-    }
-
-    public void setSend(String send) {
-        this.send = send.equalsIgnoreCase("true") || send.equalsIgnoreCase("yes");
-    }
-
-    public String isReceive() {
-        return receive ? "Yes" : "No";
-    }
-
-    public void setReceive(String receive) {
-        this.receive = receive.equalsIgnoreCase("true") || receive.equalsIgnoreCase("yes");
     }
 }
