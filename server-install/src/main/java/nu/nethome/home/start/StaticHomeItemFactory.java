@@ -114,6 +114,8 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("UPMWindDirection", nu.nethome.home.items.upm.UPMWindDirection.class),
             new HomeItemClassInfo("UPMRainfall", nu.nethome.home.items.upm.UPMRainfall.class),
             new HomeItemClassInfo("UPMSoilMoisture", nu.nethome.home.items.upm.UPMSoilMoisture.class),
+            new HomeItemClassInfo("OregonThermometer", nu.nethome.home.items.oregon.OregonThermometer.class),
+            new HomeItemClassInfo("OregonHygrometer", nu.nethome.home.items.oregon.OregonHygrometer.class),
             new HomeItemClassInfo("NexaLamp", nu.nethome.home.items.nexa.NexaLamp.class),
             new HomeItemClassInfo("NexaRemapButton", nu.nethome.home.items.nexa.NexaRemapButton.class),
             new HomeItemClassInfo("NexaLCLamp", nu.nethome.home.items.nexa.NexaLCLamp.class),

@@ -21,6 +21,7 @@ package nu.nethome.home.items.tellstick;
 
 public class TellstickEvent {
     private long data;
+    private String dataString;
     private String model = "";
     private String protocol = "";
     private String signalClass = "";
@@ -39,6 +40,8 @@ public class TellstickEvent {
                 signalClass = fields[1];
             } else if (fields[0].equals("data") && fields[1].startsWith("0x") && fields[1].length() > 2) {
                 data = Long.parseLong(fields[1].substring(2), 16);
+            } else if (fields[0].equals("data") && fields[1].length() > 0) {
+                dataString = fields[1];
             }
         }
         eventType = String.format("protocol:%s;model:%s", protocol, model);
@@ -46,6 +49,10 @@ public class TellstickEvent {
 
     public long getData() {
         return data;
+    }
+
+    public String getDataString() {
+        return dataString;
     }
 
     public String getModel() {

@@ -81,6 +81,7 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
         addEventReceiver(new UPMEventReceiver(this));
         addEventReceiver(new NexaLEventReceiver(this));
         addEventReceiver(new NexaEventReceiver(this));
+        addEventReceiver(new OregonEventReceiver(this));
     }
 
     private void addEventReceiver(TellstickEventReceiver eventReceiver) {
