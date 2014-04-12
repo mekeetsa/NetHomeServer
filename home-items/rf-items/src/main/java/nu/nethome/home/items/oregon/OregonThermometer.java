@@ -42,6 +42,7 @@ public class OregonThermometer extends HomeItemAdapter implements HomeItem, Valu
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"OregonThermometer\" Category=\"Thermometers\" >"
             + "  <Attribute Name=\"Temperature\" 	Type=\"String\" Get=\"getValue\" Default=\"true\" />"
+            + "  <Attribute Name=\"SensorModel\" 	Type=\"String\" Get=\"getSensorType\" />"
             + "  <Attribute Name=\"BatteryLevel\" 	Type=\"String\" Get=\"getBatteryLevel\" />"
             + "  <Attribute Name=\"TimeSinceUpdate\" 	Type=\"String\" Get=\"getTimeSinceUpdate\" />"
             + "  <Attribute Name=\"Channel\" 	Type=\"String\" Get=\"getChannel\" 	Set=\"setChannel\" />"
@@ -65,17 +66,18 @@ public class OregonThermometer extends HomeItemAdapter implements HomeItem, Valu
     private Date latestUpdateOrCreation = new Date();
     protected boolean hasBeenUpdated = false;
     private boolean batteryIsLow = false;
+    private String sensorType = "";
 
     public OregonThermometer() {
     }
 
     public boolean receiveEvent(Event event) {
         // Check if the event is an Oregon_Message and in that case check if it is
-        // intended for this thermometer (by House Code and Device Code).
+        // intended for this thermometer (by channel and device id).
         // See http://wiki.nethome.nu/doku.php/events#upm_message
         if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals("Oregon_Message") &&
-                (event.getAttribute("Oregon.Channel").equals(itemChannel) ||
-                event.getAttribute("Oregon.Id").equals(itemDeviceId))) {
+                (event.getAttribute("Oregon.Channel").equals(itemChannel) &&
+                        (event.getAttribute("Oregon.Id").equals(itemDeviceId) || itemDeviceId.length() == 0))) {
             return handleEvent(event);
         } else {
             return handleInit(event);
@@ -89,6 +91,7 @@ public class OregonThermometer extends HomeItemAdapter implements HomeItem, Valu
             logger.warning("Low battery for " + name);
         }
         batteryIsLow = newBatteryLevel;
+        sensorType = String.format("%4X", event.getAttributeInt("Oregon.SensorId"));
         logger.finer("Temperature update: " + temperature + " degrees");
         // Format and store the current time.
         latestUpdateOrCreation = new Date();
@@ -226,5 +229,9 @@ public class OregonThermometer extends HomeItemAdapter implements HomeItem, Valu
     @SuppressWarnings("UnusedDeclaration")
     public String getTimeSinceUpdate() {
         return Long.toString((new Date().getTime() - latestUpdateOrCreation.getTime()) / 1000);
+    }
+
+    public String getSensorType() {
+        return sensorType;
     }
 }
