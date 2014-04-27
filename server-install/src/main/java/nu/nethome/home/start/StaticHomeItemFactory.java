@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005-2013, Stefan Strömberg <stefangs@nethome.nu>
+ * Copyright (C) 2005-2014, Stefan Strömberg <stefangs@nethome.nu>
  *
  * This file is part of OpenNetHome  (http://www.nethome.nu)
  *
@@ -31,7 +31,7 @@ import java.util.logging.Logger;
  * A repository of all installed HomeItem classes in the system. Can list all supported classes
  * and create instances of them.
  *
- * @author Stefan Str�mberg
+ * @author Stefan Strömberg
  */
 public class StaticHomeItemFactory implements HomeItemFactory {
 
@@ -116,6 +116,8 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("UPMSoilMoisture", nu.nethome.home.items.upm.UPMSoilMoisture.class),
             new HomeItemClassInfo("OregonThermometer", nu.nethome.home.items.oregon.OregonThermometer.class),
             new HomeItemClassInfo("OregonHygrometer", nu.nethome.home.items.oregon.OregonHygrometer.class),
+            new HomeItemClassInfo("FineOffsetThermometer", nu.nethome.home.items.fineoffset.FineOffsetThermometer.class),
+            new HomeItemClassInfo("FineOffsetHygrometer", nu.nethome.home.items.fineoffset.FineOffsetHygrometer.class),
             new HomeItemClassInfo("NexaLamp", nu.nethome.home.items.nexa.NexaLamp.class),
             new HomeItemClassInfo("NexaRemapButton", nu.nethome.home.items.nexa.NexaRemapButton.class),
             new HomeItemClassInfo("NexaLCLamp", nu.nethome.home.items.nexa.NexaLCLamp.class),
