@@ -112,6 +112,10 @@ public class FineOffsetThermometer extends HomeItemAdapter implements HomeItem, 
     }
 
     public String getValue() {
+        return getTemp();
+    }
+
+    private String getTemp() {
         return hasBeenUpdated ? String.format("%.1f", temperature) : "";
     }
 
