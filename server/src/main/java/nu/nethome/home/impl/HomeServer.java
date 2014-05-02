@@ -478,8 +478,10 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ValueIte
                 logger.warning("Exception caught during stop of Item: " + e.getMessage());
             }
         }
+        logger.info("Stopped Items");
         itemDirectory.clear();
         eventCountlogger.stop();
+        logger.info("Stopped Internal services");
     }
 
     /**
@@ -493,6 +495,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ValueIte
     public void handleUpgrade() {
         if (doUpgrade) {
             try {
+                logger.info("Starting upgrade sequence");
                 Runtime r = Runtime.getRuntime();
                 // Run the upgrade command. If this is a Windows bat-file, you have to have one bat file which
                 // does a "start" of the second real upgrade bat file.
