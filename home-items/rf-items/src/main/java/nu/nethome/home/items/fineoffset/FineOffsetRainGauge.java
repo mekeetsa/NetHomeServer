@@ -40,7 +40,7 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"FineOffsetRainGauge\" Category=\"Gauges\" >"
-            + "  <Attribute Name=\"Rain1h\" Type=\"String\" Get=\"getValue\" Default=\"true\" />"
+            + "  <Attribute Name=\"Rain1h\" Type=\"String\" Get=\"getRain1h\" Default=\"true\" />"
             + "  <Attribute Name=\"Rain24h\" Type=\"String\" Get=\"getRain24h\" />"
             + "  <Attribute Name=\"RainWeek\" Type=\"String\" Get=\"getRainWeek\" />"
             + "  <Attribute Name=\"RainMonth\" Type=\"String\" Get=\"getRainMonth\" />"
@@ -67,6 +67,7 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
     private int currentHour = 0;
     private int minuteCounter = 0;
     private long totalHours = 0;
+    private long totalRainAtLastValue = 0;
 
     // Public attributes
     private long totalRain = 0;
@@ -175,7 +176,14 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
     }
 
     public String getValue() {
-        return getRain1h();
+        if (!hasBeenUpdated) {
+            return "";
+        }
+        if (totalRainAtLastValue == 0) {
+            totalRainAtLastValue = totalRain;
+        }
+        double rain1h = (totalRain - totalRainAtLastValue) * rainConstantK;
+        return String.format("%.1f", rain1h);
     }
 
     public String getTotalRain() {

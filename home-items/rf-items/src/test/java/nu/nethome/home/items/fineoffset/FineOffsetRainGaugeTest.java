@@ -81,6 +81,25 @@ public class FineOffsetRainGaugeTest {
         assertThat(proxy.getAttributeValue("RainMonth"), is("2,0"));
     }
 
+    @Test
+    public void getLoggerValueWithoutUpdates() throws Exception {
+        assertThat(rainGauge.getValue(), is(""));
+    }
+
+    @Test
+    public void getFirstLoggerValue() throws Exception {
+        pushValue(10);
+        assertThat(rainGauge.getValue(), is("0,0"));
+    }
+
+    @Test
+    public void LoggerValueIsDiffBetweenMeasurementPoints() throws Exception {
+        pushValue(10);
+        assertThat(rainGauge.getValue(), is("0,0"));
+        pushValue(20);
+        assertThat(rainGauge.getValue(), is("1,0"));
+    }
+
     private void pushValue(int rainValue) {
         Event event = new TstEvent("FineOffset_Message");
         event.setAttribute("FineOffset.Rain", rainValue);
