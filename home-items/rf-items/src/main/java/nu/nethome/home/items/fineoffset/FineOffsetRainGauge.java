@@ -28,12 +28,13 @@ import nu.nethome.util.plugin.Plugin;
 import java.util.logging.Logger;
 
 /**
- * Presents and logs temperature values received by an FineOffset-temperature sensor. The actual
+ * Presents and logs rain values received by an FineOffset-rain sensor. The actual
  * values are received as events which may be sent by any kind of receiver module
  * which can receive FineOffset messages from the hardware devices.
  *
  * @author Stefan
  */
+@SuppressWarnings("UnusedDeclaration")
 @Plugin
 @HomeItemType(value = "Gauges", creationEvents = "FineOffset_Message")
 public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeItem {
@@ -53,6 +54,7 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
             + "  <Attribute Name=\"RainK\" Type=\"String\" Get=\"getK\" 	Set=\"setK\" />"
             + "  <Attribute Name=\"TempK\" Type=\"String\" Get=\"getK\" 	Set=\"setK\" />"
             + "  <Attribute Name=\"TempM\" Type=\"String\" Get=\"getM\" 	Set=\"setM\" />"
+            + "  <Attribute Name=\"TotalRainBase\" Type=\"String\" Get=\"getTotalRainBase\" Set=\"setTotalRainBase\" />"
             + "</HomeItem> ");
     public static final int MINUTES_PER_HOUR = 60;
     public static final int HOURS_PER_MONTH = 24 * 31;
@@ -68,9 +70,10 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
     private int minuteCounter = 0;
     private long totalHours = 0;
     private long totalRainAtLastValue = 0;
+    private long totalRainBase = 0;
+    private long sensorTotalRain = 0;
 
     // Public attributes
-    private long totalRain = 0;
     private double rainConstantK = 0.1;
 
     public FineOffsetRainGauge() {
@@ -88,12 +91,12 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
     }
 
     private void pushValue() {
-        lastHour[currentMinute] = totalRain;
+        lastHour[currentMinute] = getTotalRainInternal();
         currentMinute = (currentMinute + 1) % HOUR_BUFFER_SIZE;
         totalMinutes++;
         if (++minuteCounter == MINUTES_PER_HOUR) {
             minuteCounter = 0;
-            lastMonth[currentHour] = totalRain;
+            lastMonth[currentHour] = getTotalRainInternal();
             currentHour = (currentHour + 1) % MONTH_BUFFER_SIZE;
             totalHours++;
         }
@@ -101,20 +104,12 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
 
     @Override
     protected boolean handleEvent(Event event) {
-        long oldTotalRain = totalRain;
-        totalRain = event.getAttributeInt("FineOffset.Rain");
-        if (oldTotalRain > totalRain) {
-            resetStatistics();
+        long oldSensorTotalRain = sensorTotalRain;
+        sensorTotalRain = event.getAttributeInt("FineOffset.Rain");
+        if (oldSensorTotalRain > sensorTotalRain) {
+            totalRainBase += oldSensorTotalRain;
         }
         return super.handleEvent(event);
-    }
-
-    private void resetStatistics() {
-        currentMinute = 0;
-        totalMinutes = 0;
-        currentHour = 0;
-        minuteCounter = 0;
-        totalHours = 0;
     }
 
     public String getModel() {
@@ -125,16 +120,16 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
         if (!hasBeenUpdated) {
             return "";
         }
-        long rainTocompareWith;
+        long rainToCompareWith;
         if (totalMinutes == 0) {
-            rainTocompareWith = totalRain;
+            rainToCompareWith = getTotalRainInternal();
         } else if (totalMinutes <= MINUTES_PER_HOUR) {
-            rainTocompareWith = lastHour[0];
+            rainToCompareWith = lastHour[0];
         } else {
-            rainTocompareWith = getValue1HourAgo();
+            rainToCompareWith = getValue1HourAgo();
         }
-        rainTocompareWith = (rainTocompareWith == 0) ? totalRain : rainTocompareWith;
-        double rain1h = (totalRain - rainTocompareWith) * rainConstantK;
+        rainToCompareWith = (rainToCompareWith == 0) ? getTotalRainInternal() : rainToCompareWith;
+        double rain1h = (getTotalRainInternal() - rainToCompareWith) * rainConstantK;
         return String.format("%.1f", rain1h);
     }
 
@@ -162,8 +157,8 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
         } else {
             rainTocompareWith = getValueHoursAgo(hours);
         }
-        rainTocompareWith = (rainTocompareWith == 0) ? totalRain : rainTocompareWith;
-        double rain1h = (totalRain - rainTocompareWith) * rainConstantK;
+        rainTocompareWith = (rainTocompareWith == 0) ? getTotalRainInternal() : rainTocompareWith;
+        double rain1h = (getTotalRainInternal() - rainTocompareWith) * rainConstantK;
         return String.format("%.1f", rain1h);
     }
 
@@ -180,14 +175,14 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
             return "";
         }
         if (totalRainAtLastValue == 0) {
-            totalRainAtLastValue = totalRain;
+            totalRainAtLastValue = getTotalRainInternal();
         }
-        double rain1h = (totalRain - totalRainAtLastValue) * rainConstantK;
+        double rain1h = (getTotalRainInternal() - totalRainAtLastValue) * rainConstantK;
         return String.format("%.1f", rain1h);
     }
 
     public String getTotalRain() {
-        return hasBeenUpdated ? String.format("%.1f", totalRain * rainConstantK) : "";
+        return hasBeenUpdated ? String.format("%.1f", getTotalRainInternal() * rainConstantK) : "";
     }
 
     public String getRainK() {
@@ -196,5 +191,17 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
 
     public void setRainK(String rainK) {
         this.rainConstantK = Double.parseDouble(rainK);
+    }
+
+    public String getTotalRainBase() {
+        return Double.toString(totalRainBase);
+    }
+
+    public void setTotalRainBase(String rainK) {
+        this.rainConstantK = Double.parseDouble(rainK);
+    }
+
+    protected long getTotalRainInternal() {
+        return totalRainBase + sensorTotalRain;
     }
 }

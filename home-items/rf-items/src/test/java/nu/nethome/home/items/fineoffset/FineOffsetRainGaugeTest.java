@@ -100,6 +100,19 @@ public class FineOffsetRainGaugeTest {
         assertThat(rainGauge.getValue(), is("1,0"));
     }
 
+    @Test
+    public void KeepsTotalRainIfSensorResets() throws Exception {
+        pushValue(10);
+        assertThat(rainGauge.getValue(), is("0,0"));
+        assertThat(proxy.getAttributeValue("TotalRain"), is("1,0"));
+        pushValue(20);
+        assertThat(rainGauge.getValue(), is("1,0"));
+        assertThat(proxy.getAttributeValue("TotalRain"), is("2,0"));
+        pushValue(10);
+        assertThat(rainGauge.getValue(), is("2,0"));
+        assertThat(proxy.getAttributeValue("TotalRain"), is("3,0"));
+    }
+
     private void pushValue(int rainValue) {
         Event event = new TstEvent("FineOffset_Message");
         event.setAttribute("FineOffset.Rain", rainValue);
