@@ -103,6 +103,8 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ValueIte
     private LoggerComponent eventCountlogger = new LoggerComponent(this);
     private long eventsCount = 0;
     private long eventsCountPerPeriod = 0;
+    private int minuteCounter;
+    private int minutesBetweenItemSave = 60;
 
     public HomeServer() {
         eventQueue = new LinkedBlockingQueue<Event>(MAX_QUEUE_SIZE);
@@ -187,6 +189,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ValueIte
     }
 
     public void stopServer() {
+        saveItems();
         internalStopServer();
     }
 
@@ -373,6 +376,11 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ValueIte
     }
 
     public boolean receiveEvent(Event e) {
+        if (e.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(MINUTE_EVENT_TYPE) && ++minuteCounter >= minutesBetweenItemSave) {
+            saveItems();
+            minuteCounter = 0;
+            return true;
+        }
         return false;
     }
 

@@ -25,6 +25,9 @@ import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
 import nu.nethome.util.plugin.Plugin;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Queue;
 import java.util.logging.Logger;
 
 /**
@@ -43,8 +46,8 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
             + "<HomeItem Class=\"FineOffsetRainGauge\" Category=\"Gauges\" >"
             + "  <Attribute Name=\"Rain1h\" Type=\"String\" Get=\"getRain1h\" Default=\"true\" />"
             + "  <Attribute Name=\"Rain24h\" Type=\"String\" Get=\"getRain24h\" />"
-            + "  <Attribute Name=\"RainWeek\" Type=\"String\" Get=\"getRainWeek\" />"
-            + "  <Attribute Name=\"RainMonth\" Type=\"String\" Get=\"getRainMonth\" />"
+            + "  <Attribute Name=\"RainThisWeek\" Type=\"String\" Get=\"getRainWeek\" />"
+            + "  <Attribute Name=\"RainLastWeek\" Type=\"String\" Get=\"getRainLastWeek\" Init=\"setRainLastWeek\" />"
             + "  <Attribute Name=\"TotalRain\" Type=\"String\" Get=\"getTotalRain\" />"
             + "  <Attribute Name=\"Temperature\" 	Type=\"String\" Get=\"getTemp\" />"
             + "  <Attribute Name=\"TimeSinceUpdate\" 	Type=\"String\" Get=\"getTimeSinceUpdate\" />"
@@ -54,7 +57,9 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
             + "  <Attribute Name=\"RainK\" Type=\"String\" Get=\"getK\" 	Set=\"setK\" />"
             + "  <Attribute Name=\"TempK\" Type=\"String\" Get=\"getK\" 	Set=\"setK\" />"
             + "  <Attribute Name=\"TempM\" Type=\"String\" Get=\"getM\" 	Set=\"setM\" />"
-            + "  <Attribute Name=\"TotalRainBase\" Type=\"String\" Get=\"getTotalRainBase\" Set=\"setTotalRainBase\" />"
+            + "  <Attribute Name=\"TotalRainBase\" Type=\"Hidden\" Get=\"getTotalRainBase\" Init=\"setTotalRainBase\" />"
+            + "  <Attribute Name=\"RainAtStartOfWeek\" Type=\"Hidden\" Get=\"getRainAtStartOfWeek\" Init=\"setRainAtStartOfWeek\" />"
+            + "  <Attribute Name=\"CurrentWeekNumber\" Type=\"Hidden\" Get=\"getCurrentWeekNumber\" Init=\"setCurrentWeekNumber\" />"
             + "</HomeItem> ");
     public static final int MINUTES_PER_HOUR = 60;
     public static final int HOURS_PER_MONTH = 24 * 31;
@@ -62,12 +67,12 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
     public static final int HOUR_BUFFER_SIZE = MINUTES_PER_HOUR + 1;
     public static final int HOURS_PER_WEEK = 24 * 7;
 
-    private long lastHour[] = new long[HOUR_BUFFER_SIZE];
-    private int currentMinute = 0;
-    private long totalMinutes = 0;
-    private long lastMonth[] = new long[MONTH_BUFFER_SIZE];
+    private CounterHistory minutesOfLastHour = new CounterHistory(MINUTES_PER_HOUR);
+    private CounterHistory last24Hours = new CounterHistory(24);
     private int currentHour = 0;
-    private int minuteCounter = 0;
+    private int minuteCounter = MINUTES_PER_HOUR - 1;
+    private int hourCounter = 0;
+    private int dayCounter = 0;
     private long totalHours = 0;
     private long totalRainAtLastValue = 0;
     private long totalRainBase = 0;
@@ -75,6 +80,9 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
 
     // Public attributes
     private double rainConstantK = 0.1;
+    private long rainAtStartOfWeek;
+    private int currentWeekNumber = -1;
+    private String rainLastWeek = "";
 
     public FineOffsetRainGauge() {
         constantK = 0.1;
@@ -91,15 +99,17 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
     }
 
     private void pushValue() {
-        lastHour[currentMinute] = getTotalRainInternal();
-        currentMinute = (currentMinute + 1) % HOUR_BUFFER_SIZE;
-        totalMinutes++;
+        minutesOfLastHour.addValue(getTotalRainInternal());
         if (++minuteCounter == MINUTES_PER_HOUR) {
             minuteCounter = 0;
-            lastMonth[currentHour] = getTotalRainInternal();
-            currentHour = (currentHour + 1) % MONTH_BUFFER_SIZE;
-            totalHours++;
+            last24Hours.addValue(getTotalRainInternal());
         }
+    }
+
+    private int calculateCurrentWeekNumber() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        return calendar.get(Calendar.WEEK_OF_YEAR);
     }
 
     @Override
@@ -108,6 +118,11 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
         sensorTotalRain = event.getAttributeInt("FineOffset.Rain");
         if (oldSensorTotalRain > sensorTotalRain) {
             totalRainBase += oldSensorTotalRain;
+        }
+        if (currentWeekNumber != calculateCurrentWeekNumber()) {
+            currentWeekNumber = calculateCurrentWeekNumber();
+            rainLastWeek = getRainWeek();
+            rainAtStartOfWeek = getTotalRainInternal();
         }
         return super.handleEvent(event);
     }
@@ -120,54 +135,32 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
         if (!hasBeenUpdated) {
             return "";
         }
-        long rainToCompareWith;
-        if (totalMinutes == 0) {
-            rainToCompareWith = getTotalRainInternal();
-        } else if (totalMinutes <= MINUTES_PER_HOUR) {
-            rainToCompareWith = lastHour[0];
-        } else {
-            rainToCompareWith = getValue1HourAgo();
-        }
-        rainToCompareWith = (rainToCompareWith == 0) ? getTotalRainInternal() : rainToCompareWith;
-        double rain1h = (getTotalRainInternal() - rainToCompareWith) * rainConstantK;
+        double rain1h = minutesOfLastHour.differenceSince(getTotalRainInternal(), MINUTES_PER_HOUR) * rainConstantK;
         return String.format("%.1f", rain1h);
     }
 
     public String getRain24h() {
-        return getRainLastHours(24);
-    }
-
-    public String getRainWeek() {
-        return getRainLastHours(HOURS_PER_WEEK);
-    }
-
-    public String getRainMonth() {
-        return getRainLastHours(HOURS_PER_MONTH);
-    }
-
-    private String getRainLastHours(int hours) {
         if (!hasBeenUpdated) {
             return "";
         }
-        long rainTocompareWith;
-        if (totalHours == 0) {
-            return getRain1h();
-        } else if (totalHours <= hours) {
-            rainTocompareWith = lastMonth[0];
-        } else {
-            rainTocompareWith = getValueHoursAgo(hours);
-        }
-        rainTocompareWith = (rainTocompareWith == 0) ? getTotalRainInternal() : rainTocompareWith;
-        double rain1h = (getTotalRainInternal() - rainTocompareWith) * rainConstantK;
+        double rain1h = last24Hours.differenceSince(getTotalRainInternal(), 24) * rainConstantK;
         return String.format("%.1f", rain1h);
     }
 
-    private long getValue1HourAgo() {
-        return lastHour[(currentMinute + HOUR_BUFFER_SIZE - MINUTES_PER_HOUR) % HOUR_BUFFER_SIZE];
+    public String getRainWeek() {
+        if (!hasBeenUpdated) {
+            return "";
+        }
+        double rain1h = (getTotalRainInternal() - rainAtStartOfWeek) * rainConstantK;
+        return String.format("%.1f", rain1h);
     }
 
-    private long getValueHoursAgo(int hours) {
-        return lastMonth[(currentHour + MONTH_BUFFER_SIZE - hours) % HOUR_BUFFER_SIZE];
+    public String getRainLastWeek() {
+        return rainLastWeek;
+    }
+
+    public void setRainLastWeek(String rainLastWeek) {
+        this.rainLastWeek = rainLastWeek;
     }
 
     public String getValue() {
@@ -194,14 +187,30 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
     }
 
     public String getTotalRainBase() {
-        return Double.toString(totalRainBase);
+        return String.format("%.1f", totalRainBase * rainConstantK);
     }
 
-    public void setTotalRainBase(String rainK) {
-        this.rainConstantK = Double.parseDouble(rainK);
+    public void setTotalRainBase(String rainBase) {
+        this.totalRainBase = (long)(Double.parseDouble(rainBase.replace(",", ".")) / rainConstantK);
     }
 
     protected long getTotalRainInternal() {
         return totalRainBase + sensorTotalRain;
+    }
+
+    public String getRainAtStartOfWeek() {
+        return Long.toString(rainAtStartOfWeek);
+    }
+
+    public void setRainAtStartOfWeek(String rainAtStartOfWeek) {
+        this.rainAtStartOfWeek = Long.parseLong(rainAtStartOfWeek);
+    }
+
+    public String getCurrentWeekNumber() {
+        return Integer.toString(currentWeekNumber);
+    }
+
+    public void setCurrentWeekNumber(String currentWeekNumber) {
+        this.currentWeekNumber = Integer.parseInt(currentWeekNumber);
     }
 }

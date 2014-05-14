@@ -42,8 +42,8 @@ public class FineOffsetRainGaugeTest {
         assertThat(rainGauge.getTotalRain(), is(""));
         assertThat(proxy.getAttributeValue("Rain1h"), is(""));
         assertThat(proxy.getAttributeValue("Rain24h"), is(""));
-        assertThat(proxy.getAttributeValue("RainWeek"), is(""));
-        assertThat(proxy.getAttributeValue("RainMonth"), is(""));
+        assertThat(proxy.getAttributeValue("RainThisWeek"), is(""));
+//        assertThat(proxy.getAttributeValue("RainLastWeeks"), is(""));
     }
 
     @Test
@@ -51,8 +51,8 @@ public class FineOffsetRainGaugeTest {
         pushValue(10);
         assertThat(proxy.getAttributeValue("Rain1h"), is("0,0"));
         assertThat(proxy.getAttributeValue("Rain24h"), is("0,0"));
-        assertThat(proxy.getAttributeValue("RainWeek"), is("0,0"));
-        assertThat(proxy.getAttributeValue("RainMonth"), is("0,0"));
+        assertThat(proxy.getAttributeValue("RainThisWeek"), is("0,0"));
+//        assertThat(proxy.getAttributeValue("RainLastWeeks"), is("0,0"));
     }
 
     @Test
@@ -63,8 +63,8 @@ public class FineOffsetRainGaugeTest {
         passTime(1);
         assertThat(proxy.getAttributeValue("Rain1h"), is("0,1"));
         assertThat(proxy.getAttributeValue("Rain24h"), is("0,1"));
-        assertThat(proxy.getAttributeValue("RainWeek"), is("0,1"));
-        assertThat(proxy.getAttributeValue("RainMonth"), is("0,1"));
+        assertThat(proxy.getAttributeValue("RainThisWeek"), is("0,1"));
+//        assertThat(proxy.getAttributeValue("RainLastWeeks"), is(""));
     }
 
     @Test
@@ -77,8 +77,21 @@ public class FineOffsetRainGaugeTest {
         passTime(59);
         assertThat(proxy.getAttributeValue("Rain1h"), is("1,0"));
         assertThat(proxy.getAttributeValue("Rain24h"), is("2,0"));
-        assertThat(proxy.getAttributeValue("RainWeek"), is("2,0"));
-        assertThat(proxy.getAttributeValue("RainMonth"), is("2,0"));
+        assertThat(proxy.getAttributeValue("RainThisWeek"), is("2,0"));
+//        assertThat(proxy.getAttributeValue("RainLastWeeks"), is(""));
+    }
+
+    @Test
+    public void canGetValuesAfter1MonthOfRain() throws Exception {
+        int value = 0;
+        for (long i = 0; i < 60 * 24 * 31; i++) {
+            passTime(1);
+            pushValue(value++);
+        }
+        assertThat(proxy.getAttributeValue("Rain1h"), is("6,0"));
+        assertThat(proxy.getAttributeValue("Rain24h"), is("143,9"));
+//        assertThat(proxy.getAttributeValue("RainThisWeek"), is("2,0"));
+//        assertThat(proxy.getAttributeValue("RainLastWeeks"), is(""));
     }
 
     @Test
