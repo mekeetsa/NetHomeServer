@@ -111,6 +111,8 @@ public class FineOffsetRainGaugeTest {
         assertThat(rainGauge.getValue(), is("0,0"));
         pushValue(20);
         assertThat(rainGauge.getValue(), is("1,0"));
+        pushValue(40);
+        assertThat(rainGauge.getValue(), is("2,0"));
     }
 
     @Test
@@ -122,7 +124,7 @@ public class FineOffsetRainGaugeTest {
         assertThat(rainGauge.getValue(), is("1,0"));
         assertThat(proxy.getAttributeValue("TotalRain"), is("2,0"));
         pushValue(10);
-        assertThat(rainGauge.getValue(), is("2,0"));
+        assertThat(rainGauge.getValue(), is("1,0"));
         assertThat(proxy.getAttributeValue("TotalRain"), is("3,0"));
     }
 

@@ -167,10 +167,12 @@ public class FineOffsetRainGauge extends FineOffsetThermometer implements HomeIt
         if (!hasBeenUpdated) {
             return "";
         }
+        long currentTotalRain = getTotalRainInternal();
         if (totalRainAtLastValue == 0) {
-            totalRainAtLastValue = getTotalRainInternal();
+            totalRainAtLastValue = currentTotalRain;
         }
         double rain1h = (getTotalRainInternal() - totalRainAtLastValue) * rainConstantK;
+        totalRainAtLastValue = currentTotalRain;
         return String.format("%.1f", rain1h);
     }
 
