@@ -26,7 +26,7 @@ public class CreationEventCache {
         }
     }
 
-    public void newEvent(Event event, boolean wasHandled) {
+    public synchronized void newEvent(Event event, boolean wasHandled) {
         if (isCollecting() && isCreationEvent(event)) {
             String content = ItemEvent.extractContent(event);
             boolean updated = false;
@@ -45,7 +45,7 @@ public class CreationEventCache {
         }
     }
 
-    private void clearIfNeeded() {
+    private synchronized void clearIfNeeded() {
         if ((System.currentTimeMillis() > latestCollectionTime.getTime() + clearTimeout) &&
                 itemEvents.size() > 0) {
             itemEvents.clear();
@@ -56,12 +56,12 @@ public class CreationEventCache {
         return latestCollectionTime.getTime() + collectTimeout > System.currentTimeMillis();
     }
 
-    public List<ItemEvent> getItemEvents() {
+    public synchronized List<ItemEvent> getItemEvents() {
         latestCollectionTime = new Date();
         return Collections.unmodifiableList(itemEvents);
     }
 
-    public ItemEvent getItemEvent(long id) {
+    public synchronized ItemEvent getItemEvent(long id) {
         for (ItemEvent event : itemEvents) {
             if (event.getId() == id) {
                 return event;
