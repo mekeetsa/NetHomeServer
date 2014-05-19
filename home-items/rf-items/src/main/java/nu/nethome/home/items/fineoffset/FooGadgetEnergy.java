@@ -28,9 +28,6 @@ import java.util.Date;
 import java.util.logging.Logger;
 
 /**
- * Presents and logs rain values received by an FineOffset-rain sensor. The actual
- * values are received as events which may be sent by any kind of receiver module
- * which can receive FineOffset messages from the hardware devices.
  *
  * @author Stefan
  */
