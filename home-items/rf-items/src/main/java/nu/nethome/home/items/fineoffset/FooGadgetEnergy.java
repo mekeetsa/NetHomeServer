@@ -55,7 +55,7 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
 
     public static final String ENERGY_FORMAT = "%.3f";
     protected Logger logger = Logger.getLogger(FooGadgetEnergy.class.getName());
-    private LoggerComponent tempLoggerComponent = new LoggerComponent(this);
+    private LoggerComponent energyLoggerComponent = new LoggerComponent(this);
     private Date latestUpdateOrCreation = new Date();
     private Date latestValueSampleTime = new Date();
     private long latestValueSampleEnergy;
@@ -71,6 +71,16 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
     private long lostSamples;
 
     public FooGadgetEnergy() {
+    }
+
+    @Override
+    public void activate() {
+        energyLoggerComponent.activate();
+    }
+
+    @Override
+    public void stop() {
+        energyLoggerComponent.stop();
     }
 
     @Override
@@ -155,11 +165,11 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
     }
 
     public String getLogFile() {
-        return tempLoggerComponent.getFileName();
+        return energyLoggerComponent.getFileName();
     }
 
     public void setLogFile(String logfile) {
-        tempLoggerComponent.setFileName(logfile);
+        energyLoggerComponent.setFileName(logfile);
     }
 
     public String getTimeSinceUpdate() {
