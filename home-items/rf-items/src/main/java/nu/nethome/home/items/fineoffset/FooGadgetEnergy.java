@@ -56,8 +56,8 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
     public static final String ENERGY_FORMAT = "%.3f";
     protected Logger logger = Logger.getLogger(FooGadgetEnergy.class.getName());
     private LoggerComponent energyLoggerComponent = new LoggerComponent(this);
-    private Date latestUpdateOrCreation = new Date();
-    private Date latestValueSampleTime = new Date();
+    private Date latestUpdateOrCreation = getCurrentTime();
+    private Date latestValueSampleTime = getCurrentTime();
     private long latestValueSampleEnergy;
 
     private long TotalEnergyAtLastValue = 0;
@@ -97,17 +97,21 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
     }
 
     protected boolean handleEvent(Event event) {
-        latestUpdateOrCreation = new Date();
+        latestUpdateOrCreation = getCurrentTime();
         int counter = getSampleCounter(event);
         if (counter != lastCounter) {
             addNewSample(event, counter);
         }
         if (!hasBeenUpdated) {
             latestValueSampleEnergy = totalEnergy;
-            latestValueSampleTime = new Date();
+            latestValueSampleTime = getCurrentTime();
         }
         hasBeenUpdated = true;
         return true;
+    }
+
+    Date getCurrentTime() {
+        return new Date();
     }
 
     private void addNewSample(Event event, int counter) {
@@ -173,7 +177,7 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
     }
 
     public String getTimeSinceUpdate() {
-        return Long.toString((new Date().getTime() - latestUpdateOrCreation.getTime()) / 1000);
+        return Long.toString((getCurrentTime().getTime() - latestUpdateOrCreation.getTime()) / 1000);
     }
 
     @Override
@@ -181,9 +185,9 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
         if (!hasBeenUpdated) {
             return "";
         }
-        Date sampleTime = new Date();
+        Date sampleTime = getCurrentTime();
         long currentEnergy = getTotalEnergyInternal();
-        double timeSinceLastSampleHours = (sampleTime.getTime() - latestValueSampleTime.getTime()) / (1000 * 60 * 60);
+        double timeSinceLastSampleHours = (sampleTime.getTime() - latestValueSampleTime.getTime()) / (1000.0 * 60.0 * 60.0);
         double energySinceLastSampleKWh = (currentEnergy - latestValueSampleEnergy) / pulsesPerKWh;
         latestValueSampleTime = sampleTime;
         latestValueSampleEnergy = currentEnergy;

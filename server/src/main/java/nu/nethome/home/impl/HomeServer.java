@@ -480,7 +480,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ValueIte
         while (it.hasNext()) {
             try {
                 HomeItem item = it.next();
-                logger.finer("Stopping: " + item.getName());
+                logger.info("Stopping: " + item.getName());
                 item.stop();
             } catch (Exception e) {
                 logger.warning("Exception caught during stop of Item: " + e.getMessage());
