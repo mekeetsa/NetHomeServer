@@ -21,9 +21,11 @@ package nu.nethome.home.items.fineoffset;
 
 import nu.nethome.home.item.*;
 import nu.nethome.home.system.Event;
+import nu.nethome.home.system.HomeService;
 import nu.nethome.util.plugin.Plugin;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.logging.Logger;
 
@@ -39,11 +41,13 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"FooGadgetEnergy\" Category=\"Gauges\" >"
             + "  <Attribute Name=\"Power\" Type=\"String\" Get=\"getPower\" Default=\"true\" />"
-            + "  <Attribute Name=\"TotalEnergy\" Type=\"String\" Get=\"getTotalEnergy\" Init=\"setTotalEnergy\" />"
+            + "  <Attribute Name=\"EnergyToday\" Type=\"String\" Get=\"getEnergyToday\" />"
+            + "  <Attribute Name=\"TotalEnergy\" Type=\"String\" Get=\"getTotalEnergy\" />"
             + "  <Attribute Name=\"TimeSinceUpdate\" 	Type=\"String\" Get=\"getTimeSinceUpdate\" />"
             + "  <Attribute Name=\"LogFile\" Type=\"String\" Get=\"getLogFile\" 	Set=\"setLogFile\" />"
             + "  <Attribute Name=\"PulsesPerKwh\" Type=\"String\" Get=\"getEnergyK\" 	Set=\"setEnergyK\" />"
             + "  <Attribute Name=\"LostSamples\" Type=\"String\" Get=\"getLostSamples\" Init=\"setLostSamples\" />"
+            + "  <Attribute Name=\"TotalSavedPulses\" Type=\"String\" Get=\"getTotalSavedPulses\" Set=\"setTotalSavedPulses\" />"
             + "</HomeItem> ");
 
     public static final int MINUTES_PER_HOUR = 60;
@@ -58,17 +62,18 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
     private LoggerComponent energyLoggerComponent = new LoggerComponent(this);
     private Date latestUpdateOrCreation = getCurrentTime();
     private Date latestValueSampleTime = getCurrentTime();
-    private long latestValueSampleEnergy;
+    private long latestValueSamplePulses;
 
-    private long TotalEnergyAtLastValue = 0;
-    private long totalEnergy = 0;
-    private long currentEnergy = 0;
+    private long totalSavedPulses = 0;
+    private long latestPulseSample = 0;
 
     // Public attributes
-    private double pulsesPerKWh = 1000;
-    private int lastCounter;
+    private double pulsesPerKWh = 1000.0;
+    private int latestSampleCounter;
     private boolean hasBeenUpdated;
     private long lostSamples;
+    private long totalPulsesAtStartOfDay;
+    private int currentDay;
 
     public FooGadgetEnergy() {
     }
@@ -86,28 +91,54 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
     @Override
     public boolean receiveEvent(Event event) {
         if (isFooGadgetEnergyEvent(event)) {
-            return handleEvent(event);
-        } else {
-            return handleInit(event);
+            return handleFooGadgetEvent(event);
+        } else if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(HomeService.MINUTE_EVENT_TYPE)) {
+            return handleMinuteEvent();
         }
+        return false;
     }
 
     private boolean isFooGadgetEnergyEvent(Event event) {
         return event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals("FooGadgetEnergy_Message");
     }
 
-    protected boolean handleEvent(Event event) {
+    protected boolean handleFooGadgetEvent(Event event) {
         latestUpdateOrCreation = getCurrentTime();
         int counter = getSampleCounter(event);
-        if (counter != lastCounter) {
+        if (counter != latestSampleCounter) {
             addNewSample(event, counter);
         }
         if (!hasBeenUpdated) {
-            latestValueSampleEnergy = totalEnergy;
-            latestValueSampleTime = getCurrentTime();
+            InitializeAtFirstUpdate();
         }
         hasBeenUpdated = true;
         return true;
+    }
+
+    private boolean handleMinuteEvent() {
+        int dayNow = getPresentDay();
+        if (dayNow != currentDay) {
+            totalPulsesAtStartOfDay = getTotalPulses();
+            currentDay = dayNow;
+        }
+        return true;
+    }
+
+    private int getPresentDay() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(getCurrentTime());
+        return calendar.get(Calendar.DAY_OF_YEAR);
+    }
+
+    private void InitializeAtFirstUpdate() {
+        latestValueSamplePulses = getTotalPulses();
+        latestValueSampleTime = getCurrentTime();
+        if (totalPulsesAtStartOfDay == 0) {
+            totalPulsesAtStartOfDay = getTotalPulses();
+        }
+        if (currentDay == 0) {
+            currentDay = getPresentDay();
+        }
     }
 
     Date getCurrentTime() {
@@ -116,20 +147,20 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
 
     private void addNewSample(Event event, int counter) {
         if (hasBeenUpdated) {
-            int sampleCounterDiff = counter - lastCounter;
+            int sampleCounterDiff = counter - latestSampleCounter;
             sampleCounterDiff += (sampleCounterDiff < 0) ? 100 : 0;
             lostSamples += sampleCounterDiff - 1;
         }
-        lastCounter = counter;
-        currentEnergy = getEnergySample(event);
-        totalEnergy += currentEnergy;
+        latestSampleCounter = counter;
+        latestPulseSample = getPulseSample(event);
+        totalSavedPulses += latestPulseSample;
     }
 
     private int getSampleCounter(Event event) {
         return event.getAttributeInt("FooGadgetEnergy.Counter");
     }
 
-    private long getEnergySample(Event event) {
+    private long getPulseSample(Event event) {
         return event.getAttributeInt("FooGadgetEnergy.Energy");
     }
 
@@ -141,7 +172,7 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
         if (!hasBeenUpdated) {
             return "";
         }
-        return String.format(ENERGY_FORMAT, (currentEnergy / pulsesPerKWh) * MINUTES_PER_HOUR);
+        return String.format(ENERGY_FORMAT, (latestPulseSample / pulsesPerKWh) * MINUTES_PER_HOUR);
     }
 
     public String getEnergyK() {
@@ -153,15 +184,19 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
     }
 
     public String getTotalEnergy() {
-        return String.format(ENERGY_FORMAT, totalEnergy / pulsesPerKWh);
+        return String.format(ENERGY_FORMAT, totalSavedPulses / pulsesPerKWh);
     }
 
-    public void setTotalEnergy(String rainBase) {
-        this.totalEnergy = (long) (Double.parseDouble(rainBase.replace(",", ".")) * pulsesPerKWh);
+    protected long getTotalPulses() {
+        return totalSavedPulses;
     }
 
-    protected long getTotalEnergyInternal() {
-        return totalEnergy;
+    public String getTotalSavedPulses() {
+        return Long.toString(totalSavedPulses);
+    }
+
+    public void setTotalSavedPulses(String totalSavedPulses) {
+        this.totalSavedPulses = Long.parseLong(totalSavedPulses);
     }
 
     public String getLastUpdate() {
@@ -186,11 +221,11 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
             return "";
         }
         Date sampleTime = getCurrentTime();
-        long currentEnergy = getTotalEnergyInternal();
+        long currentEnergy = getTotalPulses();
         double timeSinceLastSampleHours = (sampleTime.getTime() - latestValueSampleTime.getTime()) / (1000.0 * 60.0 * 60.0);
-        double energySinceLastSampleKWh = (currentEnergy - latestValueSampleEnergy) / pulsesPerKWh;
+        double energySinceLastSampleKWh = (currentEnergy - latestValueSamplePulses) / pulsesPerKWh;
         latestValueSampleTime = sampleTime;
-        latestValueSampleEnergy = currentEnergy;
+        latestValueSamplePulses = currentEnergy;
         return String.format(ENERGY_FORMAT, energySinceLastSampleKWh / timeSinceLastSampleHours);
     }
 
@@ -200,5 +235,13 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
 
     public void setLostSamples(String lostSamples) {
         this.lostSamples = Long.parseLong(lostSamples);
+    }
+
+    public String getEnergyToday() {
+        if (!hasBeenUpdated) {
+            return "";
+        }
+        long pulsesToday = getTotalPulses() - totalPulsesAtStartOfDay;
+        return String.format(ENERGY_FORMAT, pulsesToday / pulsesPerKWh);
     }
 }
