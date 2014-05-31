@@ -42,12 +42,17 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
             + "<HomeItem Class=\"FooGadgetEnergy\" Category=\"Gauges\" >"
             + "  <Attribute Name=\"Power\" Type=\"String\" Get=\"getPower\" Default=\"true\" />"
             + "  <Attribute Name=\"EnergyToday\" Type=\"String\" Get=\"getEnergyToday\" />"
+            + "  <Attribute Name=\"EnergyYesterday\" Type=\"String\" Get=\"getEnergyYesterday\" />"
+            + "  <Attribute Name=\"EnergyThisWeek\" Type=\"String\" Get=\"getEnergyThisWeek\" />"
+            + "  <Attribute Name=\"EnergyLastWeek\" Type=\"String\" Get=\"getEnergyLastWeek\" />"
             + "  <Attribute Name=\"TotalEnergy\" Type=\"String\" Get=\"getTotalEnergy\" />"
             + "  <Attribute Name=\"TimeSinceUpdate\" 	Type=\"String\" Get=\"getTimeSinceUpdate\" />"
             + "  <Attribute Name=\"LogFile\" Type=\"String\" Get=\"getLogFile\" 	Set=\"setLogFile\" />"
             + "  <Attribute Name=\"PulsesPerKwh\" Type=\"String\" Get=\"getEnergyK\" 	Set=\"setEnergyK\" />"
             + "  <Attribute Name=\"LostSamples\" Type=\"String\" Get=\"getLostSamples\" Init=\"setLostSamples\" />"
-            + "  <Attribute Name=\"TotalSavedPulses\" Type=\"String\" Get=\"getTotalSavedPulses\" Set=\"setTotalSavedPulses\" />"
+            + "  <Attribute Name=\"TotalSavedPulses\" Type=\"Hidden\" Get=\"getTotalSavedPulses\" Set=\"setTotalSavedPulses\" />"
+            + "  <Attribute Name=\"DayState\" Type=\"Hidden\" Get=\"getDayState\" Set=\"setDayState\" />"
+            + "  <Attribute Name=\"WeekState\" Type=\"Hidden\" Get=\"getWeekState\" Set=\"setWeekState\" />"
             + "</HomeItem> ");
 
     public static final int MINUTES_PER_HOUR = 60;
@@ -63,19 +68,31 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
     private Date latestUpdateOrCreation = getCurrentTime();
     private Date latestValueSampleTime = getCurrentTime();
     private long latestValueSamplePulses;
-
     private long totalSavedPulses = 0;
+
     private long latestPulseSample = 0;
+    private PeriodCounter dayPeriod;
+    private PeriodCounter weekPeriod;
 
     // Public attributes
     private double pulsesPerKWh = 1000.0;
     private int latestSampleCounter;
     private boolean hasBeenUpdated;
     private long lostSamples;
-    private long totalPulsesAtStartOfDay;
-    private int currentDay;
 
     public FooGadgetEnergy() {
+        dayPeriod = new PeriodCounter() {
+            @Override
+            public long getNewPeriod() {
+                return getPresentDay();
+            }
+        };
+        weekPeriod = new PeriodCounter() {
+            @Override
+            public long getNewPeriod() {
+                return getPresentWeek();
+            }
+        };
     }
 
     @Override
@@ -110,16 +127,17 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
         }
         if (!hasBeenUpdated) {
             InitializeAtFirstUpdate();
+            dayPeriod.updateCounter(getTotalPulses());
+            weekPeriod.updateCounter(getTotalPulses());
         }
         hasBeenUpdated = true;
         return true;
     }
 
     private boolean handleMinuteEvent() {
-        int dayNow = getPresentDay();
-        if (dayNow != currentDay) {
-            totalPulsesAtStartOfDay = getTotalPulses();
-            currentDay = dayNow;
+        if (hasBeenUpdated) {
+            dayPeriod.updateCounter(getTotalPulses());
+            weekPeriod.updateCounter(getTotalPulses());
         }
         return true;
     }
@@ -130,15 +148,15 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
         return calendar.get(Calendar.DAY_OF_YEAR);
     }
 
+    private int getPresentWeek() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(getCurrentTime());
+        return calendar.get(Calendar.WEEK_OF_YEAR);
+    }
+
     private void InitializeAtFirstUpdate() {
         latestValueSamplePulses = getTotalPulses();
         latestValueSampleTime = getCurrentTime();
-        if (totalPulsesAtStartOfDay == 0) {
-            totalPulsesAtStartOfDay = getTotalPulses();
-        }
-        if (currentDay == 0) {
-            currentDay = getPresentDay();
-        }
     }
 
     Date getCurrentTime() {
@@ -241,7 +259,43 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
         if (!hasBeenUpdated) {
             return "";
         }
-        long pulsesToday = getTotalPulses() - totalPulsesAtStartOfDay;
-        return String.format(ENERGY_FORMAT, pulsesToday / pulsesPerKWh);
+        return String.format(ENERGY_FORMAT, dayPeriod.getPulsesDuringPeriod(getTotalPulses()) / pulsesPerKWh);
+    }
+
+    public String getEnergyYesterday() {
+        if (dayPeriod.getPulsesDuringLastPeriod() == 0) {
+            return "";
+        }
+        return String.format(ENERGY_FORMAT, dayPeriod.getPulsesDuringLastPeriod() / pulsesPerKWh);
+    }
+
+    public String getEnergyThisWeek() {
+        if (!hasBeenUpdated) {
+            return "";
+        }
+        return String.format(ENERGY_FORMAT, weekPeriod.getPulsesDuringPeriod(getTotalPulses()) / pulsesPerKWh);
+    }
+
+    public String getEnergyLastWeek() {
+        if (weekPeriod.getPulsesDuringLastPeriod() == 0) {
+            return "";
+        }
+        return String.format(ENERGY_FORMAT, weekPeriod.getPulsesDuringLastPeriod() / pulsesPerKWh);
+    }
+
+    public String getDayState() {
+        return dayPeriod.getState();
+    }
+
+    public void setDayState(String dayState) {
+        dayPeriod.setState(dayState);
+    }
+
+    public String getWeekState() {
+        return weekPeriod.getState();
+    }
+
+    public void setWeekState(String dayState) {
+        weekPeriod.setState(dayState);
     }
 }

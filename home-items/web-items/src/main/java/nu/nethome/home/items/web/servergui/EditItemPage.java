@@ -659,7 +659,7 @@ public class EditItemPage extends PortletPage {
 
         {
             attribute = i.next();
-            if (!attribute.isReadOnly() && !attribute.isWriteOnly()) {
+            if (!attribute.isReadOnly() && !attribute.isWriteOnly() && !attribute.getType().equals("Hidden")) {
                 p.println("<tr>");
                 p.println("  <td class=\"attributename\">" + attribute.getName()
                         + "</td>");
