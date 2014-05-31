@@ -56,28 +56,24 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
             + "</HomeItem> ");
 
     public static final int MINUTES_PER_HOUR = 60;
-    public static final int HOURS_PER_MONTH = 24 * 31;
-    public static final int MONTH_BUFFER_SIZE = HOURS_PER_MONTH + 1;
-    public static final int HOUR_BUFFER_SIZE = MINUTES_PER_HOUR + 1;
-    public static final int HOURS_PER_WEEK = 24 * 7;
     private static final SimpleDateFormat dateFormatter = new SimpleDateFormat("HH:mm:ss yyyy.MM.dd ");
 
     public static final String ENERGY_FORMAT = "%.3f";
     protected Logger logger = Logger.getLogger(FooGadgetEnergy.class.getName());
     private LoggerComponent energyLoggerComponent = new LoggerComponent(this);
-    private Date latestUpdateOrCreation = getCurrentTime();
+    protected Date latestUpdateOrCreation = getCurrentTime();
     private Date latestValueSampleTime = getCurrentTime();
     private long latestValueSamplePulses;
-    private long totalSavedPulses = 0;
+    protected long totalSavedPulses = 0;
 
     private long latestPulseSample = 0;
     private PeriodCounter dayPeriod;
     private PeriodCounter weekPeriod;
 
     // Public attributes
-    private double pulsesPerKWh = 1000.0;
+    protected double pulsesPerKWh = 1000.0;
     private int latestSampleCounter;
-    private boolean hasBeenUpdated;
+    protected boolean hasBeenUpdated;
     private long lostSamples;
 
     public FooGadgetEnergy() {
@@ -127,14 +123,11 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
         }
         if (!hasBeenUpdated) {
             InitializeAtFirstUpdate();
-            dayPeriod.updateCounter(getTotalPulses());
-            weekPeriod.updateCounter(getTotalPulses());
         }
-        hasBeenUpdated = true;
         return true;
     }
 
-    private boolean handleMinuteEvent() {
+    protected boolean handleMinuteEvent() {
         if (hasBeenUpdated) {
             dayPeriod.updateCounter(getTotalPulses());
             weekPeriod.updateCounter(getTotalPulses());
@@ -154,9 +147,12 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
         return calendar.get(Calendar.WEEK_OF_YEAR);
     }
 
-    private void InitializeAtFirstUpdate() {
+    protected void InitializeAtFirstUpdate() {
         latestValueSamplePulses = getTotalPulses();
         latestValueSampleTime = getCurrentTime();
+        dayPeriod.updateCounter(getTotalPulses());
+        weekPeriod.updateCounter(getTotalPulses());
+        hasBeenUpdated = true;
     }
 
     Date getCurrentTime() {
@@ -202,7 +198,7 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
     }
 
     public String getTotalEnergy() {
-        return String.format(ENERGY_FORMAT, totalSavedPulses / pulsesPerKWh);
+        return String.format(ENERGY_FORMAT, getTotalPulses() / pulsesPerKWh);
     }
 
     protected long getTotalPulses() {

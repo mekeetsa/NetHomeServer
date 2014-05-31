@@ -120,6 +120,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("FineOffsetHygrometer", nu.nethome.home.items.fineoffset.FineOffsetHygrometer.class),
             new HomeItemClassInfo("FineOffsetRainGauge", nu.nethome.home.items.fineoffset.FineOffsetRainGauge.class),
             new HomeItemClassInfo("FooGadgetEnergy", nu.nethome.home.items.fineoffset.FooGadgetEnergy.class),
+            new HomeItemClassInfo("FooGadgetPulse", nu.nethome.home.items.fineoffset.FooGadgetPulse.class),
             new HomeItemClassInfo("NexaLamp", nu.nethome.home.items.nexa.NexaLamp.class),
             new HomeItemClassInfo("NexaRemapButton", nu.nethome.home.items.nexa.NexaRemapButton.class),
             new HomeItemClassInfo("NexaLCLamp", nu.nethome.home.items.nexa.NexaLCLamp.class),
