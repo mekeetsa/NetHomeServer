@@ -22,6 +22,7 @@ package nu.nethome.home.items.misc;
 import nu.nethome.home.impl.CommandLineExecutor;
 import nu.nethome.home.item.*;
 import nu.nethome.home.system.HomeService;
+import nu.nethome.util.plugin.Plugin;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -37,10 +38,13 @@ import java.util.logging.Logger;
  * 
  * @author Stefan
  */
+@SuppressWarnings("UnusedDeclaration")
+@Plugin
+@HomeItemType("Gauges")
 public class ValueLogger extends HomeItemAdapter implements ValueItem, HomeItem {
 
 	private final String m_Model = ("<?xml version = \"1.0\"?> \n"
-			+ "<HomeItem Class=\"ValueLogger\" >"
+			+ "<HomeItem Class=\"ValueLogger\" Category=\"Gauges\"  Default=\"true\" >"
             + "  <Attribute Name=\"Value\" Type=\"String\" Get=\"getValue\" />"
             + "  <Attribute Name=\"ValueAction\" Type=\"String\" Get=\"getValueAction\" 	Set=\"setValueAction\" />"
             + "  <Attribute Name=\"LogFile\" Type=\"String\" Get=\"getLogFile\" 	Set=\"setLogFile\" />"
