@@ -462,7 +462,7 @@ public class EditItemPage extends PortletPage {
         Iterator<Attribute> i = item.getAttributeValues().iterator();
         for (int counter = 0; i.hasNext(); counter++) {
             attribute = i.next();
-            if (attribute.isCanInit() && !attribute.isWriteOnly()) {
+            if (attribute.isCanInit() && !attribute.isWriteOnly() && !attribute.getType().equals("Hidden")) {
                 p.println("<tr>");
                 p.println("  <td class=\"attributename\">" + attribute.getName()
                         + "</td>");

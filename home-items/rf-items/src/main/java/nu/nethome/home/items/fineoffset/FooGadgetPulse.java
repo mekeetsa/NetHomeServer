@@ -49,8 +49,8 @@ public class FooGadgetPulse extends FooGadgetEnergy implements HomeItem {
             + "  <Attribute Name=\"TimeSinceUpdate\" 	Type=\"String\" Get=\"getTimeSinceUpdate\" />"
             + "  <Attribute Name=\"LogFile\" Type=\"String\" Get=\"getLogFile\" 	Set=\"setLogFile\" />"
             + "  <Attribute Name=\"PulsesPerKwh\" Type=\"String\" Get=\"getEnergyK\" 	Set=\"setEnergyK\" />"
-            + "  <Attribute Name=\"TotalSavedPulses\" Type=\"String\" Get=\"getTotalSavedPulses\" Init=\"setTotalSavedPulses\" />"
-            + "  <Attribute Name=\"LastSeenPulses\" Type=\"String\" Get=\"getLastSeenPulseCounter\" Init=\"setLastSeenPulseCounter\" />"
+            + "  <Attribute Name=\"TotalSavedPulses\" Type=\"Hidden\" Get=\"getTotalSavedPulses\" Init=\"setTotalSavedPulses\" />"
+            + "  <Attribute Name=\"LastSeenPulses\" Type=\"Hidden\" Get=\"getLastSeenPulseCounter\" Init=\"setLastSeenPulseCounter\" />"
             + "  <Attribute Name=\"DayState\" Type=\"Hidden\" Get=\"getDayState\" Init=\"setDayState\" />"
             + "  <Attribute Name=\"WeekState\" Type=\"Hidden\" Get=\"getWeekState\" Init=\"setWeekState\" />"
             + "</HomeItem> ");
