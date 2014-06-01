@@ -158,6 +158,10 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("TempWEB", nu.nethome.home.items.web.temp.TempWEB.class),
             new HomeItemClassInfo("ActionButton", nu.nethome.home.items.web.servergui.ActionButton.class),
 
+            // Misc
+            new HomeItemClassInfo("ValueLogger",nu.nethome.home.items.misc.ValueLogger.class),
+
+
 //		new HomeItemClassInfo("X10Port","nu.nethome.home.items.x10.X10Port"),
 //		new HomeItemClassInfo("X10Lamp","nu.nethome.home.items.x10.X10Lamp"),
 //		new HomeItemClassInfo("X10HouseScene","nu.nethome.home.items.x10.X10HouseScene"),
@@ -169,7 +173,6 @@ public class StaticHomeItemFactory implements HomeItemFactory {
 //		new HomeItemClassInfo("HKCDRemote","nu.nethome.home.items.snap.HKCDRemote", false),
 
 //		new HomeItemClassInfo("ValueAlarm","nu.nethome.home.items.ValueAlarm", false),
-//      new HomeItemClassInfo("ValueLogger",nu.nethome.home.items.misc.ValueLogger.class),
 //		new HomeItemClassInfo("SNAPPort","nu.nethome.home.items.snap.SNAPPort", false),
 //		new HomeItemClassInfo("SNAPIrRemote","nu.nethome.home.items.snap.SNAPIrRemote", false),
 //		new HomeItemClassInfo("LampMediaHandler","nu.nethome.home.items.experimental.LampMediaHandler", false),
