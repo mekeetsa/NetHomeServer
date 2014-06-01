@@ -44,8 +44,8 @@ import java.util.logging.Logger;
 public class ValueLogger extends HomeItemAdapter implements ValueItem, HomeItem {
 
 	private final String m_Model = ("<?xml version = \"1.0\"?> \n"
-			+ "<HomeItem Class=\"ValueLogger\" Category=\"Gauges\"  Default=\"true\" >"
-            + "  <Attribute Name=\"Value\" Type=\"String\" Get=\"getValue\" />"
+			+ "<HomeItem Class=\"ValueLogger\" Category=\"Gauges\"  >"
+            + "  <Attribute Name=\"Value\" Type=\"String\" Get=\"getValue\" Default=\"true\" />"
             + "  <Attribute Name=\"ValueAction\" Type=\"String\" Get=\"getValueAction\" 	Set=\"setValueAction\" />"
             + "  <Attribute Name=\"LogFile\" Type=\"String\" Get=\"getLogFile\" 	Set=\"setLogFile\" />"
 			+ "</HomeItem> ");
