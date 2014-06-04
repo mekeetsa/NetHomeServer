@@ -33,15 +33,16 @@ public class AttributeModel {
     private final String name;
     private final List<String> valueList;
     private final String type;
+    private final String unit;
 
 
-    public AttributeModel(String name, String type, Class<? extends HomeItem> clazz, String getMethodName, String setMethodName,
+    public AttributeModel(String name, String type, String unit, Class<? extends HomeItem> clazz, String getMethodName, String setMethodName,
                           String initMethodName) {
-        this(name, type, clazz, getMethodName, setMethodName,
+        this(name, type, unit, clazz, getMethodName, setMethodName,
                 initMethodName, Collections.<String>emptyList());
     }
 
-    public AttributeModel(String name, String type, Class<? extends HomeItem> clazz, String getMethodName, String setMethodName,
+    public AttributeModel(String name, String type, String unit, Class<? extends HomeItem> clazz, String getMethodName, String setMethodName,
                           String initMethodName, List<String> valueList) {
         this.name = name;
         this.type = type;
@@ -50,6 +51,7 @@ public class AttributeModel {
         Method init = getGetMethod(clazz, initMethodName, new Class[]{String.class});
         initMethod = init != null ? init : setMethod;
         this.valueList = Collections.unmodifiableList(valueList);
+        this.unit = unit == null ? "" : unit;
     }
 
     private Method getGetMethod(Class<? extends HomeItem> clazz, String methodName, Class<?>... parameterType) {
@@ -70,6 +72,10 @@ public class AttributeModel {
 
     public String getType() {
         return type;
+    }
+
+    public String getUnit() {
+        return unit;
     }
 
     public boolean isReadOnly() {

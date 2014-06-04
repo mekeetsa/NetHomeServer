@@ -49,8 +49,8 @@ public class StaticHomeItemModel implements HomeItemModel {
     private List<AttributeModel> attributesInOrder = new ArrayList<AttributeModel>();
     private List<Action> actionsInOrder = new ArrayList<Action>();
     private static Map<Class<? extends HomeItem>, StaticHomeItemModel> modelCache = new HashMap<Class<? extends HomeItem>, StaticHomeItemModel>();
-    private static AttributeModel nameAttribute = new AttributeModel(HomeItemProxy.NAME_ATTRIBUTE, "String", HomeItem.class, "getName", null, null);
-    private static AttributeModel modelAttribute = new AttributeModel(HomeItemProxy.MODEL_ATTRIBUTE, "String", HomeItem.class, "getModel", null, null);
+    private static AttributeModel nameAttribute = new AttributeModel(HomeItemProxy.NAME_ATTRIBUTE, "String", null, HomeItem.class, "getName", null, null);
+    private static AttributeModel modelAttribute = new AttributeModel(HomeItemProxy.MODEL_ATTRIBUTE, "String", null, HomeItem.class, "getModel", null, null);
     private boolean isMorphing = false;
 
     public static StaticHomeItemModel getModel(HomeItem item) throws ModelException {
@@ -122,9 +122,10 @@ public class StaticHomeItemModel implements HomeItemModel {
         String setMethod = getNodeAttributeValue(nodeAttributes, "Set");
         String initMethod = getNodeAttributeValue(nodeAttributes, "Init");
         String type = getNodeAttributeValue(nodeAttributes, "Type");
+        String unit = getNodeAttributeValue(nodeAttributes, "Unit");
         List<String> values = parseAttributeStringList(attributeNode);
         if (name != null && type != null) {
-            AttributeModel model = new AttributeModel(name, type, aClass, getMethod, setMethod, initMethod, values);
+            AttributeModel model = new AttributeModel(name, type, unit, aClass, getMethod, setMethod, initMethod, values);
             addAttribute(name, model);
             if (getNodeAttributeValue(nodeAttributes, "Default") != null) {
                 defaultAttribute = model;

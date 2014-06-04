@@ -23,12 +23,12 @@ import nu.nethome.home.item.Attribute;
 
 import java.util.List;
 
-public class NewInternalAttribute implements Attribute {
+public class ModelAttribute implements Attribute {
 
     private final String value;
     private final AttributeModel model;
 
-    public NewInternalAttribute(String value, AttributeModel model) {
+    public ModelAttribute(String value, AttributeModel model) {
         this.value = value;
         this.model = model;
     }
@@ -51,6 +51,11 @@ public class NewInternalAttribute implements Attribute {
     @Override
     public String getType() {
         return model.getType();
+    }
+
+    @Override
+    public String getUnit() {
+        return model.getUnit();
     }
 
     @Override
