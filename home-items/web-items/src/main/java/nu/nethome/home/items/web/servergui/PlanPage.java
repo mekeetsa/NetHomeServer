@@ -234,7 +234,7 @@ public class PlanPage implements HomePageInterface {
         String locationClass = "icon " + arrowIconImageClass;
         String itemName = item.getAttributeValue("Name");
         String itemId = item.getAttributeValue("ID");
-        String mainAttribute = HomeGUI.toURL(model.getDefaultAttribute());
+        String mainAttribute = HomeGUI.toURL(model.getDefaultAttribute() != null ? model.getDefaultAttribute().getName() : "");
         String itemText = arguments.isEditMode() ? itemName : item.getAttributeValue(mainAttribute);
 
         // Make an estimate of how many rows of action buttons there will be

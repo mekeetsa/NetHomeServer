@@ -20,6 +20,7 @@
 package nu.nethome.home.impl;
 
 import nu.nethome.home.item.Attribute;
+import nu.nethome.home.item.AttributeModel;
 
 import java.util.List;
 

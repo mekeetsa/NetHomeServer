@@ -19,6 +19,7 @@
 
 package nu.nethome.home.impl;
 
+import nu.nethome.home.item.AttributeModel;
 import nu.nethome.home.item.HomeItem;
 
 import java.lang.reflect.InvocationTargetException;
@@ -26,7 +27,7 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 
-public class AttributeModel {
+public class ReflectionAttributeModel implements AttributeModel {
     private final Method setMethod;
     private final Method getMethod;
     private final Method initMethod;
@@ -36,14 +37,14 @@ public class AttributeModel {
     private final String unit;
 
 
-    public AttributeModel(String name, String type, String unit, Class<? extends HomeItem> clazz, String getMethodName, String setMethodName,
-                          String initMethodName) {
+    public ReflectionAttributeModel(String name, String type, String unit, Class<? extends HomeItem> clazz, String getMethodName, String setMethodName,
+                                    String initMethodName) {
         this(name, type, unit, clazz, getMethodName, setMethodName,
                 initMethodName, Collections.<String>emptyList());
     }
 
-    public AttributeModel(String name, String type, String unit, Class<? extends HomeItem> clazz, String getMethodName, String setMethodName,
-                          String initMethodName, List<String> valueList) {
+    public ReflectionAttributeModel(String name, String type, String unit, Class<? extends HomeItem> clazz, String getMethodName, String setMethodName,
+                                    String initMethodName, List<String> valueList) {
         this.name = name;
         this.type = type;
         this.setMethod = getGetMethod(clazz, setMethodName, new Class[]{String.class});
@@ -62,30 +63,37 @@ public class AttributeModel {
         }
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public List<String> getValueList() {
         return valueList;
     }
 
+    @Override
     public String getType() {
         return type;
     }
 
+    @Override
     public String getUnit() {
         return unit;
     }
 
+    @Override
     public boolean isReadOnly() {
         return setMethod == null && getMethod != null;
     }
 
+    @Override
     public boolean isCanInit() {
         return initMethod != null;
     }
 
+    @Override
     public boolean isWriteOnly() {
         return getMethod == null;
     }

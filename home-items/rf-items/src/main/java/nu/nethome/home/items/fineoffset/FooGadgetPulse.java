@@ -35,7 +35,7 @@ public class FooGadgetPulse extends FooGadgetLegacy implements HomeItem {
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"FooGadgetPulse\" Category=\"Gauges\" >"
-            + "  <Attribute Name=\"Power\" Type=\"String\" Get=\"getPower\" Default=\"true\" />"
+            + "  <Attribute Name=\"Power\" Type=\"String\" Get=\"getPower\" Default=\"true\" Unit=\"kW\" />"
             + "  <Attribute Name=\"EnergyToday\" Type=\"String\" Get=\"getEnergyToday\" />"
             + "  <Attribute Name=\"EnergyYesterday\" Type=\"String\" Get=\"getEnergyYesterday\" />"
             + "  <Attribute Name=\"EnergyThisWeek\" Type=\"String\" Get=\"getEnergyThisWeek\" />"

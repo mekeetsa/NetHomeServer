@@ -341,7 +341,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
                     continue;
                 }
                 HomeItemModel model = item.getModel();
-                String value = item.getAttributeValue(model.getDefaultAttribute());
+                String value = model.getDefaultAttribute() != null ? item.getAttributeValue(model.getDefaultAttribute().getName()) : "";
                 if (!isFirst) {
                     p.format(",");
                 }
