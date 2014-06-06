@@ -35,11 +35,11 @@ import java.util.logging.Logger;
  */
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
-@HomeItemType(value = "Gauges", creationEvents = "FooGadgetEnergy_Message")
-public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueItem {
+@HomeItemType(value = "Gauges", creationEvents = "FooGadgetLegacy_Message")
+public class FooGadgetLegacy extends HomeItemAdapter implements HomeItem, ValueItem {
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
-            + "<HomeItem Class=\"FooGadgetEnergy\" Category=\"Gauges\" >"
+            + "<HomeItem Class=\"FooGadgetLegacy\" Category=\"Gauges\" >"
             + "  <Attribute Name=\"Power\" Type=\"String\" Get=\"getPower\" Default=\"true\" />"
             + "  <Attribute Name=\"EnergyToday\" Type=\"String\" Get=\"getEnergyToday\" />"
             + "  <Attribute Name=\"EnergyYesterday\" Type=\"String\" Get=\"getEnergyYesterday\" />"
@@ -58,8 +58,8 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
     public static final int MINUTES_PER_HOUR = 60;
     private static final SimpleDateFormat dateFormatter = new SimpleDateFormat("HH:mm:ss yyyy.MM.dd ");
 
-    public static final String ENERGY_FORMAT = "%.3f";
-    protected Logger logger = Logger.getLogger(FooGadgetEnergy.class.getName());
+    public static final String ENERGY_FORMAT = "%.2f";
+    protected Logger logger = Logger.getLogger(FooGadgetLegacy.class.getName());
     private LoggerComponent energyLoggerComponent = new LoggerComponent(this);
     protected Date latestUpdateOrCreation = getCurrentTime();
     private Date latestValueSampleTime = getCurrentTime();
@@ -76,7 +76,7 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
     protected boolean hasBeenUpdated;
     private long lostSamples;
 
-    public FooGadgetEnergy() {
+    public FooGadgetLegacy() {
         dayPeriod = new PeriodCounter() {
             @Override
             public long getNewPeriod() {
@@ -103,7 +103,7 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
 
     @Override
     public boolean receiveEvent(Event event) {
-        if (isFooGadgetEnergyEvent(event)) {
+        if (isFooGadgetLegacyEvent(event)) {
             return handleFooGadgetEvent(event);
         } else if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(HomeService.MINUTE_EVENT_TYPE)) {
             return handleMinuteEvent();
@@ -111,8 +111,8 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
         return false;
     }
 
-    private boolean isFooGadgetEnergyEvent(Event event) {
-        return event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals("FooGadgetEnergy_Message");
+    private boolean isFooGadgetLegacyEvent(Event event) {
+        return event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals("FooGadgetLegacy_Message");
     }
 
     protected boolean handleFooGadgetEvent(Event event) {
@@ -171,11 +171,11 @@ public class FooGadgetEnergy extends HomeItemAdapter implements HomeItem, ValueI
     }
 
     private int getSampleCounter(Event event) {
-        return event.getAttributeInt("FooGadgetEnergy.Counter");
+        return event.getAttributeInt("FooGadgetLegacy.Counter");
     }
 
     private long getPulseSample(Event event) {
-        return event.getAttributeInt("FooGadgetEnergy.Energy");
+        return event.getAttributeInt("FooGadgetLegacy.Energy");
     }
 
     public String getModel() {

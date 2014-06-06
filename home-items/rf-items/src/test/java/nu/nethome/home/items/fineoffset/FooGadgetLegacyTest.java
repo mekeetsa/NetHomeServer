@@ -12,21 +12,19 @@ import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 
 /**
  *
  */
-public class FooGadgetEnergyTest {
+public class FooGadgetLegacyTest {
 
-    private FooGadgetEnergy energyMeter;
+    private FooGadgetLegacy energyMeter;
     private Date now;
     private LocalHomeItemProxy proxy;
 
     @Before
     public void setUp() throws Exception {
-        energyMeter = new FooGadgetEnergy(){
+        energyMeter = new FooGadgetLegacy(){
             @Override
             Date getCurrentTime() {
                 return now;
@@ -42,7 +40,7 @@ public class FooGadgetEnergyTest {
     @Test
     public void canGetCurrentPower() throws Exception {
         pushValue(1, 1, 1);
-        assertThat(proxy.getAttributeValue("Power"), is("60,000"));
+        assertThat(proxy.getAttributeValue("Power"), is("60,00"));
     }
 
     @Test
@@ -51,7 +49,7 @@ public class FooGadgetEnergyTest {
             pushValue(1, i + 1, 1);
             passTime(1);
         }
-        assertThat(energyMeter.getValue(), is("60,000"));
+        assertThat(energyMeter.getValue(), is("60,00"));
     }
 
     @Test
@@ -71,28 +69,28 @@ public class FooGadgetEnergyTest {
 
     @Test
     public void canGetTotalEnergy() throws Exception {
-        assertThat(proxy.getAttributeValue("TotalEnergy"), is("0,000"));
+        assertThat(proxy.getAttributeValue("TotalEnergy"), is("0,00"));
         proxy.setAttributeValue("TotalSavedPulses", "10");
-        assertThat(proxy.getAttributeValue("TotalEnergy"), is("10,000"));
+        assertThat(proxy.getAttributeValue("TotalEnergy"), is("10,00"));
     }
 
     @Test
     public void canGetEnergyToday() throws Exception {
         assertThat(proxy.getAttributeValue("EnergyToday"), is(""));
         pushValue(0, 1, 1);
-        assertThat(proxy.getAttributeValue("EnergyToday"), is("1,000"));
+        assertThat(proxy.getAttributeValue("EnergyToday"), is("1,00"));
         pushValue(1, 2, 1);
-        assertThat(proxy.getAttributeValue("EnergyToday"), is("2,000"));
+        assertThat(proxy.getAttributeValue("EnergyToday"), is("2,00"));
     }
 
     @Test
     public void canGetEnergyTomorrow() throws Exception {
         assertThat(proxy.getAttributeValue("EnergyToday"), is(""));
         pushValue(0, 1, 1);
-        assertThat(proxy.getAttributeValue("EnergyToday"), is("1,000"));
+        assertThat(proxy.getAttributeValue("EnergyToday"), is("1,00"));
         passTime(60); // Passes 00.00
         pushValue(1, 2, 1);
-        assertThat(proxy.getAttributeValue("EnergyToday"), is("1,000"));
+        assertThat(proxy.getAttributeValue("EnergyToday"), is("1,00"));
     }
 
     private void passTime(int minutes) {
@@ -104,13 +102,13 @@ public class FooGadgetEnergyTest {
     }
 
     private void pushValue(int previous, int prevCounter, int current) {
-        Event prevEvent = new TstEvent("FooGadgetEnergy_Message");
-        prevEvent.setAttribute("FooGadgetEnergy.Energy", previous);
-        prevEvent.setAttribute("FooGadgetEnergy.Counter", prevCounter);
+        Event prevEvent = new TstEvent("FooGadgetLegacy_Message");
+        prevEvent.setAttribute("FooGadgetLegacy.Energy", previous);
+        prevEvent.setAttribute("FooGadgetLegacy.Counter", prevCounter);
         energyMeter.receiveEvent(prevEvent);
-        Event currEvent = new TstEvent("FooGadgetEnergy_Message");
-        currEvent .setAttribute("FooGadgetEnergy.Energy", current);
-        currEvent .setAttribute("FooGadgetEnergy.Counter", (prevCounter + 1) % 100);
+        Event currEvent = new TstEvent("FooGadgetLegacy_Message");
+        currEvent .setAttribute("FooGadgetLegacy.Energy", current);
+        currEvent .setAttribute("FooGadgetLegacy.Counter", (prevCounter + 1) % 100);
         energyMeter.receiveEvent(currEvent );
     }
 }

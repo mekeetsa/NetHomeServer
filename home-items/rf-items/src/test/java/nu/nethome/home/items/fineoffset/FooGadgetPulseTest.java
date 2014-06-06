@@ -42,9 +42,9 @@ public class FooGadgetPulseTest {
     public void canGetValuesAfterOneInitialUpdate() throws Exception {
         pushValue(50);
         assertThat(proxy.getAttributeValue("Power"), is(""));
-        assertThat(proxy.getAttributeValue("EnergyToday"), is("0,000"));
-        assertThat(proxy.getAttributeValue("EnergyThisWeek"), is("0,000"));
-        assertThat(proxy.getAttributeValue("TotalEnergy"), is("50,000"));
+        assertThat(proxy.getAttributeValue("EnergyToday"), is("0,00"));
+        assertThat(proxy.getAttributeValue("EnergyThisWeek"), is("0,00"));
+        assertThat(proxy.getAttributeValue("TotalEnergy"), is("50,00"));
     }
 
     @Test
@@ -52,10 +52,10 @@ public class FooGadgetPulseTest {
         pushValue(50);
         passTime(1);
         pushValue(100);
-        assertThat(proxy.getAttributeValue("Power"), is("3000,000")); // 60 * 50
-        assertThat(proxy.getAttributeValue("EnergyToday"), is("50,000"));
-        assertThat(proxy.getAttributeValue("EnergyThisWeek"), is("50,000"));
-        assertThat(proxy.getAttributeValue("TotalEnergy"), is("100,000"));
+        assertThat(proxy.getAttributeValue("Power"), is("3000,00")); // 60 * 50
+        assertThat(proxy.getAttributeValue("EnergyToday"), is("50,00"));
+        assertThat(proxy.getAttributeValue("EnergyThisWeek"), is("50,00"));
+        assertThat(proxy.getAttributeValue("TotalEnergy"), is("100,00"));
     }
 
     @Test
@@ -63,10 +63,10 @@ public class FooGadgetPulseTest {
         pushValue(COUNTER_RANGE - 50);
         passTime(1);
         pushValue(50);
-        assertThat(proxy.getAttributeValue("Power"), is("6000,000")); // 60 * 50
-        assertThat(proxy.getAttributeValue("EnergyToday"), is("100,000"));
-        assertThat(proxy.getAttributeValue("EnergyThisWeek"), is("100,000"));
-        assertThat(proxy.getAttributeValue("TotalEnergy"), is("413746,000")); // 413696 + 50
+        assertThat(proxy.getAttributeValue("Power"), is("6000,00")); // 60 * 50
+        assertThat(proxy.getAttributeValue("EnergyToday"), is("100,00"));
+        assertThat(proxy.getAttributeValue("EnergyThisWeek"), is("100,00"));
+        assertThat(proxy.getAttributeValue("TotalEnergy"), is("413746,00")); // 413696 + 50
     }
 
     private void passTime(int minutes) {

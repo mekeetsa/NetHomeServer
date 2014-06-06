@@ -24,11 +24,6 @@ import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
 import nu.nethome.util.plugin.Plugin;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.logging.Logger;
-
 /**
  *
  * @author Stefan
@@ -36,7 +31,7 @@ import java.util.logging.Logger;
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
 @HomeItemType(value = "Gauges", creationEvents = "FooGadgetPulse_Message")
-public class FooGadgetPulse extends FooGadgetEnergy implements HomeItem {
+public class FooGadgetPulse extends FooGadgetLegacy implements HomeItem {
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"FooGadgetPulse\" Category=\"Gauges\" >"
