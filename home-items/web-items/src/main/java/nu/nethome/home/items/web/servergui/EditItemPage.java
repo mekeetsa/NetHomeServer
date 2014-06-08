@@ -722,9 +722,10 @@ public class EditItemPage extends PortletPage {
         while (i.hasNext()) {
             attribute = i.next();
             if (attribute.isReadOnly() && !attribute.isWriteOnly() && !attribute.getType().equals("Hidden")) {
+                String unit = attribute.getValue().length() > 0 ? (" " + attribute.getUnit()) : "";
                 p.println("<tr>");
                 p.println("  <td class=\"attributename\">" + attribute.getName() + ": "
-                        + "</td> <td class=\"attributenameandvalue\">" + attribute.getValue() + "</td>");
+                        + "</td> <td class=\"attributenameandvalue\">" + attribute.getValue() + unit + "</td>");
                 p.println("</tr>");
             }
         }
