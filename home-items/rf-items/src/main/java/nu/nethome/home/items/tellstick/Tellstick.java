@@ -63,7 +63,7 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
     private volatile int sentMessages = 0;
     private String portName = "COM14";
     private SendQueue sendQueue = new SendQueue(TIMEOUT_MILLISECONDS);
-    private String receivedProtocols = "UPM,NexaL,Nexa,Oregon";
+    private String receivedProtocols = "UPM,NexaL,Nexa,Oregon,FineOffset";
     private String transmittedProtocols;
     private Set<String> transmittedProtocolSet = new HashSet<String>();
 
