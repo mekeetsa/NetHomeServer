@@ -34,7 +34,7 @@ import java.util.List;
  */
 public class PhilipsHueBridge {
 
-    public static final String WWW_MEETHUE_COM_API = "http://www.meethue.com";
+    public static final String WWW_MEETHUE_COM_API = "https://www.meethue.com";
     public static final String HUE_NUPNP = "/api/nupnp";
 
     private String url = "http://192.168.1.174";
