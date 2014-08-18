@@ -95,6 +95,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("AudioProtocolParser", nu.nethome.home.items.audio.AudioProtocolParser.class),
             new HomeItemClassInfo("AudioProtocolTransmitter", nu.nethome.home.items.audio.AudioProtocolTransmitter.class),
             new HomeItemClassInfo("DayLiteTimer", nu.nethome.home.items.timer.DayLiteTimer.class),
+            new HomeItemClassInfo("LampRepeater", nu.nethome.home.items.timer.LampRepeater.class),
             new HomeItemClassInfo("GateKeeper", nu.nethome.home.items.net.GateKeeper.class),
             new HomeItemClassInfo("MBMThermometer", nu.nethome.home.items.misc.MBMThermometer.class),
             new HomeItemClassInfo("ValueTrigger", nu.nethome.home.items.misc.ValueTrigger.class),
