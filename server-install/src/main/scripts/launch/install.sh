@@ -22,9 +22,13 @@ if [ $? -ne 0 ]; then
    echo Creating user $NH_USER
    useradd -r -c "user for nethome service" -g $NH_GROUP -G users  $NH_USER
    fi
-mkdir /user/nethome
-chown $NH_USER /user/nethome
-chgrp $NH_USER /user/nethome
+# Need a home directory for java prefs
+mkdir /home/nethome
+chown $NH_USER /home/nethome
+chgrp $NH_USER /home/nethome
+# Group membership to access serial ports
+usermod -a -G dialout nethome
+usermod -a -G tty nethome
 
 # Main installation
 cp -r $SRCPATH $INSTALLATION_ROOT
@@ -33,7 +37,7 @@ chmod +x $INSTALLATION_ROOT/rpi_deamon_start.sh
 
 # Configuration
 mkdir $CONFIGURATION_ROOT
-mv $INSTALLATION_ROOT/lib/demo.xml $CONFIGURATION_ROOT/config.xml
+mv $INSTALLATION_ROOT/lib/demo_rpi.xml $CONFIGURATION_ROOT/config.xml
 mv $INSTALLATION_ROOT/media $CONFIGURATION_ROOT/
 chown -R $NH_USER $CONFIGURATION_ROOT
 
@@ -46,7 +50,7 @@ mkdir $PID_ROOT
 chown -R $NH_USER $PID_ROOT
 
 echo "Copying configurations..."
-cp nethome /etc/init.d
+cp $SRCPATH/nethome /etc/init.d
 chmod +x /etc/init.d/nethome
 update-rc.d nethome	defaults
 /etc/init.d/nethome start

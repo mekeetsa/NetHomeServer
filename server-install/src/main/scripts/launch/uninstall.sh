@@ -18,4 +18,4 @@ cp $CONFIGURATION_ROOT/config.xml /home/pi/old_config.xml
 rm -Rf $CONFIGURATION_ROOT
 rm -Rf $LOG_ROOT
 rm -Rf $PID_ROOT
-rm -Rf /user/nethome
+rm -Rf /home/nethome
