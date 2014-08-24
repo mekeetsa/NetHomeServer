@@ -35,11 +35,11 @@ chown -R $NH_USER $CONFIGURATION_ROOT
 
 # Logging
 mkdir $LOG_ROOT
-chown -R $LOG_ROOT
+chown -R $NH_USER $LOG_ROOT
 
 # pid-file
 mkdir $PID_ROOT
-chown -R $PID_ROOT
+chown -R $NH_USER $PID_ROOT
 
 echo "Copying configurations..."
 cp nethome /etc/init.d

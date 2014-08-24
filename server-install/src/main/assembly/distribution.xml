@@ -50,6 +50,7 @@
                 <include>README-install</include>
                 <include>nhs_daemon_template</include>
                 <include>nhs_template</include>
+                <include>nethome</include>
             </includes>
         </fileSet>
         <!-- rxtx library files for MAC -->
