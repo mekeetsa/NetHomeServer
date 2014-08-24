@@ -62,7 +62,7 @@ public class HomeManagerStarter {
         HomeServer server = new HomeServer();
         server.setName("Home Server");
 
-        String logFileName = System.getProperty("user.home");
+        String logFileDirectory = System.getProperty("user.home");
 
         // Check arguments - if no arguments, load the demo configuration
         int i = 0;
@@ -73,19 +73,19 @@ public class HomeManagerStarter {
                 pluginDirectories.add(args[i].substring(2));
             }
             if (args[i].startsWith("-l")) {
-                logFileName = args[i].substring(2);
+                logFileDirectory = args[i].substring(2);
             }
             i++;
         }
 
         try {
             // Initialize logging ( http://java.sun.com/j2se/1.4.2/docs/api/java/util/logging/package-summary.html )
-            logFileName += "/HomeManager%g.log";
-            Handler fh = new FileHandler(logFileName, LOG_FILE_SIZE, NUMBER_OF_LOGFILES, true);
+            logFileDirectory += "/HomeManager%g.log";
+            Handler fh = new FileHandler(logFileDirectory, LOG_FILE_SIZE, NUMBER_OF_LOGFILES, true);
             fh.setFormatter(new LogFormatter());
             Logger.getLogger("").addHandler(fh);
             logger.info("**Starting HomeManager " + HomeManagerStarter.class.getPackage().getImplementationVersion() + "**");
-            logger.info("Logging to: " + logFileName);
+            logger.info("Logging to: " + logFileDirectory);
         } catch (IOException e) {
             e.printStackTrace(System.err);
         }

@@ -22,10 +22,14 @@ if [ $? -ne 0 ]; then
    echo Creating user $NH_USER
    useradd -r -c "user for nethome service" -g $NH_GROUP -G users  $NH_USER
    fi
+mkdir /user/nethome
+chown $NH_USER /user/nethome
+chgrp $NH_USER /user/nethome
 
 # Main installation
 cp -r $SRCPATH $INSTALLATION_ROOT
 chown -R $NH_USER $INSTALLATION_ROOT
+chmod +x $INSTALLATION_ROOT/rpi_deamon_start.sh
 
 # Configuration
 mkdir $CONFIGURATION_ROOT
@@ -44,3 +48,5 @@ chown -R $NH_USER $PID_ROOT
 echo "Copying configurations..."
 cp nethome /etc/init.d
 chmod +x /etc/init.d/nethome
+update-rc.d nethome	defaults
+/etc/init.d/nethome start

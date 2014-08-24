@@ -419,6 +419,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ValueIte
      * not yet activated.
      */
     public void loadItems() {
+        String currentFileName = getFileName();
         List<HomeItem> sortedItems = homeItemLoader.loadItems(getFileName(), factory, this);
 
         for (HomeItem item : sortedItems) {
@@ -460,6 +461,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ValueIte
             }
         }
         HomeServer.logger.info("Activated " + Integer.toString(activatedItemCount) + " of " + Integer.toString(itemCount) + " Items");
+        setFileName(currentFileName);
     }
 
     public void saveItems() {
