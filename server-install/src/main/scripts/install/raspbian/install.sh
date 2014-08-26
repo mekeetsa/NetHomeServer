@@ -1,8 +1,9 @@
 #!/bin/sh
 #
-#Assumes root, make sure to call as 'sudo install_daemon.sh'
+#Assumes root, make sure to call as 'sudo install.sh'
 #
 SRCPATH=$(dirname $(readlink -f $0))
+SRCROOT=$SRCPATH/../..
 INSTALLATION_ROOT=/opt/nethome
 CONFIGURATION_ROOT=/etc/opt/nethome
 LOG_ROOT=/var/log/nethome
@@ -31,8 +32,9 @@ usermod -a -G dialout nethome
 usermod -a -G tty nethome
 
 # Main installation
-cp -r $SRCPATH $INSTALLATION_ROOT
+cp -r $SRCROOT $INSTALLATION_ROOT
 chown -R $NH_USER $INSTALLATION_ROOT
+cp $SRCPATH/rpi_deamon_start.sh $INSTALLATION_ROOT/rpi_deamon_start.sh
 chmod +x $INSTALLATION_ROOT/rpi_deamon_start.sh
 
 # Configuration

@@ -53,6 +53,12 @@
                 <include>nethome</include>
             </includes>
         </fileSet>
+        <!-- Installation scripts -->
+        <fileSet>
+            <outputDirectory>/install</outputDirectory>
+            <directory>${basedir}/src/main/scripts/install</directory>
+            <filtered>false</filtered>
+        </fileSet>
         <!-- rxtx library files for MAC -->
         <fileSet>
             <outputDirectory>/os</outputDirectory>
