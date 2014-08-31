@@ -14,6 +14,10 @@ you follow the these steps:
 
 4) If you have any log-files for thermometers placed in the old installation,
    move those to /var/log/nethome/
+
+     sudo cp lib/MyThermometer.log /var/log/nethome/MyThermometer.log
+     sudo chown nethome /var/log/nethome/MyThermometer.log
+
 5) Start the server again by writing: sudo /etc/init.d/nethome start
 6) If you moved any log files, start the WEB gui and go in to the corresponding Items and change
    the log file names so they refer to the new file locations.
