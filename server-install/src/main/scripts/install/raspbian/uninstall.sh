@@ -1,7 +1,10 @@
 #!/bin/sh
 #
-#Assumes root, make sure to call as 'sudo install_daemon.sh'
-#
+#Assumes root, make sure to call as 'sudo ./uninstall.sh'
+if [ "$(id -u)" != "0" ]; then
+   echo "This script must be run as root. Call as 'sudo ./install.sh'" 1>&2
+   exit 1
+fi
 
 INSTALLATION_ROOT=/opt/nethome
 CONFIGURATION_ROOT=/etc/opt/nethome
@@ -11,7 +14,7 @@ PID_ROOT=/var/run/nethome
 echo "Stopping Server"
 update-rc.d /etc/init.d/nethome	remove
 /etc/init.d/nethome stop
-echo "Removing directories"
+echo "Removing installed files"
 rm /etc/init.d/nethome
 rm -Rf $INSTALLATION_ROOT
 cp $CONFIGURATION_ROOT/config.xml /home/pi/old_config.xml

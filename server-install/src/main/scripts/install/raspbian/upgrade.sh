@@ -18,15 +18,25 @@ NH_GROUP=nethome
 NH_USER=nethome
 
 # Check so there really is an existing installation
-if [ ! -x /etc/init.d/nethome -o ! -d "$INSTALLATION_ROOT" -o ! -d "$CONFIGURATION_ROOT" -o ! -d /home/nethome]; then
+if [ ! -x "/etc/init.d/nethome" -o ! -d "$INSTALLATION_ROOT" -o ! -d "$CONFIGURATION_ROOT" -o ! -d "/home/nethome" ]; then
   echo "Cannot find a complete installation to upgrade. The server must be installed with the installation script found in the same folder as this script."
   exit 1
 fi
 
+# Stop the server
+echo "Stopping server"
+/etc/init.d/nethome stop
+
 # Install a new lib directory
-chmod +w $INSTALLATION_ROOT/lib_backup
-rm -r $INSTALLATION_ROOT/lib_backup
+echo "Upgrading files"
+chmod -f +w $INSTALLATION_ROOT/lib_backup
+rm -rf $INSTALLATION_ROOT/lib_backup
 mv $INSTALLATION_ROOT/lib $INSTALLATION_ROOT/lib_backup
 cp -r $SRCROOT/lib $INSTALLATION_ROOT/lib
+rm -f $INSTALLATION_ROOT/lib/librxtxSerial.so
+cp $INSTALLATION_ROOT/os/librxtxSerial_raspian.so $INSTALLATION_ROOT/lib/librxtxSerial.so
 chmod -w $INSTALLATION_ROOT/lib
 
+# Start the server
+echo "Restarting server"
+/etc/init.d/nethome start

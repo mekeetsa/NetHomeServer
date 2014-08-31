@@ -6,6 +6,12 @@ if [ "$(id -u)" != "0" ]; then
    exit 1
 fi
 
+#Check for previous daemon installation
+if [ -e /etc/init.d/nhs-daemon ]; then
+  echo "Previous version of daemon start installed. Please see readme.txt for instructions on how to uninstall."
+  exit 1
+fi
+
 #
 SRCPATH=$(dirname $(readlink -f $0))
 SRCROOT=$SRCPATH/../..
@@ -18,7 +24,7 @@ NH_GROUP=nethome
 NH_USER=nethome
 
 #Check so we don't overwrite an existing installation
-if [ -d "$INSTALLATION_ROOT" -o -d "$CONFIGURATION_ROOT" -o -d /home/nethome]; then
+if [ -d "$INSTALLATION_ROOT" -o -d "$CONFIGURATION_ROOT" -o -d "/home/nethome" ]; then
   echo "Server already installed. Please uninstall the old installation first."
   exit 1
 fi
@@ -45,9 +51,11 @@ usermod -a -G tty nethome
 # Main installation
 cp -r $SRCROOT $INSTALLATION_ROOT
 chown -R $NH_USER $INSTALLATION_ROOT
-chmod -w $INSTALLATION_ROOT/lib
+rm -f $INSTALLATION_ROOT/lib/librxtxSerial.so
+cp $INSTALLATION_ROOT/os/librxtxSerial_raspian.so $INSTALLATION_ROOT/lib/librxtxSerial.so
 cp $SRCPATH/rpi_deamon_start.sh $INSTALLATION_ROOT/rpi_deamon_start.sh
 chmod +x $INSTALLATION_ROOT/rpi_deamon_start.sh
+chmod -w $INSTALLATION_ROOT/lib
 
 # Configuration
 mkdir $CONFIGURATION_ROOT
@@ -67,3 +75,5 @@ cp $SRCPATH/nethome /etc/init.d
 chmod +x /etc/init.d/nethome
 update-rc.d nethome	defaults
 /etc/init.d/nethome start
+
+echo "Installation complete. Browse to http://localhost:8020/home to configure the server"
