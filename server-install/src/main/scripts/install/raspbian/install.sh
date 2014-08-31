@@ -1,6 +1,11 @@
 #!/bin/sh
 #
-#Assumes root, make sure to call as 'sudo install.sh'
+#Assumes root, make sure to call as 'sudo ./install.sh'
+if [ "$(id -u)" != "0" ]; then
+   echo "This script must be run as root. Call as 'sudo ./install.sh'" 1>&2
+   exit 1
+fi
+
 #
 SRCPATH=$(dirname $(readlink -f $0))
 SRCROOT=$SRCPATH/../..
@@ -11,6 +16,12 @@ PID_ROOT=/var/run/nethome
 PID_FILE=$PID_ROOT/nethome.pid
 NH_GROUP=nethome
 NH_USER=nethome
+
+#Check so we don't overwrite an existing installation
+if [ -d "$INSTALLATION_ROOT" -o -d "$CONFIGURATION_ROOT" -o -d /home/nethome]; then
+  echo "Server already installed. Please uninstall the old installation first."
+  exit 1
+fi
 
 # Create user and group
 getent group $NH_GROUP >/dev/null 2>&1
@@ -34,6 +45,7 @@ usermod -a -G tty nethome
 # Main installation
 cp -r $SRCROOT $INSTALLATION_ROOT
 chown -R $NH_USER $INSTALLATION_ROOT
+chmod -w $INSTALLATION_ROOT/lib
 cp $SRCPATH/rpi_deamon_start.sh $INSTALLATION_ROOT/rpi_deamon_start.sh
 chmod +x $INSTALLATION_ROOT/rpi_deamon_start.sh
 
@@ -51,7 +63,6 @@ chown -R $NH_USER $LOG_ROOT
 mkdir $PID_ROOT
 chown -R $NH_USER $PID_ROOT
 
-echo "Copying configurations..."
 cp $SRCPATH/nethome /etc/init.d
 chmod +x /etc/init.d/nethome
 update-rc.d nethome	defaults

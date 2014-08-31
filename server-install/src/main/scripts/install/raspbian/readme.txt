@@ -21,5 +21,6 @@ The installation files are moved to the following locations:
 
 Executable files -> /opt/nethome/
 Configuration file -> /etc/opt/nethome
+Media files -> /etc/opt/nethome/media
 Log files -> /var/log/nethome
 Start script -> /etc/init.d/nethome
