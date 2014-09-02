@@ -65,7 +65,7 @@ public class ValueLogger extends HomeItemAdapter implements ValueItem, HomeItem 
     public void activate(HomeService server) {
         super.activate(server);
         executor = new CommandLineExecutor(server, true);
-        valueLoggerComponent.activate();
+        valueLoggerComponent.activate(server.getConfiguration().getLogDirectory());
     }
 
     @Override

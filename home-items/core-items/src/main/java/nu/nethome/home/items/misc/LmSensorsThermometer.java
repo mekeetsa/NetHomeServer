@@ -70,7 +70,7 @@ public class LmSensorsThermometer extends HomeItemAdapter implements HomeItem, V
 	 * @see ssg.home.HomeItem#activate()
 	 */
 	public void activate() {
-		m_TempLogger.activate();
+		m_TempLogger.activate(server.getConfiguration().getLogDirectory());
 	}
 
 	/**

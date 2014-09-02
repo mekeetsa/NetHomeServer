@@ -61,8 +61,7 @@ public class HomeManagerStarter {
     public final void go(String[] args, HomeItemFactory... additionalFactories) {
         HomeServer server = new HomeServer();
         server.setName("Home Server");
-
-        String logFileDirectory = System.getProperty("user.home");
+        String logFileName = System.getProperty("user.home");
 
         // Check arguments - if no arguments, load the demo configuration
         int i = 0;
@@ -73,19 +72,25 @@ public class HomeManagerStarter {
                 pluginDirectories.add(args[i].substring(2));
             }
             if (args[i].startsWith("-l")) {
-                logFileDirectory = args[i].substring(2);
+                logFileName = args[i].substring(2);
+                /**
+                 * For backwards compatibility we only set the log directory in the server if it is explicitly
+                 * specified. Otherwise it would break functionality for older installations were all log files
+                 * from thermometers and so on are stored in the current directory of the application.
+                 */
+                server.setLogDirectory(logFileName);
             }
             i++;
         }
 
         try {
             // Initialize logging ( http://java.sun.com/j2se/1.4.2/docs/api/java/util/logging/package-summary.html )
-            logFileDirectory += "/HomeManager%g.log";
-            Handler fh = new FileHandler(logFileDirectory, LOG_FILE_SIZE, NUMBER_OF_LOGFILES, true);
+            logFileName += "/HomeManager%g.log";
+            Handler fh = new FileHandler(logFileName, LOG_FILE_SIZE, NUMBER_OF_LOGFILES, true);
             fh.setFormatter(new LogFormatter());
             Logger.getLogger("").addHandler(fh);
             logger.info("**Starting HomeManager " + HomeManagerStarter.class.getPackage().getImplementationVersion() + "**");
-            logger.info("Logging to: " + logFileDirectory);
+            logger.info("Logging to: " + logFileName);
         } catch (IOException e) {
             e.printStackTrace(System.err);
         }

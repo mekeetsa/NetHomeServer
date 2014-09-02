@@ -115,7 +115,7 @@ public class UPMRainfall extends HomeItemAdapter implements HomeItem, ValueItem 
 	 */
 	public void activate() {
 		// Activate the logger component
-		m_RainfallLogger.activate();
+		m_RainfallLogger.activate(server.getConfiguration().getLogDirectory());
 	}
 
 	/**

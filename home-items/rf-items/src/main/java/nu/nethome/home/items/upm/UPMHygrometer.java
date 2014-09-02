@@ -103,7 +103,7 @@ public class UPMHygrometer extends HomeItemAdapter implements HomeItem, ValueIte
       * @see ssg.home.HomeItem#activate()
       */
     public void activate() {
-        moistureLoggerComponent.activate();
+        moistureLoggerComponent.activate(server.getConfiguration().getLogDirectory());
     }
 
     /**

@@ -92,7 +92,7 @@ public class RestServlet extends HttpServlet {
 
         try {
             // Open the data file
-            FileReader reader = new FileReader(fileName);
+            FileReader reader = new FileReader(getFullFileName(fileName));
             Long startTimeMs = startTime.getTime();
             Long month = 1000L * 60L * 60L * 24L * 30L;
             boolean doOptimize = true;
@@ -159,6 +159,14 @@ public class RestServlet extends HttpServlet {
         p.flush();
         p.close();
         return;
+    }
+
+    private String getFullFileName(String fileName) {
+        if (fileName.contains(File.pathSeparator)) {
+            return fileName;
+        } else {
+            return service.getConfiguration().getLogDirectory() + fileName;
+        }
     }
 
     private void printEntry(ServletOutputStream p, Date time, double value, boolean isFirst) throws IOException {

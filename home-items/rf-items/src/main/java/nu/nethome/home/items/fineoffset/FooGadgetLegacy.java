@@ -93,7 +93,7 @@ public class FooGadgetLegacy extends HomeItemAdapter implements HomeItem, ValueI
 
     @Override
     public void activate() {
-        energyLoggerComponent.activate();
+        energyLoggerComponent.activate(server.getConfiguration().getLogDirectory());
     }
 
     @Override

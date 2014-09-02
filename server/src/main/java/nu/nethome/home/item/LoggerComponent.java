@@ -20,6 +20,7 @@
 package nu.nethome.home.item;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -59,6 +60,7 @@ public class LoggerComponent extends TimerTask {
     private static Logger logger = Logger.getLogger(LoggerComponent.class.getName());
     private boolean loggerIsActivated = false;
     private boolean loggerIsRunning = false;
+    private String logDirectoryPath = "";
     // Public attributes
     private String logFileName = "";
     private int logInterval = 15;
@@ -69,7 +71,12 @@ public class LoggerComponent extends TimerTask {
         loggedItem = logged;
     }
 
-    public void activate() {
+    public void activate(String logDirectoryPath) {
+        this.logDirectoryPath = logDirectoryPath;
+        activate();
+    }
+
+    private void activate() {
         loggerIsActivated = true;
         if (logFileName.length() == 0) {
             return;
@@ -105,7 +112,7 @@ public class LoggerComponent extends TimerTask {
         try {
             String value = loggedItem.getValue();
             if (value.length() > 0) {
-                out = new BufferedWriter(new FileWriter(logFileName, true));
+                out = new BufferedWriter(new FileWriter(getFullFileName(), true));
                 // Format the current time.
                 SimpleDateFormat formatter
                         = new SimpleDateFormat(logTimeFormat);
@@ -115,7 +122,7 @@ public class LoggerComponent extends TimerTask {
                 out.newLine();
             }
         } catch (IOException e) {
-            logger.warning("Failed to open log file: " + logFileName + " Error:" + e.toString());
+            logger.warning("Failed to open log file: " + getFullFileName() + " Error:" + e.toString());
         } finally {
             if (out != null) {
                 try {
@@ -124,6 +131,14 @@ public class LoggerComponent extends TimerTask {
                     // Ignore
                 }
             }
+        }
+    }
+
+    private String getFullFileName() {
+        if (logFileName.contains(File.pathSeparator)) {
+            return logFileName;
+        } else {
+            return logDirectoryPath + logFileName;
         }
     }
 

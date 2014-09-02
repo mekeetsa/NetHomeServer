@@ -119,7 +119,7 @@ public class UPMSoilMoisture extends HomeItemAdapter implements HomeItem, ValueI
     public void activate(HomeService server) {
         super.activate(server);
         // Activate the logger component
-        tempLoggerComponent.activate();
+        tempLoggerComponent.activate(server.getConfiguration().getLogDirectory());
     }
 
     /**

@@ -110,7 +110,7 @@ public class UPMThermometer extends HomeItemAdapter implements HomeItem, ValueIt
     public void activate(HomeService server) {
         super.activate(server);
         // Activate the logger component
-        tempLoggerComponent.activate();
+        tempLoggerComponent.activate(server.getConfiguration().getLogDirectory());
     }
 
     /**

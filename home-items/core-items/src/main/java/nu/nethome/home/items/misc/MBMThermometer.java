@@ -168,7 +168,7 @@ public class MBMThermometer extends HomeItemAdapter implements HomeItem, ValueIt
 	}
 
 	public void activate() {
-		m_TempLogger.activate();
+		m_TempLogger.activate(server.getConfiguration().getLogDirectory());
 	}
 
 	/**

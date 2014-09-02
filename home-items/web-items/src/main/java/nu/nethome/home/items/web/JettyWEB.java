@@ -126,7 +126,7 @@ public class JettyWEB extends HomeItemAdapter implements HomeItem, HomeWebServer
             applicationsContext.addServlet(new ServletHolder(resourceHandler), resourceHandler.getPathSpecification());
 
             // Create a graph Servlet
-            applicationsContext.addServlet(new ServletHolder(new GraphServlet()), "/Graph");
+            applicationsContext.addServlet(new ServletHolder(new GraphServlet(server)), "/Graph");
 
             // Create a rest Servlet
             applicationsContext.addServlet(new ServletHolder(new RestServlet(server)), "/rest/*");

@@ -101,7 +101,7 @@ public class UPMWindDirection extends HomeItemAdapter implements HomeItem, Value
      */
     public void activate() {
         // Activate the logger component
-        m_WindDirectionLogger.activate();
+        m_WindDirectionLogger.activate(server.getConfiguration().getLogDirectory());
     }
 
     /**

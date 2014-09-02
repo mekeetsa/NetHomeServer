@@ -127,7 +127,7 @@ public class UPMWindSpeed extends HomeItemAdapter implements HomeItem, ValueItem
 	public void activate() {
 		// Activate the logger component
 		m_WindSpeedLogger.setInterval(Integer.toString(m_LogInterval));
-		m_WindSpeedLogger.activate();
+		m_WindSpeedLogger.activate(server.getConfiguration().getLogDirectory());
 	}
 
 	/**

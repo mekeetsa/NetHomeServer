@@ -23,6 +23,7 @@ import nu.nethome.home.item.*;
 import nu.nethome.home.system.*;
 import nu.nethome.util.plugin.PluginProvider;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -40,7 +41,7 @@ import java.util.prefs.Preferences;
  * @author Stefan Stromberg
  */
 @SuppressWarnings("UnusedDeclaration")
-public class HomeServer implements HomeItem, HomeService, ServiceState, ValueItem {
+public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceConfiguration, ValueItem {
 
     private static final String MODEL;
 
@@ -105,12 +106,13 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ValueIte
     private long eventsCountPerPeriod = 0;
     private int minuteCounter;
     private int minutesBetweenItemSave = 60;
+    private String logDirectory = "";
 
     public HomeServer() {
         eventQueue = new LinkedBlockingQueue<Event>(MAX_QUEUE_SIZE);
         logRecords = new LinkedBlockingDeque<LogRecord>(LOG_RECORD_CAPACITY);
         setupLogger();
-        eventCountlogger.activate();
+        eventCountlogger.activate(getLogDirectory());
     }
 
     private void setupLogger() {
@@ -198,6 +200,10 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ValueIte
     }
 
     public HomeService getService() {
+        return this;
+    }
+
+    public ServiceConfiguration getConfiguration() {
         return this;
     }
 
@@ -673,5 +679,16 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ValueIte
 
     public void setLogFile(String logfile) {
         eventCountlogger.setFileName(logfile);
+    }
+
+    public String getLogDirectory() {
+        return logDirectory;
+    }
+
+    public void setLogDirectory(String logFileDirectory) {
+        this.logDirectory = logFileDirectory;
+        if (!this.logDirectory.isEmpty() && !this.logDirectory.endsWith(File.pathSeparator)) {
+            this.logDirectory += File.pathSeparator;
+        }
     }
 }
