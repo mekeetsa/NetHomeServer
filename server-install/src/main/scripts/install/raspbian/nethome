@@ -17,7 +17,7 @@
 #
 # Settings
 INSTALLATION_ROOT=/opt/nethome
-STARTFILE=rpi_deamon_start.sh
+STARTFILE=rpi_daemon_start.sh
 DISPLAY_NAME=NetHomeServer
 DESC=NetHomeServer
 NAME=nethome
