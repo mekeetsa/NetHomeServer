@@ -20,7 +20,9 @@ you follow the these steps:
 
 5) Start the server again by writing: sudo /etc/init.d/nethome start
 6) If you moved any log files, start the WEB gui and go in to the corresponding Items and change
-   the log file names so they refer to the new file locations.
+   the log file names so they refer to the new file locations. If you just call it for example
+   "MyThermometer.log", this will automatically refer to /var/log/nethome/MyThermometer.log, but you can also
+   specify the full path in the Item like: "/var/log/nethome/MyThermometer.log"
 7) Open the GUI-Item "JettyWEB" and change the MediaDirectory to /etc/opt/nethome/media
 
 8) Restart the server with the command:

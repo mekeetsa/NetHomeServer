@@ -11,11 +11,11 @@ This will copy the NetHomeServer files to appropriate locations in the file syst
 and install it as a daemon running as the user nethome.
 To stop the server you type:
 
-/etc/init.d/nethome stop
+sudo /etc/init.d/nethome stop
 
 And to start it again you type:
 
-/etc/init.d/nethome start
+sudo /etc/init.d/nethome start
 
 The installation files are moved to the following locations:
 
