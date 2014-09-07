@@ -248,7 +248,7 @@ public class GraphServlet extends HttpServlet {
 	}
 
     private String getFullFileName(String fileName) {
-        if (fileName.contains(File.pathSeparator)) {
+        if (fileName.contains(File.pathSeparator) || fileName.contains("/")) {
             return fileName;
         } else {
             return server.getConfiguration().getLogDirectory() + fileName;

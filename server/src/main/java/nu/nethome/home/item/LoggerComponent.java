@@ -135,7 +135,7 @@ public class LoggerComponent extends TimerTask {
     }
 
     private String getFullFileName() {
-        if (logFileName.contains(File.pathSeparator)) {
+        if (logFileName.contains(File.pathSeparator) || logFileName.contains("/")) {
             return logFileName;
         } else {
             return logDirectoryPath + logFileName;
