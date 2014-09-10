@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-echo "*Installing OpenNetHomeServer*" 1>&2
+echo "Installing OpenNetHomeServer" 1>&2
 #Assumes root, make sure to call as 'sudo ./install.sh'
 if [ "$(id -u)" != "0" ]; then
    echo "This script must be run as root. Call as 'sudo ./install.sh'" 1>&2
@@ -16,6 +16,7 @@ fi
 #
 SRCPATH=$(dirname $(readlink -f $0))
 SRCROOT=$SRCPATH/../..
+SRCDRIVERS=$SRCROOT/drivers/linux/ftdi
 INSTALLATION_ROOT=/opt/nethome
 CONFIGURATION_ROOT=/etc/opt/nethome
 LOG_ROOT=/var/log/nethome
@@ -23,6 +24,7 @@ PID_ROOT=/var/run/nethome
 PID_FILE=$PID_ROOT/nethome.pid
 NH_GROUP=nethome
 NH_USER=nethome
+LOCAL_IP=`ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p'`
 
 #Check so we don't overwrite an existing installation
 if [ -d "$INSTALLATION_ROOT" -o -d "$CONFIGURATION_ROOT" -o -d "/home/nethome" ]; then
@@ -73,10 +75,17 @@ chown -R $NH_USER $LOG_ROOT
 mkdir $PID_ROOT
 chown -R $NH_USER $PID_ROOT
 
+# Install daemon
 cp $SRCPATH/nethome /etc/init.d
 chmod +x /etc/init.d/nethome
 update-rc.d nethome	defaults
+
+echo "Configuring serial port drivers"
+chmod +x $SRCDRIVERS/install.sh
+$SRCDRIVERS/install.sh
+
+echo "Starting OpenNetHome server daemon"
 /etc/init.d/nethome start
 
-echo "Installation complete."
-echo "Browse to http://localhost:8020/home to configure the server"
+echo "Installation complete"
+echo "Browse to http://${LOCAL_IP}:8020/home to configure the server"
