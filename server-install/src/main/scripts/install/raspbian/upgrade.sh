@@ -24,11 +24,11 @@ if [ ! -x "/etc/init.d/nethome" -o ! -d "$INSTALLATION_ROOT" -o ! -d "$CONFIGURA
 fi
 
 # Stop the server
-echo "Stopping server"
+echo "Stopping server" 1>&2
 /etc/init.d/nethome stop
 
 # Install a new lib directory
-echo "Upgrading files"
+echo "Upgrading files" 1>&2
 chmod -f +w $INSTALLATION_ROOT/lib_backup
 rm -rf $INSTALLATION_ROOT/lib_backup
 mv $INSTALLATION_ROOT/lib $INSTALLATION_ROOT/lib_backup
@@ -38,5 +38,6 @@ cp $INSTALLATION_ROOT/os/librxtxSerial_raspian.so $INSTALLATION_ROOT/lib/librxtx
 chmod -w $INSTALLATION_ROOT/lib
 
 # Start the server
-echo "Restarting server"
+echo "Restarting server" 1>&2
 /etc/init.d/nethome start
+echo "Upgrade complete" 1>&2

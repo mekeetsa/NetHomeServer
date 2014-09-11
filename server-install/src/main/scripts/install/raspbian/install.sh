@@ -9,7 +9,7 @@ fi
 
 #Check for previous daemon installation
 if [ -e /etc/init.d/nhs-daemon ]; then
-  echo "Previous version of daemon start installed. Please see readme_upgrade_old.txt for instructions on how to uninstall."
+  echo "Previous version of daemon start installed. Please see readme_upgrade_old.txt for instructions on how to uninstall." 1>&2
   exit 1
 fi
 
@@ -28,19 +28,19 @@ LOCAL_IP=`ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]
 
 #Check so we don't overwrite an existing installation
 if [ -d "$INSTALLATION_ROOT" -o -d "$CONFIGURATION_ROOT" -o -d "/home/nethome" ]; then
-  echo "Server already installed. Please uninstall the old installation first."
+  echo "Server already installed. Please uninstall the old installation first." 1>&2
   exit 1
 fi
 
 # Create user and group
 getent group $NH_GROUP >/dev/null 2>&1
 if [ $? -ne 0 ]; then
-   echo Creating group $NH_GROUP
+   echo Creating group $NH_GROUP 1>&2
    groupadd -r $NH_GROUP || return 1
    fi
 id -u $NH_USER >/dev/null 2>&1
 if [ $? -ne 0 ]; then
-   echo Creating user $NH_USER
+   echo Creating user $NH_USER 1>&2
    useradd -r -c "user for nethome service" -g $NH_GROUP -G users  $NH_USER
    fi
 # Need a home directory for java prefs
@@ -80,12 +80,13 @@ cp $SRCPATH/nethome /etc/init.d
 chmod +x /etc/init.d/nethome
 update-rc.d nethome	defaults
 
-echo "Configuring serial port drivers"
+echo "Configuring serial port drivers" 1>&2
 chmod +x $SRCDRIVERS/install.sh
 $SRCDRIVERS/install.sh
 
-echo "Starting OpenNetHome server daemon"
+echo "Starting OpenNetHome server daemon" 1>&2
 /etc/init.d/nethome start
 
-echo "Installation complete"
-echo "Browse to http://${LOCAL_IP}:8020/home to configure the server"
+echo "Installation complete" 1>&2
+echo "Browse to http://${LOCAL_IP}:8020/home to configure the server" 1>&2
+
