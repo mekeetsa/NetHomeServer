@@ -2,9 +2,16 @@
 #
 #Assumes root, make sure to call as 'sudo ./uninstall.sh'
 if [ "$(id -u)" != "0" ]; then
-   echo "This script must be run as root. Call as 'sudo ./install.sh'" 1>&2
+   echo "This script must be run as root. Call as 'sudo $0'" 1>&2
    exit 1
 fi
+
+read -p "Do you wish to remove OpenNetHome and all its configuration files? (y/N)" yn
+case $yn in
+    [Yy]* ) break;;
+    [Nn]* ) echo "Cancelling uninstallation"; exit;;
+    * ) echo "Cancelling uninstallation"; exit;;
+esac
 
 INSTALLATION_ROOT=/opt/nethome
 CONFIGURATION_ROOT=/etc/opt/nethome

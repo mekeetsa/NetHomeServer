@@ -2,7 +2,7 @@
 #
 #Assumes root, make sure to call as 'sudo ./install.sh'
 if [ "$(id -u)" != "0" ]; then
-   echo "This script must be run as root. Call as 'sudo ./upgrade.sh'" 1>&2
+   echo "This script must be run as root. Call as 'sudo $0'" 1>&2
    exit 1
 fi
 

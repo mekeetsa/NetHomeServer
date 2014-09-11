@@ -32,3 +32,15 @@ chmod +x upgrade.sh
 sudo ./upgrade.sh
 
 This will preserve the current configuration and just upgrade the server files to the current version.
+
+There is also a complete download/upgrade script which will download the latest nightly build of OpenNetHome and
+upgrade the current installation. This script will also save a backup of each downloaded release, so you can
+downgrade to an earlier release if you have problems after an upgrade. This script should be copied to your home
+catalog and run from there when you want to upgrade your installation to the latest nightly build.
+
+example:
+
+cp upgrade_nethome_nightly.sh /home/pi/
+cd /home/pi
+chmod +x upgrade_nethome_nightly.sh
+sudo ./upgrade_nethome_nightly.sh
