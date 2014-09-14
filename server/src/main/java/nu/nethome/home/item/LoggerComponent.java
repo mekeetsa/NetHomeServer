@@ -71,12 +71,7 @@ public class LoggerComponent extends TimerTask {
         loggedItem = logged;
     }
 
-    public void activate(String logDirectoryPath) {
-        this.logDirectoryPath = logDirectoryPath;
-        activate();
-    }
-
-    private void activate() {
+    public void activate() {
         loggerIsActivated = true;
         if (logFileName.length() == 0) {
             return;
@@ -95,6 +90,11 @@ public class LoggerComponent extends TimerTask {
                 1000L * 60 * logInterval
         );
         loggerIsRunning = true;
+    }
+
+    protected void activate(String logDirectoryPath) {
+        this.logDirectoryPath = logDirectoryPath;
+        activate();
     }
 
     /**

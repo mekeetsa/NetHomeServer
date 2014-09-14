@@ -101,7 +101,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
     private int currentWarningCount = 0;
     private boolean activated = false;
     private List<FinalEventListener> finalEventListeners = new LinkedList<FinalEventListener>();
-    private LoggerComponent eventCountlogger = new LoggerComponent(this);
+    private ExtendedLoggerComponent eventCountlogger = new ExtendedLoggerComponent(this);
     private long eventsCount = 0;
     private long eventsCountPerPeriod = 0;
     private int minuteCounter;
@@ -112,7 +112,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
         eventQueue = new LinkedBlockingQueue<Event>(MAX_QUEUE_SIZE);
         logRecords = new LinkedBlockingDeque<LogRecord>(LOG_RECORD_CAPACITY);
         setupLogger();
-        eventCountlogger.activate(getLogDirectory());
+        eventCountlogger.activate(this);
     }
 
     private void setupLogger() {

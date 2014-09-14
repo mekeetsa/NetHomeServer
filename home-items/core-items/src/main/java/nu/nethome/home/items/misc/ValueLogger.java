@@ -54,7 +54,7 @@ public class ValueLogger extends HomeItemAdapter implements ValueItem, HomeItem 
     protected CommandLineExecutor executor;
 
 	// Public attributes
-    private LoggerComponent valueLoggerComponent = new LoggerComponent(this);
+    private ExtendedLoggerComponent valueLoggerComponent = new ExtendedLoggerComponent(this);
     protected String valueAction = "get,OutThermometer,Temperature";
 
 	public String getModel() {
@@ -65,7 +65,7 @@ public class ValueLogger extends HomeItemAdapter implements ValueItem, HomeItem 
     public void activate(HomeService server) {
         super.activate(server);
         executor = new CommandLineExecutor(server, true);
-        valueLoggerComponent.activate(server.getConfiguration().getLogDirectory());
+        valueLoggerComponent.activate(server);
     }
 
     @Override

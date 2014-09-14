@@ -1,6 +1,7 @@
 package nu.nethome.home.impl;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -15,6 +16,7 @@ public class UpgraderTest {
         upgrader = new Upgrader();
     }
 
+    @Ignore
     @Test
     public void Download() throws Exception {
 
