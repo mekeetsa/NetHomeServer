@@ -1,15 +1,12 @@
 package nu.nethome.home.items.web.rest;
 
 import nu.nethome.home.system.DirectoryEntry;
-import org.jboss.resteasy.annotations.providers.jaxb.json.BadgerFish;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-@BadgerFish
-@XmlRootElement
 public class ItemDirectoryEntryDto {
 
     private String name;
@@ -17,12 +14,6 @@ public class ItemDirectoryEntryDto {
     private String category;
 
     public ItemDirectoryEntryDto() {
-    }
-
-    public ItemDirectoryEntryDto(String name, String id, String category) {
-        this.name = name;
-        this.id = id;
-        this.category = category;
     }
 
     public ItemDirectoryEntryDto(DirectoryEntry entry) {

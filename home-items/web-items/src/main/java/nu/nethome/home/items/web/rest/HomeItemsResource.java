@@ -17,7 +17,7 @@ import java.util.List;
 import static nu.nethome.home.items.web.rest.ItemDirectoryEntryDto.toDtos;
 
 @Path("/rest2")
-@Produces(MediaType.APPLICATION_JSON + "; charset=UTF-8")
+@Produces(MediaType.APPLICATION_JSON /*+ "; charset=UTF-8"*/)
 public class HomeItemsResource {
 
     private HomeService server;
@@ -48,8 +48,6 @@ public class HomeItemsResource {
     @GET
     @Path("/items/{itemId}")
     public Response getCylinder(@PathParam("itemId") String itemId) {
-        HomeItemProxy item = server.openInstance(itemId);
-        // TODO: Just test implementation, should list an HomeItemDto
-        return Response.status(200).entity(item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE)).build();
+        return Response.ok(new ItemDto(server.openInstance(itemId))).build();
     }
 }
