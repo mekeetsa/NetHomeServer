@@ -15,6 +15,9 @@ public class ItemDto {
     private List<String> actions;
     private List<AttributeDto> attributes;
 
+    public ItemDto() {
+    }
+
     public ItemDto(String name, String id, String className, String category) {
         this.name = name;
         this.id = id;

@@ -25,6 +25,9 @@ public class AttributeDto {
         canInit = attribute.isCanInit() && attribute.isReadOnly() ? true : null;
     }
 
+    public AttributeDto() {
+    }
+
     public String getUnit() {
         return unit;
     }
