@@ -45,14 +45,27 @@ public class HomeItemsResource {
 
     @GET
     @Path("/items/{itemId}")
-    public ItemDto getCylinder(@PathParam("itemId") String itemId) {
+    public ItemDto getItem(@PathParam("itemId") String itemId) {
         return new ItemDto(validateNotNull(server.openInstance(itemId)));
+    }
+
+    @PUT
+    @Path("/items/{itemId}")
+    @Consumes(MediaType.APPLICATION_JSON + "; charset=UTF-8")
+    public ItemDto setAttributes(@PathParam("itemId") String itemId, ItemDto itemDto)  {
+        HomeItemProxy item = validateNotNull(server.openInstance(itemDto.getId()));
+        updateAttributes(item, itemDto);
+        return new ItemDto(item);
+    }
+
+    private void updateAttributes(HomeItemProxy item, ItemDto itemDto) {
+        //NYI
     }
 
     @PUT
     @Path("/items/{itemId}/action")
     @Consumes(MediaType.APPLICATION_JSON + "; charset=UTF-8")
-    public ItemDto getCylinder(@PathParam("itemId") String itemId, String action) throws ExecutionFailure {
+    public ItemDto performAction(@PathParam("itemId") String itemId, String action) throws ExecutionFailure {
         HomeItemProxy item = validateNotNull(server.openInstance(itemId));
         item.callAction(action);
         return new ItemDto(item);
