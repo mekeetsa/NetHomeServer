@@ -25,6 +25,8 @@ public class HomeItemsResource {
     }
 
     /**
+     * List all HomeItem instances
+     *
      * @return a directory listing of all HomeItems running in the server
      */
     @GET
@@ -47,6 +49,7 @@ public class HomeItemsResource {
 
     /**
      * Update attributes and instance name of a HomeItem
+     *
      * @param itemId Identity of the Item to update
      * @param itemDto Name and attribute values to update
      * @return An updated HomeItem description
@@ -56,7 +59,7 @@ public class HomeItemsResource {
     @Path("/items/{itemId}")
     @Consumes(MediaType.APPLICATION_JSON + "; charset=UTF-8")
     public ItemDto setAttributes(@PathParam("itemId") String itemId, ItemDto itemDto) throws IllegalValueException {
-        return updateAttributesAndName(validateNotNull(server.openInstance(itemDto.getId())), itemDto);
+        return updateAttributesAndName(validateNotNull(server.openInstance(itemId)), itemDto);
     }
 
     private ItemDto updateAttributesAndName(HomeItemProxy item, ItemDto itemDto) throws IllegalValueException {
