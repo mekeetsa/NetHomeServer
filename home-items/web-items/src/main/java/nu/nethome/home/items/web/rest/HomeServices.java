@@ -1,6 +1,8 @@
 package nu.nethome.home.items.web.rest;
 
 
+import nu.nethome.home.items.web.rest.exceptions.ExecutionFailureMapper;
+import nu.nethome.home.items.web.rest.exceptions.RestExceptionMapper;
 import nu.nethome.home.system.HomeService;
 
 import javax.ws.rs.core.Application;
@@ -13,11 +15,15 @@ public class HomeServices extends Application {
 
     public  HomeServices() {
         services.add(new HomeItemsResource(server));
+        services.add(new RestExceptionMapper());
+        services.add(new ExecutionFailureMapper());
     }
+
     @Override
     public  Set getSingletons() {
         return services;
     }
+
     public  static Set getServices() {
         return services;
     }

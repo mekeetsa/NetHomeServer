@@ -137,7 +137,6 @@ public class JettyWEB extends HomeItemAdapter implements HomeItem, HomeWebServer
             HomeServices.setServer(server);
             ServletHolder servletHolder = new ServletHolder(new HttpServletDispatcher());
             servletHolder.setInitParameter("javax.ws.rs.Application", "nu.nethome.home.items.web.rest.HomeServices");
-            servletHolder.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature", "true");
             applicationsContext.addServlet(servletHolder, "/rest2/*");
 
             // Add all externally registered servlets
