@@ -8,7 +8,10 @@ import nu.nethome.home.system.HomeService;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static nu.nethome.home.items.web.rest.ItemDirectoryEntryDto.toDtos;
@@ -19,9 +22,11 @@ public class HomeItemsResource {
 
     public static final int ITEM_NOT_FOUND = 100;
     private HomeService server;
+    private LogReader logReader;
 
     public HomeItemsResource(HomeService server) {
         this.server = server;
+        logReader = new LogReader(server);
     }
 
     /**
@@ -83,6 +88,56 @@ public class HomeItemsResource {
             item.setAttributeValue(attribute.getName(), attribute.getValue());
         }
     }
+
+    /**
+     * Get log values for the specified time period
+     *
+     * @param itemId
+     * @return log values
+     * @throws IOException
+     */
+    @GET
+    @Path("/items/{itemId}/log")
+    public List<Object[]> log(@PathParam("itemId") String itemId) throws IOException {
+        // TODO: get date parameters
+        return logReader.getLog(new Date(0), null, validateNotNull(server.openInstance(itemId)));
+    }
+
+    /**
+     * Create a new HomeItem instance. If the instance name starts with "#", the new instance is not activated
+     * and this has to be made later with a call to the "activate"-action.
+     *
+     * @param itemDto Name, Class and attribute values of the new instance
+     * @return  HomeItem description
+     * @throws IllegalValueException
+     * @throws ExecutionFailure
+     */
+    @POST
+    @Path("/items")
+    @Consumes(MediaType.APPLICATION_JSON + "; charset=UTF-8")
+    public ItemDto createItem(ItemDto itemDto) throws IllegalValueException, ExecutionFailure {
+        HomeItemProxy item = validateCreation(server.createInstance(validateString(itemDto.getClassName()), validateString(itemDto.getName())));
+        if (itemDto.getAttributes() != null) {
+            updateItemAttributes(item, itemDto);
+        }
+        if (!itemDto.getName().startsWith("#")) {
+            item.callAction("activate");
+        }
+        return new ItemDto(item);
+    }
+
+    private HomeItemProxy validateCreation(HomeItemProxy itemProxy) {
+        if (itemProxy == null) throw new RestException("Could not create HomeItem",
+                800, HttpURLConnection.HTTP_NOT_ACCEPTABLE);
+        return itemProxy;
+    }
+
+    private String validateString(String string) {
+        if (string == null || string.isEmpty()) throw new RestException("Required argument missing",
+                700, HttpURLConnection.HTTP_BAD_REQUEST);
+        return string;
+    }
+
 
     /**
      * Call an action on the specified HomeItem
