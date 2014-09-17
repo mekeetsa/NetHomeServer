@@ -130,14 +130,11 @@ public class JettyWEB extends HomeItemAdapter implements HomeItem, HomeWebServer
             // Create a graph Servlet
             applicationsContext.addServlet(new ServletHolder(new GraphServlet(server)), "/Graph");
 
-            // Create a rest Servlet
-            applicationsContext.addServlet(new ServletHolder(new RestServlet(server)), "/rest/*");
-
-            // Create new rest Servlet
+            // Create rest Servlet
             HomeServices.setServer(server);
             ServletHolder servletHolder = new ServletHolder(new HttpServletDispatcher());
             servletHolder.setInitParameter("javax.ws.rs.Application", "nu.nethome.home.items.web.rest.HomeServices");
-            applicationsContext.addServlet(servletHolder, "/rest2/*");
+            applicationsContext.addServlet(servletHolder, "/rest/*");
 
             // Add all externally registered servlets
             for (Registration externalServlet : externalServlets) {

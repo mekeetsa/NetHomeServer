@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005-2013, Stefan Strömberg <stefangs@nethome.nu>
+ * Copyright (C) 2005-2014, Stefan Strömberg <stefangs@nethome.nu>
  *
  * This file is part of OpenNetHome  (http://www.nethome.nu)
  *
@@ -52,9 +52,10 @@ public class LogReader {
         this.service = server;
     }
 
-    public List<Object[]> getLog(Date startTime, Date stopTime, HomeItemProxy item) throws IOException {
-
+    public List<Object[]> getLog(String startTimeString, String stopTimeString, HomeItemProxy item) throws IOException {
         List<Object[]> result = new ArrayList<Object[]>();
+        Date startTime = parseParameterDate(startTimeString);
+        Date stopTime =  parseParameterDate(stopTimeString);
 
         if (stopTime == null) {
             stopTime = new Date();
@@ -153,8 +154,7 @@ public class LogReader {
         return new Date(stopTime.getTime() - 1000L * 60L * 60L * 24L * 7L);
     }
 
-    private static Date parseParameterDate(HttpServletRequest req, String parameterName) {
-        String timeString = req.getParameter(parameterName);
+    private static Date parseParameterDate(String timeString) {
         Date result = null;
         try {
             if (timeString != null) {

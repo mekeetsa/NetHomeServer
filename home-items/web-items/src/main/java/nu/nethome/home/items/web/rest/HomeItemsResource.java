@@ -1,3 +1,22 @@
+/**
+ * Copyright (C) 2005-2014, Stefan Strömberg <stefangs@nethome.nu>
+ *
+ * This file is part of OpenNetHome  (http://www.nethome.nu)
+ *
+ * OpenNetHome is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * OpenNetHome is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package nu.nethome.home.items.web.rest;
 
 import nu.nethome.home.item.ExecutionFailure;
@@ -16,13 +35,15 @@ import java.util.List;
 
 import static nu.nethome.home.items.web.rest.ItemDirectoryEntryDto.toDtos;
 
-@Path("/rest2")
+@Path("/rest")
 @Produces(MediaType.APPLICATION_JSON + "; charset=UTF-8")
 public class HomeItemsResource {
 
     public static final int ITEM_NOT_FOUND = 100;
     private HomeService server;
     private LogReader logReader;
+    private static final String START_TIME_PARAMETER = "start";
+    private static final String STOP_TIME_PARAMETER = "stop";
 
     public HomeItemsResource(HomeService server) {
         this.server = server;
@@ -55,7 +76,7 @@ public class HomeItemsResource {
     /**
      * Update attributes and instance name of a HomeItem
      *
-     * @param itemId Identity of the Item to update
+     * @param itemId  Identity of the Item to update
      * @param itemDto Name and attribute values to update
      * @return An updated HomeItem description
      * @throws IllegalValueException
@@ -98,9 +119,10 @@ public class HomeItemsResource {
      */
     @GET
     @Path("/items/{itemId}/log")
-    public List<Object[]> log(@PathParam("itemId") String itemId) throws IOException {
-        // TODO: get date parameters
-        return logReader.getLog(new Date(0), null, validateNotNull(server.openInstance(itemId)));
+    public List<Object[]> log(@PathParam("itemId") String itemId,
+                              @QueryParam(START_TIME_PARAMETER) String startTime,
+                              @QueryParam(STOP_TIME_PARAMETER) String stopTime) throws IOException {
+        return logReader.getLog(startTime, stopTime, validateNotNull(server.openInstance(itemId)));
     }
 
     /**
@@ -108,7 +130,7 @@ public class HomeItemsResource {
      * and this has to be made later with a call to the "activate"-action.
      *
      * @param itemDto Name, Class and attribute values of the new instance
-     * @return  HomeItem description
+     * @return HomeItem description
      * @throws IllegalValueException
      * @throws ExecutionFailure
      */
