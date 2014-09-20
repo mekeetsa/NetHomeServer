@@ -26,15 +26,16 @@ import java.util.List;
 
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public class AttributeDto {
-    private String unit;
-    private String type;
     private String name;
     private String value;
+    private String unit;
+    private String type;
     private List<String> valueList;
     private Boolean readOnly;
     private Boolean canInit;
+    private Boolean isDefault;
 
-    public AttributeDto(Attribute attribute) {
+    public AttributeDto(Attribute attribute, boolean isDefaultAttribute) {
         unit = attribute.getUnit().isEmpty() ? null : attribute.getUnit();
         type = attribute.getType().equals("String") ? null : attribute.getType();
         name = attribute.getName();
@@ -42,25 +43,10 @@ public class AttributeDto {
         valueList = attribute.getValueList().isEmpty() ? null : attribute.getValueList();
         readOnly = attribute.isReadOnly() ? true : null;
         canInit = attribute.isCanInit() && attribute.isReadOnly() ? true : null;
+        isDefault = isDefaultAttribute ? true : null;
     }
 
     public AttributeDto() {
-    }
-
-    public String getUnit() {
-        return unit;
-    }
-
-    public void setUnit(String unit) {
-        this.unit = unit;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public String getName() {
@@ -77,6 +63,22 @@ public class AttributeDto {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public List<String> getValueList() {
@@ -101,5 +103,13 @@ public class AttributeDto {
 
     public void setCanInit(Boolean canInit) {
         this.canInit = canInit;
+    }
+
+    public Boolean getDefault() {
+        return isDefault;
+    }
+
+    public void setDefault(Boolean aDefault) {
+        isDefault = aDefault;
     }
 }

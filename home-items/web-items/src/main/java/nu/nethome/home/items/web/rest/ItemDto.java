@@ -50,7 +50,7 @@ public class ItemDto {
         className = item.getModel().getClassName();
         category = item.getModel().getCategory();
         actions = extractActionNames(item.getModel().getActions());
-        attributes = extractAttributes(item.getAttributeValues());
+        attributes = extractAttributes(item.getAttributeValues(), item.getModel().getDefaultAttribute().getName());
     }
 
     private List<String> extractActionNames(List<Action> actions) {
@@ -61,10 +61,10 @@ public class ItemDto {
         return result;
     }
 
-    private List<AttributeDto> extractAttributes(List<Attribute> attributeValues) {
+    private List<AttributeDto> extractAttributes(List<Attribute> attributeValues, String defaultName) {
         List<AttributeDto> result = new ArrayList<AttributeDto>(attributeValues.size());
         for (Attribute attribute : attributeValues) {
-            result.add(new AttributeDto(attribute));
+            result.add(new AttributeDto(attribute, attribute.getName().equals(defaultName)));
         }
         return result;
     }

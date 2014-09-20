@@ -111,6 +111,20 @@ public class HomeItemsResource {
     }
 
     /**
+     * Delete the specified HomeItem
+     *
+     * @param itemId Identity of the Item to delete
+     * @return HomeItem description
+     */
+    @DELETE
+    @Path("/items/{itemId}")
+    public void deleteItem(@PathParam("itemId") String itemId) {
+        if (!server.removeInstance(itemId)) {
+            throw new RestException("Illegal instance name", 900, HttpURLConnection.HTTP_NOT_MODIFIED);
+        }
+    }
+
+    /**
      * Get log values for the specified time period
      *
      * @param itemId
@@ -126,8 +140,9 @@ public class HomeItemsResource {
     }
 
     /**
-     * Create a new HomeItem instance. If the instance name starts with "#", the new instance is not activated
-     * and this has to be made later with a call to the "activate"-action.
+     * Create a new HomeItem instance. Any attribute values not supplied will assume default values from the HomeItem.
+     * If the instance name starts with "#", the new instance is not activated and this has to be made later with a
+     * call to the "activate"-action.
      *
      * @param itemDto Name, Class and attribute values of the new instance
      * @return HomeItem description
