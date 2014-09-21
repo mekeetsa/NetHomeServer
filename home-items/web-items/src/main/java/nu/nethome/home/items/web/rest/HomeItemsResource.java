@@ -180,16 +180,16 @@ public class HomeItemsResource {
      * Call an action on the specified HomeItem
      *
      * @param itemId Identity of the Item to invoke the action on
-     * @param action The action to invoke
+     * @param actionName The action to invoke
      * @return HomeItem description of the state of the HomeItem after the action is performed
      * @throws ExecutionFailure
      */
-    @PUT
-    @Path("/items/{itemId}/action")
+    @POST
+    @Path("/items/{itemId}/actions/{actionName}/invoke")
     @Consumes(MediaType.APPLICATION_JSON + "; charset=UTF-8")
-    public ItemDto performAction(@PathParam("itemId") String itemId, String action) throws ExecutionFailure {
+    public ItemDto performAction(@PathParam("itemId") String itemId, @PathParam("actionName") String actionName) throws ExecutionFailure {
         HomeItemProxy item = validateNotNull(server.openInstance(itemId));
-        item.callAction(action);
+        item.callAction(validateString(actionName));
         return new ItemDto(item);
     }
 

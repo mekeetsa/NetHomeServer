@@ -21,6 +21,7 @@ package nu.nethome.home.items.web.rest;
 
 import nu.nethome.home.item.Action;
 import nu.nethome.home.item.Attribute;
+import nu.nethome.home.item.AttributeModel;
 import nu.nethome.home.item.HomeItemProxy;
 
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ public class ItemDto {
         className = item.getModel().getClassName();
         category = item.getModel().getCategory();
         actions = extractActionNames(item.getModel().getActions());
-        attributes = extractAttributes(item.getAttributeValues(), item.getModel().getDefaultAttribute().getName());
+        attributes = extractAttributes(item.getAttributeValues(), item.getModel().getDefaultAttribute());
     }
 
     private List<String> extractActionNames(List<Action> actions) {
@@ -61,7 +62,8 @@ public class ItemDto {
         return result;
     }
 
-    private List<AttributeDto> extractAttributes(List<Attribute> attributeValues, String defaultName) {
+    private List<AttributeDto> extractAttributes(List<Attribute> attributeValues, AttributeModel defaultAttribute) {
+        String defaultName = defaultAttribute != null ? defaultAttribute.getName() : "";
         List<AttributeDto> result = new ArrayList<AttributeDto>(attributeValues.size());
         for (Attribute attribute : attributeValues) {
             result.add(new AttributeDto(attribute, attribute.getName().equals(defaultName)));
