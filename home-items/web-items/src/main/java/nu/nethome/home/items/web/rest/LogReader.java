@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005-2013, Stefan Strömberg <stefangs@nethome.nu>
+ * Copyright (C) 2005-2014, Stefan Strömberg <stefangs@nethome.nu>
  *
  * This file is part of OpenNetHome  (http://www.nethome.nu)
  *
@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nu.nethome.home.items.web;
+package nu.nethome.home.items.web.rest;
 
 import nu.nethome.home.item.HomeItemProxy;
 import nu.nethome.home.system.HomeService;
@@ -32,58 +32,37 @@ import java.io.*;
 import java.net.URLDecoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Generate a graph jpeg image given a file log of values.
- *
- * @author Stefan Str�mberg
- */
-public class RestServlet extends HttpServlet {
+public class LogReader {
 
-    private static final long serialVersionUID = 1L;
     private static final SimpleDateFormat inputDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
     private static final SimpleDateFormat fileDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     private static final String START_TIME_PARAMETER = "start";
     private static final int LINE_LENGTH=23;
     private static final String STOP_TIME_PARAMETER = "stop";
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-    private Pattern logsPattern = Pattern.compile("/logs/([0-9]*)");
     private HomeService service;
 
-    public RestServlet(HomeService service) {
-        this.service = service;
+    public LogReader(HomeService server) {
+        this.service = server;
     }
 
-    /**
-     * This is the main enterence point of the class. This is called when a http request is
-     * routed to this servlet.
-     */
-    public void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        res.setContentType("application/json");
-        String pathInfo = req.getPathInfo();
-        Matcher matcher = logsPattern.matcher(pathInfo);
-        if (matcher.find()) {
-            getLog(req, res, matcher.group(1));
-            return;
-        }
-    }
+    public List<Object[]> getLog(String startTimeString, String stopTimeString, HomeItemProxy item) throws IOException {
+        List<Object[]> result = new ArrayList<Object[]>();
+        Date startTime = parseParameterDate(startTimeString);
+        Date stopTime =  parseParameterDate(stopTimeString);
 
-    private void getLog(HttpServletRequest req, HttpServletResponse res, String itemId) throws IOException {
-        ServletOutputStream p = res.getOutputStream();
-
-        p.print("[");
-        Date startTime = parseParameterDate(req, START_TIME_PARAMETER);
-        Date stopTime = parseParameterDate(req, STOP_TIME_PARAMETER);
         if (stopTime == null) {
             stopTime = new Date();
         }
         if (startTime == null) {
             startTime = oneWeekBack(stopTime);
         }
-        HomeItemProxy item = service.openInstance(itemId);
         String fileName = null;
         if (item != null) {
             fileName = item.getAttributeValue("LogFile");
@@ -136,7 +115,8 @@ public class RestServlet extends HttpServlet {
                                 // Parse the value
                                 double value = Double.parseDouble((line.substring(20)).replace(',', '.'));
                                 // Add the entry
-                                printEntry(p, min, value, isFirst);
+                                Object[] row = {dateFormat.format(min), value};
+                                result.add(row);
                                 isFirst = false;
                                 doOptimize = false;
                             }
@@ -155,10 +135,7 @@ public class RestServlet extends HttpServlet {
         } catch (FileNotFoundException f) {
             System.out.println(f.toString());
         }
-        p.print("]");
-        p.flush();
-        p.close();
-        return;
+        return result;
     }
 
     private String getFullFileName(String fileName) {
@@ -173,12 +150,11 @@ public class RestServlet extends HttpServlet {
         p.print(String.format("%s[\"%s\", %s]", (isFirst ? "" : ","), dateFormat.format(time), value));
     }
 
-    private Date oneWeekBack(Date stopTime) {
+    private static Date oneWeekBack(Date stopTime) {
         return new Date(stopTime.getTime() - 1000L * 60L * 60L * 24L * 7L);
     }
 
-    private Date parseParameterDate(HttpServletRequest req, String parameterName) {
-        String timeString = req.getParameter(parameterName);
+    private static Date parseParameterDate(String timeString) {
         Date result = null;
         try {
             if (timeString != null) {
@@ -199,5 +175,4 @@ public class RestServlet extends HttpServlet {
         }
         return result;
     }
-
 }
