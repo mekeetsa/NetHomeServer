@@ -86,6 +86,6 @@ After that you can import the project into your workspace. You will have to
 create a variable called M2_REPO which points to your local maven repository,
 which on windows is located under your personal folder in a folder called
 
-```.m2\repository```
+.m2\repository
 
 For example: ```C:\Users\Stefan\.m2\repository```
