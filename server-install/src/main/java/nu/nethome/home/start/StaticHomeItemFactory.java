@@ -85,6 +85,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
 
     private static final HomeItemClassInfo CLASSES_INFO[] = {
             // core-items
+            new HomeItemClassInfo("XmppClient", nu.nethome.home.items.net.XmppClient.class),
             new HomeItemClassInfo("TCPListener", nu.nethome.home.items.net.TCPListener.class),
             new HomeItemClassInfo("TCPCommandPort", nu.nethome.home.items.net.TCPCommandPort.class),
             new HomeItemClassInfo("UDPCommandPort", nu.nethome.home.items.net.UDPCommandPort.class),

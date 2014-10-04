@@ -17,6 +17,12 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+    <repositories>
+        <repository>
+            <id>bippo-nexus-public</id>
+            <url>http://nexus.bippo.co.id/nexus/content/groups/public/</url>
+        </repository>
+    </repositories>
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
@@ -42,6 +48,16 @@
         </plugins>
     </build>
     <dependencies>
+        <dependency>
+            <groupId>org.xmpp</groupId>
+            <artifactId>xmpp-client</artifactId>
+            <version>0.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.xmpp</groupId>
+            <artifactId>xmpp-core</artifactId>
+            <version>0.2.0</version>
+        </dependency>
         <dependency>
             <groupId>xerces</groupId>
             <artifactId>xerces</artifactId>
