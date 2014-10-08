@@ -25,6 +25,8 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 
 @Plugin
 @HomeItemType("Ports")
@@ -72,13 +74,15 @@ public class XmppClient extends HomeItemAdapter {
     }
 
     public void sayHi() {
-        Jid stefan = Jid.valueOf("stefangs@" + domain + "/Monal");
+        Jid stefan = Jid.valueOf("stefangs@" + domain);
         session.send(new Message(stefan, Message.Type.CHAT, "Hi Stefan!"));
     }
 
     private void startSession() {
         Connection tcpConnection = new TcpConnection(domain, 5222);
         session = new XmppSession(domain, tcpConnection);
+
+        session.getAuthenticationManager().setPreferredMechanisms(new LinkedHashSet<>(Arrays.asList("DIGEST-MD5", "PLAIN")));
 
         SSLContext sslContext = null;
         try {

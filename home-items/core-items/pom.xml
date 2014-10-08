@@ -51,12 +51,12 @@
         <dependency>
             <groupId>org.xmpp</groupId>
             <artifactId>xmpp-client</artifactId>
-            <version>0.2.0</version>
+            <version>0.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.xmpp</groupId>
             <artifactId>xmpp-core</artifactId>
-            <version>0.2.0</version>
+            <version>0.3.0</version>
         </dependency>
         <dependency>
             <groupId>xerces</groupId>
