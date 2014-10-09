@@ -2,8 +2,8 @@ package nu.nethome.home.items.net;
 
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
+import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
-import org.xmpp.Connection;
 import org.xmpp.Jid;
 import org.xmpp.TcpConnection;
 import org.xmpp.XmppSession;
@@ -17,9 +17,7 @@ import org.xmpp.stanza.client.Presence;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import javax.security.auth.login.FailedLoginException;
 import javax.security.auth.login.LoginException;
-import javax.security.cert.CertificateException;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -32,21 +30,24 @@ import java.util.LinkedHashSet;
 @HomeItemType("Ports")
 public class XmppClient extends HomeItemAdapter {
 
+    public static final String XMPP_PREFIX = "xmpp:";
     private final String model = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"XmppClient\" Category=\"Ports\" >"
-            + "  <Attribute Name=\"Domain\" Type=\"String\" Get=\"getDomain\" Set=\"setDomain\" Default=\"true\" />"
+            + "  <Attribute Name=\"Status\" Type=\"String\" Get=\"getStatus\" Default=\"true\" />"
+            + "  <Attribute Name=\"Domain\" Type=\"String\" Get=\"getDomain\" Set=\"setDomain\" />"
             + "  <Attribute Name=\"UserName\" Type=\"String\" Get=\"getUserName\" Set=\"setUserName\" />"
-            + "  <Attribute Name=\"Password\" Type=\"String\" Get=\"getPassword\" Set=\"setPassword\" />"
+            + "  <Attribute Name=\"Password\" Type=\"Password\" Get=\"getPassword\" Set=\"setPassword\" />"
             + "  <Attribute Name=\"Resource\" Type=\"String\" Get=\"getResource\" Set=\"setResource\" />"
+            + "  <Action Name=\"Reconnect\"		Method=\"reconnect\" />"
             + "  <Action Name=\"SayHi\"		Method=\"sayHi\" />"
             + "</HomeItem> ");
 
-    XmppSession session;
-
-    String domain = "jabber.se";
-    String userName = "";
-    String password = "";
-    String resource = "";
+    private XmppSession session;
+    private String domain = "jabber.se";
+    private String userName = "";
+    private String password = "";
+    private String resource = "";
+    private String status = "Not Connected";
 
     @Override
     public String getModel() {
@@ -58,9 +59,49 @@ public class XmppClient extends HomeItemAdapter {
         startSession();
     }
 
+    public void reconnect() {
+        stopSession();
+        startSession();
+    }
+
     @Override
     public void stop() {
         stopSession();
+    }
+
+    @Override
+    public boolean receiveEvent(Event event) {
+        if (isOutgoingMessage(event) && (session != null)) {
+            return processMessage(event.getAttribute("To"), event.getAttribute("Body"));
+        }
+        return false;
+    }
+
+    private boolean isOutgoingMessage(Event event) {
+        return event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals("Message") &&
+                event.getAttribute("Direction").equals("Out");
+    }
+
+    private boolean processMessage(String to, String body) {
+        boolean hasSent = false;
+        for (String recipient : to.split(",")) {
+            if (recipient.toLowerCase().startsWith(XMPP_PREFIX)) {
+                session.send(new Message(Jid.valueOf(recipient.substring(XMPP_PREFIX.length())), Message.Type.CHAT, body));
+                hasSent = true;
+            }
+        }
+        return hasSent;
+    }
+
+    private void startSession() {
+        try {
+            session = createSession();
+            status = "Connected";
+        } catch (IOException e) {
+            status = "Failed to connect: " + e.getMessage();
+        } catch (LoginException e) {
+            status = "Failed to login: " + e.getMessage();
+        }
     }
 
     private void stopSession() {
@@ -69,6 +110,9 @@ public class XmppClient extends HomeItemAdapter {
                 session.close();
             } catch (IOException e) {
                 // Failed to close
+            } finally {
+                session = null;
+                status = "Not Connected";
             }
         }
     }
@@ -78,17 +122,48 @@ public class XmppClient extends HomeItemAdapter {
         session.send(new Message(stefan, Message.Type.CHAT, "Hi Stefan!"));
     }
 
-    private void startSession() {
-        Connection tcpConnection = new TcpConnection(domain, 5222);
-        session = new XmppSession(domain, tcpConnection);
+    private XmppSession createSession() throws IOException, LoginException {
+        XmppSession newSession = new XmppSession(domain, new TcpConnection(domain, 5222));
+        limitAuthenticationMechanisms(newSession);
+        trustAnyCertificate(newSession);
+        listenForPresenceChanges(newSession);
+        listenForMessages(newSession);
+        newSession.connect();
+        newSession.login(userName, password, resource);
+        newSession.send(new Presence());
+        return newSession;
+    }
 
+    private void listenForMessages(XmppSession session) {
+        session.addMessageListener(new MessageListener() {
+            @Override
+            public void handle(MessageEvent e) {
+                handleMessageEvent(e);
+            }
+        });
+    }
+
+    private void listenForPresenceChanges(XmppSession session) {
+        session.addPresenceListener(new PresenceListener() {
+            @Override
+            public void handle(PresenceEvent e) {
+                if (e.isIncoming()) {
+                    handlePresenceEvent(e);
+                }
+            }
+        });
+    }
+
+    private void limitAuthenticationMechanisms(XmppSession session) {
         session.getAuthenticationManager().setPreferredMechanisms(new LinkedHashSet<>(Arrays.asList("DIGEST-MD5", "PLAIN")));
+    }
 
+    private void trustAnyCertificate(XmppSession session) throws IOException {
         SSLContext sslContext = null;
         try {
             sslContext = SSLContext.getInstance("TLS");
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            throw new IOException("Could not configure trust", e);
         }
         try {
             sslContext.init(null, new TrustManager[]{
@@ -110,44 +185,7 @@ public class XmppClient extends HomeItemAdapter {
         } catch (KeyManagementException e) {
             e.printStackTrace();
         }
-
         session.getSecurityManager().setSSLContext(sslContext);
-
-        // Listen for presence changes
-        session.addPresenceListener(new PresenceListener() {
-            @Override
-            public void handle(PresenceEvent e) {
-                if (e.isIncoming()) {
-                    handlePresenceEvent(e);
-                }
-            }
-        });
-        // Listen for messages
-        session.addMessageListener(new MessageListener() {
-            @Override
-            public void handle(MessageEvent e) {
-                handleMessageEvent(e);
-            }
-        });
-
-        try {
-            session.connect();
-        } catch (IOException e) {
-            session = null;
-            return;
-        }
-
-        try {
-            session.login(userName, password, resource);
-        } catch (FailedLoginException e) {
-            session = null;
-            return;
-        } catch (LoginException e) {
-            session = null;
-            return;
-        }
-
-        session.send(new Presence());
     }
 
     private void handleMessageEvent(MessageEvent event) {
@@ -188,5 +226,12 @@ public class XmppClient extends HomeItemAdapter {
 
     public void setResource(String resource) {
         this.resource = resource;
+    }
+
+    public String getStatus() {
+        if (session != null) {
+            return session.getStatus().name().toLowerCase();
+        }
+        return status;
     }
 }
