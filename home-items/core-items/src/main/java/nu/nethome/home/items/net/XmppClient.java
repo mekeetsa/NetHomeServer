@@ -80,7 +80,7 @@ public class XmppClient extends HomeItemAdapter {
     }
 
     private boolean isOutgoingMessage(Event event) {
-        return event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(EVENT_TYPE) &&
+        return event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(MESSAGE_TYPE) &&
                 event.getAttribute(DIRECTION).equals(OUT_BOUND);
     }
 

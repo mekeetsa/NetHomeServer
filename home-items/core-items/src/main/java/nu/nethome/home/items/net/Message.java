@@ -30,15 +30,17 @@ import java.util.logging.Logger;
 @HomeItemType("Ports")
 public class Message extends HomeItemAdapter implements HomeItem {
 
-    public static final String EVENT_TYPE = "Message";
+    public static final String MESSAGE_TYPE = "Message";
     public static final String TO = "To";
+    public static final String FROM = "From";
     public static final String SUBJECT = "Subject";
     public static final String BODY = "Body";
     public static final String DIRECTION = "Direction";
     public static final String OUT_BOUND = "Out";
+    public static final String IN_BOUND = "In";
 
     private final String MODEL = ("<?xml version = \"1.0\"?> \n"
-			+ "<HomeItem Class=\"ValueLogger\" Category=\"Ports\"  >"
+			+ "<HomeItem Class=\"Message\" Category=\"Ports\"  >"
             + "  <Attribute Name=\"To\" Type=\"String\" Get=\"getTo\" Set=\"setTo\"  />"
             + "  <Attribute Name=\"Subject\" Type=\"String\" Get=\"getSubject\" 	Set=\"setSubject\" />"
             + "  <Attribute Name=\"Message\" Type=\"Text\" Get=\"getMessage\" 	Set=\"setMessage\" />"
@@ -55,7 +57,7 @@ public class Message extends HomeItemAdapter implements HomeItem {
 	}
 
     public void send() {
-        Event messageEvent = server.createEvent(EVENT_TYPE, "");
+        Event messageEvent = server.createEvent(MESSAGE_TYPE, "");
         messageEvent.setAttribute(TO, to);
         messageEvent.setAttribute(SUBJECT, subject);
         messageEvent.setAttribute(BODY, message);
