@@ -31,13 +31,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
 
-
-/**
- * 
- * ClassName
- * 
- * @author Stefan
- */
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
 @HomeItemType("Gauges")

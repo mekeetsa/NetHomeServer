@@ -26,6 +26,8 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 
+import static nu.nethome.home.items.net.Message.*;
+
 @Plugin
 @HomeItemType("Ports")
 public class XmppClient extends HomeItemAdapter {
@@ -72,14 +74,14 @@ public class XmppClient extends HomeItemAdapter {
     @Override
     public boolean receiveEvent(Event event) {
         if (isOutgoingMessage(event) && (session != null)) {
-            return processMessage(event.getAttribute("To"), event.getAttribute("Body"));
+            return processMessage(event.getAttribute(TO), event.getAttribute(BODY));
         }
         return false;
     }
 
     private boolean isOutgoingMessage(Event event) {
-        return event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals("Message") &&
-                event.getAttribute("Direction").equals("Out");
+        return event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(EVENT_TYPE) &&
+                event.getAttribute(DIRECTION).equals(OUT_BOUND);
     }
 
     private boolean processMessage(String to, String body) {
