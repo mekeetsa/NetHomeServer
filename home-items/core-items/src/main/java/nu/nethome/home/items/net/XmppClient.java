@@ -41,7 +41,6 @@ public class XmppClient extends HomeItemAdapter {
             + "  <Attribute Name=\"Password\" Type=\"Password\" Get=\"getPassword\" Set=\"setPassword\" />"
             + "  <Attribute Name=\"Resource\" Type=\"String\" Get=\"getResource\" Set=\"setResource\" />"
             + "  <Action Name=\"Reconnect\"		Method=\"reconnect\" />"
-            + "  <Action Name=\"SayHi\"		Method=\"sayHi\" />"
             + "</HomeItem> ");
 
     private XmppSession session;
@@ -119,13 +118,8 @@ public class XmppClient extends HomeItemAdapter {
         }
     }
 
-    public void sayHi() {
-        Jid stefan = Jid.valueOf("stefangs@" + domain);
-        session.send(new Message(stefan, Message.Type.CHAT, "Hi Stefan!"));
-    }
-
     private XmppSession createSession() throws IOException, LoginException {
-        XmppSession newSession = new XmppSession(domain, new TcpConnection(domain, 5222));
+        XmppSession newSession = createBabblerXmppSession(domain, new TcpConnection(this.domain, 5222));
         limitAuthenticationMechanisms(newSession);
         trustAnyCertificate(newSession);
         listenForPresenceChanges(newSession);
@@ -134,6 +128,10 @@ public class XmppClient extends HomeItemAdapter {
         newSession.login(userName, password, resource);
         newSession.send(new Presence());
         return newSession;
+    }
+
+    XmppSession createBabblerXmppSession(String domain, TcpConnection tcpConnection) {
+        return new XmppSession(domain, tcpConnection);
     }
 
     private void listenForMessages(XmppSession session) {
