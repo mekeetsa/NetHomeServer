@@ -118,7 +118,7 @@ public class XmppClient extends HomeItemAdapter {
         }
     }
 
-    private XmppSession createSession() throws IOException, LoginException {
+    XmppSession createSession() throws IOException, LoginException {
         XmppSession newSession = createBabblerXmppSession(domain, new TcpConnection(this.domain, 5222));
         limitAuthenticationMechanisms(newSession);
         trustAnyCertificate(newSession);
