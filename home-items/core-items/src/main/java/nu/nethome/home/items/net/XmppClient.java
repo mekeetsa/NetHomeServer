@@ -4,15 +4,16 @@ import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
-import org.xmpp.Jid;
-import org.xmpp.TcpConnection;
-import org.xmpp.XmppSession;
-import org.xmpp.stanza.MessageEvent;
-import org.xmpp.stanza.MessageListener;
-import org.xmpp.stanza.PresenceEvent;
-import org.xmpp.stanza.PresenceListener;
-import org.xmpp.stanza.client.Message;
-import org.xmpp.stanza.client.Presence;
+import rocks.xmpp.core.Jid;
+import rocks.xmpp.core.session.TcpConnection;
+import rocks.xmpp.core.session.TcpConnectionConfiguration;
+import rocks.xmpp.core.session.XmppSession;
+import rocks.xmpp.core.stanza.MessageEvent;
+import rocks.xmpp.core.stanza.MessageListener;
+import rocks.xmpp.core.stanza.PresenceEvent;
+import rocks.xmpp.core.stanza.PresenceListener;
+import rocks.xmpp.core.stanza.model.client.Presence;
+import rocks.xmpp.extensions.compress.model.CompressionMethod;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -87,7 +88,7 @@ public class XmppClient extends HomeItemAdapter {
         boolean hasSent = false;
         for (String recipient : to.split(",")) {
             if (recipient.toLowerCase().startsWith(XMPP_PREFIX)) {
-                session.send(new Message(Jid.valueOf(recipient.substring(XMPP_PREFIX.length())), Message.Type.CHAT, body));
+                session.send(new rocks.xmpp.core.stanza.model.client.Message(Jid.valueOf(recipient.substring(XMPP_PREFIX.length())), rocks.xmpp.core.stanza.model.client.Message.Type.CHAT, body));
                 hasSent = true;
             }
         }
@@ -119,9 +120,16 @@ public class XmppClient extends HomeItemAdapter {
     }
 
     XmppSession createSession() throws IOException, LoginException {
-        XmppSession newSession = createBabblerXmppSession(domain, new TcpConnection(this.domain, 5222));
-        limitAuthenticationMechanisms(newSession);
-        trustAnyCertificate(newSession);
+        TcpConnectionConfiguration tcpConfiguration = TcpConnectionConfiguration.builder()
+                .hostname(this.domain)
+                .port(5222)
+                .sslContext(trustAnyCertificateSslContext())
+                .compressionMethod(CompressionMethod.ZLIB)
+                .secure(true)
+                .build();
+
+        XmppSession newSession = createBabblerXmppSession(domain, tcpConfiguration);
+//        limitAuthenticationMechanisms(newSession);
         listenForPresenceChanges(newSession);
         listenForMessages(newSession);
         newSession.connect();
@@ -130,8 +138,8 @@ public class XmppClient extends HomeItemAdapter {
         return newSession;
     }
 
-    XmppSession createBabblerXmppSession(String domain, TcpConnection tcpConnection) {
-        return new XmppSession(domain, tcpConnection);
+    XmppSession createBabblerXmppSession(String domain, TcpConnectionConfiguration connectionConfiguration) {
+        return new XmppSession(domain, connectionConfiguration);
     }
 
     private void listenForMessages(XmppSession session) {
@@ -154,11 +162,7 @@ public class XmppClient extends HomeItemAdapter {
         });
     }
 
-    private void limitAuthenticationMechanisms(XmppSession session) {
-        session.getAuthenticationManager().setPreferredMechanisms(new LinkedHashSet<>(Arrays.asList("DIGEST-MD5", "PLAIN")));
-    }
-
-    private void trustAnyCertificate(XmppSession session) throws IOException {
+    private SSLContext trustAnyCertificateSslContext() throws IOException {
         SSLContext sslContext = null;
         try {
             sslContext = SSLContext.getInstance("TLS");
@@ -185,7 +189,7 @@ public class XmppClient extends HomeItemAdapter {
         } catch (KeyManagementException e) {
             e.printStackTrace();
         }
-        session.getSecurityManager().setSSLContext(sslContext);
+        return sslContext;
     }
 
     private void handleMessageEvent(MessageEvent event) {

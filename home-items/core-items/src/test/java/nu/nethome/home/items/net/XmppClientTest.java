@@ -6,9 +6,8 @@ import nu.nethome.home.system.HomeService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.xmpp.Jid;
-import org.xmpp.TcpConnection;
-import org.xmpp.XmppSession;
+import rocks.xmpp.core.Jid;
+import rocks.xmpp.core.session.XmppSession;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -44,7 +43,7 @@ public class XmppClientTest {
         client.receiveEvent(event);
 
         ArgumentCaptor<Jid> jidArgumentCaptor = ArgumentCaptor.forClass(Jid.class);
-        ArgumentCaptor<org.xmpp.stanza.client.Message> messageArgumentCaptor = ArgumentCaptor.forClass(org.xmpp.stanza.client.Message.class);
+        ArgumentCaptor<rocks.xmpp.core.stanza.model.client.Message> messageArgumentCaptor = ArgumentCaptor.forClass(rocks.xmpp.core.stanza.model.client.Message.class);
         verify(session).send(messageArgumentCaptor.capture());
 
         assertThat(messageArgumentCaptor.getValue().getTo().getDomain(), is("b"));
