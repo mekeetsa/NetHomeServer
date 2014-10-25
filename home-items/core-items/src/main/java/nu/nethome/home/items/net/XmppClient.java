@@ -25,7 +25,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 import static nu.nethome.home.items.net.Message.*;
 
@@ -41,6 +43,7 @@ public class XmppClient extends HomeItemAdapter {
             + "  <Attribute Name=\"UserName\" Type=\"String\" Get=\"getUserName\" Set=\"setUserName\" />"
             + "  <Attribute Name=\"Password\" Type=\"Password\" Get=\"getPassword\" Set=\"setPassword\" />"
             + "  <Attribute Name=\"Resource\" Type=\"String\" Get=\"getResource\" Set=\"setResource\" />"
+            + "  <Attribute Name=\"AcceptedSenders\" Type=\"String\" Get=\"getAcceptedSenders\" Set=\"setAcceptedSenders\" />"
             + "  <Action Name=\"Reconnect\"		Method=\"reconnect\" />"
             + "</HomeItem> ");
 
@@ -49,6 +52,7 @@ public class XmppClient extends HomeItemAdapter {
     private String userName = "";
     private String password = "";
     private String resource = "";
+    private Set<String> acceptedSenders = new HashSet<>();
     private String status = "Not Connected";
 
     @Override
@@ -73,7 +77,7 @@ public class XmppClient extends HomeItemAdapter {
 
     @Override
     public boolean receiveEvent(Event event) {
-        if (isOutgoingMessage(event) && (session != null)) {
+        if (isOutgoingMessage(event) && (session != null) && session.isConnected()) {
             return processMessage(event.getAttribute(TO), event.getAttribute(BODY));
         }
         return false;
@@ -129,7 +133,6 @@ public class XmppClient extends HomeItemAdapter {
                 .build();
 
         XmppSession newSession = createBabblerXmppSession(domain, tcpConfiguration);
-//        limitAuthenticationMechanisms(newSession);
         listenForPresenceChanges(newSession);
         listenForMessages(newSession);
         newSession.connect();
@@ -237,5 +240,19 @@ public class XmppClient extends HomeItemAdapter {
             return session.getStatus().name().toLowerCase();
         }
         return status;
+    }
+
+    public String getAcceptedSenders() {
+        String result = "";
+        String separator = "";
+        for (String s : acceptedSenders) {
+            result += separator + s;
+            separator = ",";
+        }
+        return result;
+    }
+
+    public void setAcceptedSenders(String acceptedSenders) {
+        this.acceptedSenders = new HashSet<>(Arrays.asList(acceptedSenders.split(",")));
     }
 }

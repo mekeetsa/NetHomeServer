@@ -35,6 +35,8 @@ public class XmppClientTest {
         doReturn("subject").when(event).getAttribute(Message.SUBJECT);
         doReturn("text").when(event).getAttribute(Message.BODY);
         doReturn(Message.OUT_BOUND).when(event).getAttribute(Message.DIRECTION);
+        doReturn(true).when(session).isConnected();
+
     }
 
     @Test
@@ -49,5 +51,19 @@ public class XmppClientTest {
         assertThat(messageArgumentCaptor.getValue().getTo().getDomain(), is("b"));
         assertThat(messageArgumentCaptor.getValue().getTo().getLocal(), is("a"));
 
+    }
+
+    @Test
+    public void ignoresXmppMessageBeforeActivated() throws Exception {
+        client.receiveEvent(event);
+        verify(client, times(0)).createSession();
+    }
+
+    @Test
+    public void ignoresXmppMessageWhenNotConnected() throws Exception {
+        client.activate(server);
+        doReturn(false).when(session).isConnected();
+        client.receiveEvent(event);
+        verify(session, times(0)).send(any(rocks.xmpp.core.stanza.model.client.Message.class));
     }
 }
