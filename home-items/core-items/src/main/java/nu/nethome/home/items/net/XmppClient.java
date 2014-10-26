@@ -3,6 +3,7 @@ package nu.nethome.home.items.net;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
+import nu.nethome.home.system.HomeService;
 import nu.nethome.util.plugin.Plugin;
 import rocks.xmpp.core.Jid;
 import rocks.xmpp.core.session.TcpConnection;
@@ -12,6 +13,7 @@ import rocks.xmpp.core.stanza.MessageEvent;
 import rocks.xmpp.core.stanza.MessageListener;
 import rocks.xmpp.core.stanza.PresenceEvent;
 import rocks.xmpp.core.stanza.PresenceListener;
+import rocks.xmpp.core.stanza.model.AbstractMessage;
 import rocks.xmpp.core.stanza.model.client.Presence;
 import rocks.xmpp.extensions.compress.model.CompressionMethod;
 
@@ -24,10 +26,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 import static nu.nethome.home.items.net.Message.*;
 
@@ -44,6 +43,7 @@ public class XmppClient extends HomeItemAdapter {
             + "  <Attribute Name=\"Password\" Type=\"Password\" Get=\"getPassword\" Set=\"setPassword\" />"
             + "  <Attribute Name=\"Resource\" Type=\"String\" Get=\"getResource\" Set=\"setResource\" />"
             + "  <Attribute Name=\"AcceptedSenders\" Type=\"String\" Get=\"getAcceptedSenders\" Set=\"setAcceptedSenders\" />"
+            + "  <Attribute Name=\"MaxMessagesPerDay\" Type=\"String\" Get=\"getMaxMessagesPerDay\" Set=\"setMaxMessagesPerDay\" />"
             + "  <Action Name=\"Reconnect\"		Method=\"reconnect\" />"
             + "</HomeItem> ");
 
@@ -54,6 +54,9 @@ public class XmppClient extends HomeItemAdapter {
     private String resource = "";
     private Set<String> acceptedSenders = new HashSet<>();
     private String status = "Not Connected";
+    private int maxMessagesPerDay = 50;
+    private int messagesSentToday = 0;
+    private int currentDay;
 
     @Override
     public String getModel() {
@@ -77,10 +80,17 @@ public class XmppClient extends HomeItemAdapter {
 
     @Override
     public boolean receiveEvent(Event event) {
-        if (isOutgoingMessage(event) && (session != null) && session.isConnected()) {
-            return processMessage(event.getAttribute(TO), event.getAttribute(BODY));
+        if (isOutgoingMessage(event) && (session != null) && session.isConnected() && (messagesSentToday++ < maxMessagesPerDay)) {
+            return processMessage(event.getAttribute(TO), event.getAttribute(BODY), event.getAttribute(SUBJECT));
+        } else if (isNewDay(event)) {
+            currentDay = getDayOfYear();
+            messagesSentToday = 0;
         }
         return false;
+    }
+
+    private boolean isNewDay(Event event) {
+        return event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(HomeService.MINUTE_EVENT_TYPE) && (currentDay != getDayOfYear());
     }
 
     private boolean isOutgoingMessage(Event event) {
@@ -88,11 +98,21 @@ public class XmppClient extends HomeItemAdapter {
                 event.getAttribute(DIRECTION).equals(OUT_BOUND);
     }
 
-    private boolean processMessage(String to, String body) {
+    private boolean processMessage(String to, String body, String subject) {
+        if (body.isEmpty() && subject.isEmpty()) {
+            return false;
+        }
         boolean hasSent = false;
         for (String recipient : to.split(",")) {
             if (recipient.toLowerCase().startsWith(XMPP_PREFIX)) {
-                session.send(new rocks.xmpp.core.stanza.model.client.Message(Jid.valueOf(recipient.substring(XMPP_PREFIX.length())), rocks.xmpp.core.stanza.model.client.Message.Type.CHAT, body));
+                rocks.xmpp.core.stanza.model.client.Message message = new rocks.xmpp.core.stanza.model.client.Message(
+                        Jid.valueOf(recipient.substring(XMPP_PREFIX.length())),
+                        rocks.xmpp.core.stanza.model.client.Message.Type.CHAT,
+                        body);
+                if (!subject.isEmpty()) {
+                    message.setSubject(subject);
+                }
+                session.send(message);
                 hasSent = true;
             }
         }
@@ -195,8 +215,19 @@ public class XmppClient extends HomeItemAdapter {
         return sslContext;
     }
 
-    private void handleMessageEvent(MessageEvent event) {
-        System.out.println("Received message: " + event.getMessage().getBody());
+    void handleMessageEvent(MessageEvent event) {
+        Event homeEvent = server.createEvent(Message.MESSAGE_TYPE, "");
+        homeEvent.setAttribute(Message.DIRECTION, Message.IN_BOUND);
+        if (event.getMessage().getFrom() != null) {
+            homeEvent.setAttribute(Message.FROM, event.getMessage().getFrom().toString());
+        }
+        if (event.getMessage().getSubject() != null) {
+            homeEvent.setAttribute(Message.SUBJECT, event.getMessage().getSubject());
+        }
+        if (event.getMessage().getBody() != null) {
+            homeEvent.setAttribute(Message.BODY, event.getMessage().getBody());
+        }
+        server.send(homeEvent);
     }
 
     private void handlePresenceEvent(PresenceEvent event) {
@@ -254,5 +285,17 @@ public class XmppClient extends HomeItemAdapter {
 
     public void setAcceptedSenders(String acceptedSenders) {
         this.acceptedSenders = new HashSet<>(Arrays.asList(acceptedSenders.split(",")));
+    }
+
+    public void setMaxMessagesPerDay(String maxMessagesPerDay) {
+        this.maxMessagesPerDay = Integer.parseInt(maxMessagesPerDay);
+    }
+
+    public String getMaxMessagesPerDay() {
+        return Integer.toString(maxMessagesPerDay);
+    }
+
+    public int getDayOfYear() {
+        return Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
     }
 }

@@ -1,6 +1,8 @@
 package nu.nethome.home.items.net;
 
-import nu.nethome.home.items.net.Message;
+import nu.nethome.home.impl.InternalEvent;
+import nu.nethome.home.impl.LocalHomeItemProxy;
+import nu.nethome.home.item.HomeItemProxy;
 import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
 import org.junit.Before;
@@ -8,54 +10,107 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import rocks.xmpp.core.Jid;
 import rocks.xmpp.core.session.XmppSession;
+import rocks.xmpp.core.stanza.MessageEvent;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
 public class XmppClientTest {
 
     XmppClient client;
     private HomeService server;
-    private Event event;
+    private Event messageEvent;
     private XmppSession session;
+    private LocalHomeItemProxy itemProxy;
+    private Event minuteEvent;
+    private rocks.xmpp.core.stanza.model.client.Message inMessage;
+    private MessageEvent xmppMessageEvent;
+    private InternalEvent event;
 
     @Before
     public void setUp() throws Exception {
+        event = new InternalEvent("Foo");
         client = spy(new XmppClient());
+        itemProxy = new LocalHomeItemProxy(client);
         session = mock(XmppSession.class);
-        doReturn(session).when(client).createSession();
-        server = mock(HomeService.class);
-        event = mock(Event.class);
-        doReturn(Message.MESSAGE_TYPE).when(event).getAttribute(Event.EVENT_TYPE_ATTRIBUTE);
-        doReturn("xmpp:a@b").when(event).getAttribute(Message.TO);
-        doReturn("subject").when(event).getAttribute(Message.SUBJECT);
-        doReturn("text").when(event).getAttribute(Message.BODY);
-        doReturn(Message.OUT_BOUND).when(event).getAttribute(Message.DIRECTION);
         doReturn(true).when(session).isConnected();
+        doReturn(session).when(client).createSession();
+        doReturn(1).when(client).getDayOfYear();
+        server = mock(HomeService.class);
+        doReturn(event).when(server).createEvent(anyString(), anyString());
 
+        messageEvent = mock(Event.class);
+        doReturn(Message.MESSAGE_TYPE).when(messageEvent).getAttribute(Event.EVENT_TYPE_ATTRIBUTE);
+        doReturn("xmpp:a@b").when(messageEvent).getAttribute(Message.TO);
+        doReturn("subject").when(messageEvent).getAttribute(Message.SUBJECT);
+        doReturn("text").when(messageEvent).getAttribute(Message.BODY);
+        doReturn(Message.OUT_BOUND).when(messageEvent).getAttribute(Message.DIRECTION);
+
+        minuteEvent = mock(Event.class);
+        doReturn(HomeService.MINUTE_EVENT_TYPE).when(minuteEvent).getAttribute(Event.EVENT_TYPE_ATTRIBUTE);
+
+        inMessage = new rocks.xmpp.core.stanza.model.client.Message(
+                Jid.valueOf("x@y/z"),
+                rocks.xmpp.core.stanza.model.client.Message.Type.CHAT,
+                "Text");
+        inMessage.setSubject("subject");
+        inMessage.setFrom(Jid.valueOf("a@b/c"));
+        xmppMessageEvent = new MessageEvent(new Object(), inMessage, true);
     }
 
     @Test
-    public void sendsXmppMessage() throws Exception {
+    public void sendsOutboundXmppMessage() throws Exception {
         client.activate(server);
-        client.receiveEvent(event);
+        rocks.xmpp.core.stanza.model.client.Message value = sendMessage();
 
+        assertThat(value.getTo().getDomain(), is("b"));
+        assertThat(value.getTo().getLocal(), is("a"));
+        assertThat(value.getBody(), is("text"));
+        assertThat(value.getSubject(), is("subject"));
+    }
+
+    @Test
+    public void sendsOutboundXmppMessageWithoutSubject() throws Exception {
+        doReturn("").when(messageEvent).getAttribute(Message.SUBJECT);
+        client.activate(server);
+        rocks.xmpp.core.stanza.model.client.Message value = sendMessage();
+
+        assertThat(value.getSubject(), is(nullValue()));
+    }
+
+    @Test
+    public void doesNotSendOutboundXmppMessageWithoutSubjectAndBody() throws Exception {
+        doReturn("").when(messageEvent).getAttribute(Message.SUBJECT);
+        doReturn("").when(messageEvent).getAttribute(Message.BODY);
+        client.activate(server);
+        client.receiveEvent(messageEvent);
+
+        verify(session, times(0)).send(any(rocks.xmpp.core.stanza.model.client.Message.class));
+    }
+
+    @Test
+    public void doesNotSendInboundXmppMessage() throws Exception {
+        doReturn(Message.IN_BOUND).when(messageEvent).getAttribute(Message.DIRECTION);
+        client.activate(server);
+        client.receiveEvent(messageEvent);
+
+        verify(session, times(0)).send(any(rocks.xmpp.core.stanza.model.client.Message.class));
+    }
+
+    private rocks.xmpp.core.stanza.model.client.Message sendMessage() {
+        client.receiveEvent(messageEvent);
         ArgumentCaptor<Jid> jidArgumentCaptor = ArgumentCaptor.forClass(Jid.class);
         ArgumentCaptor<rocks.xmpp.core.stanza.model.client.Message> messageArgumentCaptor = ArgumentCaptor.forClass(rocks.xmpp.core.stanza.model.client.Message.class);
         verify(session).send(messageArgumentCaptor.capture());
-
-        assertThat(messageArgumentCaptor.getValue().getTo().getDomain(), is("b"));
-        assertThat(messageArgumentCaptor.getValue().getTo().getLocal(), is("a"));
-
+        return messageArgumentCaptor.getValue();
     }
 
     @Test
     public void ignoresXmppMessageBeforeActivated() throws Exception {
-        client.receiveEvent(event);
+        client.receiveEvent(messageEvent);
         verify(client, times(0)).createSession();
     }
 
@@ -63,7 +118,48 @@ public class XmppClientTest {
     public void ignoresXmppMessageWhenNotConnected() throws Exception {
         client.activate(server);
         doReturn(false).when(session).isConnected();
-        client.receiveEvent(event);
+        client.receiveEvent(messageEvent);
         verify(session, times(0)).send(any(rocks.xmpp.core.stanza.model.client.Message.class));
+    }
+
+    @Test
+    public void limitsNumberOfSentMessages() throws Exception {
+        itemProxy.setAttributeValue("MaxMessagesPerDay", "5");
+        client.activate(server);
+        sendMessages(10);
+        verify(session, times(5)).send(any(rocks.xmpp.core.stanza.model.client.Message.class));
+    }
+
+    @Test
+    public void limitsNumberOfSentMessagesPerDay() throws Exception {
+        itemProxy.setAttributeValue("MaxMessagesPerDay", "5");
+        client.activate(server);
+        sendMessages(10);
+        doReturn(2).when(client).getDayOfYear();
+        sendMessages(2);
+        verify(session, times(5 + 2)).send(any(rocks.xmpp.core.stanza.model.client.Message.class));
+    }
+
+    private void sendMessages(int messages) {
+        for (int i = 0; i < messages; i++) {
+            client.receiveEvent(minuteEvent);
+            client.receiveEvent(messageEvent);
+        }
+    }
+
+    @Test
+    public void makesMessageEventOfIncomingMessage() throws Exception {
+        client.activate(server);
+        client.handleMessageEvent(xmppMessageEvent);
+
+        ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
+
+        verify(server).createEvent(eq(Message.MESSAGE_TYPE), anyString());
+        verify(server).send(captor.capture());
+        Event sentEvent = captor.getValue();
+        assertThat(sentEvent.getAttribute(Message.DIRECTION), is(Message.IN_BOUND));
+        assertThat(sentEvent.getAttribute(Message.BODY), is(inMessage.getBody()));
+        assertThat(sentEvent.getAttribute(Message.SUBJECT), is(inMessage.getSubject()));
+        assertThat(sentEvent.getAttribute(Message.FROM), is(inMessage.getFrom().toString()));
     }
 }
