@@ -216,18 +216,20 @@ public class XmppClient extends HomeItemAdapter {
     }
 
     void handleMessageEvent(MessageEvent event) {
-        Event homeEvent = server.createEvent(Message.MESSAGE_TYPE, "");
-        homeEvent.setAttribute(Message.DIRECTION, Message.IN_BOUND);
-        if (event.getMessage().getFrom() != null) {
-            homeEvent.setAttribute(Message.FROM, event.getMessage().getFrom().toString());
+        if (event.isIncoming() && (acceptedSenders.isEmpty() || acceptedSenders.contains(event.getMessage().getFrom().toString()))) {
+            Event homeEvent = server.createEvent(Message.MESSAGE_TYPE, "");
+            homeEvent.setAttribute(Message.DIRECTION, Message.IN_BOUND);
+            if (event.getMessage().getFrom() != null) {
+                homeEvent.setAttribute(Message.FROM, event.getMessage().getFrom().toString());
+            }
+            if (event.getMessage().getSubject() != null) {
+                homeEvent.setAttribute(Message.SUBJECT, event.getMessage().getSubject());
+            }
+            if (event.getMessage().getBody() != null) {
+                homeEvent.setAttribute(Message.BODY, event.getMessage().getBody());
+            }
+            server.send(homeEvent);
         }
-        if (event.getMessage().getSubject() != null) {
-            homeEvent.setAttribute(Message.SUBJECT, event.getMessage().getSubject());
-        }
-        if (event.getMessage().getBody() != null) {
-            homeEvent.setAttribute(Message.BODY, event.getMessage().getBody());
-        }
-        server.send(homeEvent);
     }
 
     private void handlePresenceEvent(PresenceEvent event) {

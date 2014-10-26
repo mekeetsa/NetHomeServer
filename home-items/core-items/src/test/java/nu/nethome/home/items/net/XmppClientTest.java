@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 
 public class XmppClientTest {
 
+    public static final String MESSAGE_SENDER = "a@b/c";
     XmppClient client;
     private HomeService server;
     private Event messageEvent;
@@ -57,7 +58,7 @@ public class XmppClientTest {
                 rocks.xmpp.core.stanza.model.client.Message.Type.CHAT,
                 "Text");
         inMessage.setSubject("subject");
-        inMessage.setFrom(Jid.valueOf("a@b/c"));
+        inMessage.setFrom(Jid.valueOf(MESSAGE_SENDER));
         xmppMessageEvent = new MessageEvent(new Object(), inMessage, true);
     }
 
@@ -161,5 +162,40 @@ public class XmppClientTest {
         assertThat(sentEvent.getAttribute(Message.BODY), is(inMessage.getBody()));
         assertThat(sentEvent.getAttribute(Message.SUBJECT), is(inMessage.getSubject()));
         assertThat(sentEvent.getAttribute(Message.FROM), is(inMessage.getFrom().toString()));
+    }
+
+    @Test
+    public void doesNotMakeMessageEventOfOutgoingMessage() throws Exception {
+        client.activate(server);
+        xmppMessageEvent = new MessageEvent(new Object(), inMessage, false);
+
+        client.handleMessageEvent(xmppMessageEvent);
+
+        verify(server, times(0)).createEvent(anyString(), anyString());
+        verify(server, times(0)).send(any(Event.class));
+    }
+
+    @Test
+    public void doesNotMakeMessageEventForUnspecifiedSender() throws Exception {
+        itemProxy.setAttributeValue("AcceptedSenders", "b@c,d@e");
+        client.activate(server);
+        client.handleMessageEvent(xmppMessageEvent);
+
+        ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
+
+        verify(server, times(0)).createEvent(anyString(), anyString());
+        verify(server, times(0)).send(any(Event.class));
+    }
+
+    @Test
+    public void makeMessageEventForSpecifiedSender() throws Exception {
+        itemProxy.setAttributeValue("AcceptedSenders", "b@c," + MESSAGE_SENDER);
+        client.activate(server);
+        client.handleMessageEvent(xmppMessageEvent);
+
+        ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
+
+        verify(server, times(1)).createEvent(anyString(), anyString());
+        verify(server, times(1)).send(any(Event.class));
     }
 }
