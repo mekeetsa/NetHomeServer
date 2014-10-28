@@ -128,7 +128,11 @@ public class XmppClient extends HomeItemAdapter {
             session = createSession();
             status = "Connected";
         } catch (IOException e) {
-            status = "Failed to connect: " + e.getMessage();
+            String message = e.getMessage();
+            if (message.contains("certification path")) {
+                message = "untrusted certificate";
+            }
+            status = "Failed to connect: " + message;
         } catch (LoginException e) {
             status = "Failed to login: " + e.getMessage();
         }
