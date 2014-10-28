@@ -9,12 +9,16 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import rocks.xmpp.core.Jid;
+import rocks.xmpp.core.session.TcpConnectionConfiguration;
 import rocks.xmpp.core.session.XmppSession;
 import rocks.xmpp.core.stanza.MessageEvent;
+
+import javax.net.ssl.SSLContext;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.core.IsNot.not;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
@@ -30,6 +34,7 @@ public class XmppClientTest {
     private rocks.xmpp.core.stanza.model.client.Message inMessage;
     private MessageEvent xmppMessageEvent;
     private InternalEvent event;
+    private SSLContext sslContext;
 
     @Before
     public void setUp() throws Exception {
@@ -38,7 +43,12 @@ public class XmppClientTest {
         itemProxy = new LocalHomeItemProxy(client);
         session = mock(XmppSession.class);
         doReturn(true).when(session).isConnected();
-        doReturn(session).when(client).createSession();
+        doReturn(session).when(client).createBabblerXmppSession(anyString(), any(TcpConnectionConfiguration.class));
+        sslContext = mock(SSLContext.class);
+        doReturn(sslContext).when(client).trustAnyCertificateSslContext();
+        doNothing().when(client).listenForMessages(any(XmppSession.class));
+        doNothing().when(client).listenForPresenceChanges(any(XmppSession.class));
+        doNothing().when(client).login(any(XmppSession.class));
         doReturn(1).when(client).getDayOfYear();
         server = mock(HomeService.class);
         doReturn(event).when(server).createEvent(anyString(), anyString());
@@ -197,5 +207,45 @@ public class XmppClientTest {
 
         verify(server, times(1)).createEvent(anyString(), anyString());
         verify(server, times(1)).send(any(Event.class));
+    }
+
+    @Test
+    public void turnsOnSSL() throws Exception {
+        itemProxy.setAttributeValue("UseSSL", "On");
+        client.activate(server);
+
+        ArgumentCaptor<TcpConnectionConfiguration> capt = ArgumentCaptor.forClass(TcpConnectionConfiguration.class);
+        verify(client).createBabblerXmppSession(anyString(), capt.capture());
+        assertThat(capt.getValue().isSecure(), is(true));
+    }
+
+    @Test
+    public void turnsOffSSL() throws Exception {
+        itemProxy.setAttributeValue("UseSSL", "Off");
+        client.activate(server);
+
+        ArgumentCaptor<TcpConnectionConfiguration> capt = ArgumentCaptor.forClass(TcpConnectionConfiguration.class);
+        verify(client).createBabblerXmppSession(anyString(), capt.capture());
+        assertThat(capt.getValue().isSecure(), is(false));
+    }
+
+    @Test
+    public void canTrustAnyCertificate() throws Exception {
+        itemProxy.setAttributeValue("TrustAnyCertificate", "On");
+        client.activate(server);
+
+        ArgumentCaptor<TcpConnectionConfiguration> capt = ArgumentCaptor.forClass(TcpConnectionConfiguration.class);
+        verify(client).createBabblerXmppSession(anyString(), capt.capture());
+        assertThat(capt.getValue().getSSLContext(), is(sslContext));
+    }
+
+    @Test
+    public void canNotTrustAnyCertificate() throws Exception {
+        itemProxy.setAttributeValue("TrustAnyCertificate", "Off");
+        client.activate(server);
+
+        ArgumentCaptor<TcpConnectionConfiguration> capt = ArgumentCaptor.forClass(TcpConnectionConfiguration.class);
+        verify(client).createBabblerXmppSession(anyString(), capt.capture());
+        assertThat(capt.getValue().getSSLContext(), not(is(sslContext)));
     }
 }

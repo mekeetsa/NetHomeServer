@@ -44,6 +44,8 @@ public class XmppClient extends HomeItemAdapter {
             + "  <Attribute Name=\"Resource\" Type=\"String\" Get=\"getResource\" Set=\"setResource\" />"
             + "  <Attribute Name=\"AcceptedSenders\" Type=\"String\" Get=\"getAcceptedSenders\" Set=\"setAcceptedSenders\" />"
             + "  <Attribute Name=\"MaxMessagesPerDay\" Type=\"String\" Get=\"getMaxMessagesPerDay\" Set=\"setMaxMessagesPerDay\" />"
+            + "  <Attribute Name=\"UseSSL\" Type=\"String\" Get=\"getUseSSL\" Set=\"setUseSSL\" />"
+            + "  <Attribute Name=\"TrustAnyCertificate\" Type=\"String\" Get=\"getTrustAnyCertificate\" Set=\"setTrustAnyCertificate\" />"
             + "  <Action Name=\"Reconnect\"		Method=\"reconnect\" />"
             + "</HomeItem> ");
 
@@ -57,6 +59,8 @@ public class XmppClient extends HomeItemAdapter {
     private int maxMessagesPerDay = 50;
     private int messagesSentToday = 0;
     private int currentDay;
+    private boolean useSSL = true;
+    private boolean trustAnyCertificate = true;
 
     @Override
     public String getModel() {
@@ -144,28 +148,33 @@ public class XmppClient extends HomeItemAdapter {
     }
 
     XmppSession createSession() throws IOException, LoginException {
-        TcpConnectionConfiguration tcpConfiguration = TcpConnectionConfiguration.builder()
+        TcpConnectionConfiguration.Builder builder = TcpConnectionConfiguration.builder()
                 .hostname(this.domain)
                 .port(5222)
-                .sslContext(trustAnyCertificateSslContext())
                 .compressionMethod(CompressionMethod.ZLIB)
-                .secure(true)
-                .build();
-
+                .secure(useSSL);
+        if (trustAnyCertificate) {
+            builder = builder.sslContext(trustAnyCertificateSslContext());
+        }
+        TcpConnectionConfiguration tcpConfiguration = builder.build();
         XmppSession newSession = createBabblerXmppSession(domain, tcpConfiguration);
         listenForPresenceChanges(newSession);
         listenForMessages(newSession);
+        login(newSession);
+        return newSession;
+    }
+
+    void login(XmppSession newSession) throws IOException, LoginException {
         newSession.connect();
         newSession.login(userName, password, resource);
         newSession.send(new Presence());
-        return newSession;
     }
 
     XmppSession createBabblerXmppSession(String domain, TcpConnectionConfiguration connectionConfiguration) {
         return new XmppSession(domain, connectionConfiguration);
     }
 
-    private void listenForMessages(XmppSession session) {
+    void listenForMessages(XmppSession session) {
         session.addMessageListener(new MessageListener() {
             @Override
             public void handle(MessageEvent e) {
@@ -174,7 +183,7 @@ public class XmppClient extends HomeItemAdapter {
         });
     }
 
-    private void listenForPresenceChanges(XmppSession session) {
+    void listenForPresenceChanges(XmppSession session) {
         session.addPresenceListener(new PresenceListener() {
             @Override
             public void handle(PresenceEvent e) {
@@ -185,7 +194,7 @@ public class XmppClient extends HomeItemAdapter {
         });
     }
 
-    private SSLContext trustAnyCertificateSslContext() throws IOException {
+    SSLContext trustAnyCertificateSslContext() throws IOException {
         SSLContext sslContext = null;
         try {
             sslContext = SSLContext.getInstance("TLS");
@@ -299,5 +308,21 @@ public class XmppClient extends HomeItemAdapter {
 
     public int getDayOfYear() {
         return Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
+    }
+
+    public String getUseSSL() {
+        return useSSL ? "On" : "Off";
+    }
+
+    public void setUseSSL(String useSSL) {
+        this.useSSL = useSSL.equalsIgnoreCase("on");
+    }
+
+    public String getTrustAnyCertificate() {
+        return trustAnyCertificate ? "On" : "Off";
+    }
+
+    public void setTrustAnyCertificate(String trustAnyCertificate) {
+        this.trustAnyCertificate = trustAnyCertificate.equalsIgnoreCase("on");
     }
 }
