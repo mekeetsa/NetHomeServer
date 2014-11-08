@@ -17,11 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nu.nethome.home.items.web.servergui;
+package nu.nethome.home.items.web.servergui.attributes;
 
 import nu.nethome.home.item.Attribute;
 import nu.nethome.home.item.HomeItemProxy;
 import nu.nethome.home.item.IllegalValueException;
+import nu.nethome.home.items.web.servergui.AttributeTypePrinterInterface;
 import nu.nethome.home.system.DirectoryEntry;
 import nu.nethome.home.system.HomeService;
 

@@ -17,9 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nu.nethome.home.items.web.servergui;
+package nu.nethome.home.items.web.servergui.attributes;
 
 import nu.nethome.home.item.Attribute;
+import nu.nethome.home.items.web.servergui.HTMLEncode;
+import nu.nethome.home.items.web.servergui.PortletPage;
+import nu.nethome.home.items.web.servergui.attributes.ItemAttributePrinter;
 import nu.nethome.home.system.HomeService;
 
 import java.io.PrintWriter;

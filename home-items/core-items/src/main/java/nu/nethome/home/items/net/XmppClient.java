@@ -44,8 +44,8 @@ public class XmppClient extends HomeItemAdapter {
             + "  <Attribute Name=\"Resource\" Type=\"String\" Get=\"getResource\" Set=\"setResource\" />"
             + "  <Attribute Name=\"AcceptedSenders\" Type=\"String\" Get=\"getAcceptedSenders\" Set=\"setAcceptedSenders\" />"
             + "  <Attribute Name=\"MaxMessagesPerDay\" Type=\"String\" Get=\"getMaxMessagesPerDay\" Set=\"setMaxMessagesPerDay\" />"
-            + "  <Attribute Name=\"UseSSL\" Type=\"String\" Get=\"getUseSSL\" Set=\"setUseSSL\" />"
-            + "  <Attribute Name=\"TrustAnyCertificate\" Type=\"String\" Get=\"getTrustAnyCertificate\" Set=\"setTrustAnyCertificate\" />"
+            + "  <Attribute Name=\"UseSSL\" Type=\"Boolean\" Get=\"getUseSSL\" Set=\"setUseSSL\" />"
+            + "  <Attribute Name=\"TrustAnyCertificate\" Type=\"Boolean\" Get=\"getTrustAnyCertificate\" Set=\"setTrustAnyCertificate\" />"
             + "  <Action Name=\"Reconnect\"		Method=\"reconnect\" />"
             + "</HomeItem> ");
 
@@ -315,18 +315,18 @@ public class XmppClient extends HomeItemAdapter {
     }
 
     public String getUseSSL() {
-        return useSSL ? "On" : "Off";
+        return useSSL ? "Yes" : "No";
     }
 
     public void setUseSSL(String useSSL) {
-        this.useSSL = useSSL.equalsIgnoreCase("on");
+        this.useSSL = useSSL.equalsIgnoreCase("Yes") || useSSL.equalsIgnoreCase("True");
     }
 
     public String getTrustAnyCertificate() {
-        return trustAnyCertificate ? "On" : "Off";
+        return trustAnyCertificate ? "Yes" : "No";
     }
 
     public void setTrustAnyCertificate(String trustAnyCertificate) {
-        this.trustAnyCertificate = trustAnyCertificate.equalsIgnoreCase("on");
+        this.trustAnyCertificate = trustAnyCertificate.equalsIgnoreCase("Yes") || trustAnyCertificate.equalsIgnoreCase("True");
     }
 }

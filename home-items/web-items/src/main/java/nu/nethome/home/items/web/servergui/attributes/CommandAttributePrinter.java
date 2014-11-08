@@ -17,12 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nu.nethome.home.items.web.servergui;
+package nu.nethome.home.items.web.servergui.attributes;
 
 import nu.nethome.home.item.Action;
 import nu.nethome.home.item.Attribute;
 import nu.nethome.home.item.HomeItemProxy;
 import nu.nethome.home.item.IllegalValueException;
+import nu.nethome.home.items.web.servergui.AttributeTypePrinterInterface;
+import nu.nethome.home.items.web.servergui.PortletPage;
 import nu.nethome.home.system.DirectoryEntry;
 import nu.nethome.home.system.HomeService;
 
@@ -51,7 +53,7 @@ public class CommandAttributePrinter implements AttributeTypePrinterInterface {
         String targetItemIdentity = "";
         String targetItemAction = "";
         String command = "";
-        HomeItemProxy targetItem = null;
+        HomeItemProxy targetItem;
 
         if (callCmdAction.length > 0) {
             command = callCmdAction[0];
@@ -133,7 +135,7 @@ public class CommandAttributePrinter implements AttributeTypePrinterInterface {
         // Get the corresponding parameter value from the request
         String itemIdentity = req.getParameter(identity);
         String itemAction = req.getParameter(identity + "_a");
-        String newAttributeValue = "";
+        String newAttributeValue;
 
         if (itemIdentity == null || !isAttributeWritable(attribute, isInitiation)) {
             return;

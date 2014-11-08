@@ -17,7 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nu.nethome.home.items.web.servergui;
+package nu.nethome.home.items.web.servergui.attributes;
+
+import nu.nethome.home.items.web.servergui.attributes.StringAttributePrinter;
 
 /**
  * An attribute printer for the "Password" attribute type

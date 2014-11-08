@@ -2,7 +2,6 @@ package nu.nethome.home.items.net;
 
 import nu.nethome.home.impl.InternalEvent;
 import nu.nethome.home.impl.LocalHomeItemProxy;
-import nu.nethome.home.item.HomeItemProxy;
 import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
 import org.junit.Before;
@@ -113,7 +112,6 @@ public class XmppClientTest {
 
     private rocks.xmpp.core.stanza.model.client.Message sendMessage() {
         client.receiveEvent(messageEvent);
-        ArgumentCaptor<Jid> jidArgumentCaptor = ArgumentCaptor.forClass(Jid.class);
         ArgumentCaptor<rocks.xmpp.core.stanza.model.client.Message> messageArgumentCaptor = ArgumentCaptor.forClass(rocks.xmpp.core.stanza.model.client.Message.class);
         verify(session).send(messageArgumentCaptor.capture());
         return messageArgumentCaptor.getValue();
@@ -191,8 +189,6 @@ public class XmppClientTest {
         client.activate(server);
         client.handleMessageEvent(xmppMessageEvent);
 
-        ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
-
         verify(server, times(0)).createEvent(anyString(), anyString());
         verify(server, times(0)).send(any(Event.class));
     }
@@ -203,15 +199,13 @@ public class XmppClientTest {
         client.activate(server);
         client.handleMessageEvent(xmppMessageEvent);
 
-        ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
-
         verify(server, times(1)).createEvent(anyString(), anyString());
         verify(server, times(1)).send(any(Event.class));
     }
 
     @Test
     public void turnsOnSSL() throws Exception {
-        itemProxy.setAttributeValue("UseSSL", "On");
+        itemProxy.setAttributeValue("UseSSL", "true");
         client.activate(server);
 
         ArgumentCaptor<TcpConnectionConfiguration> capt = ArgumentCaptor.forClass(TcpConnectionConfiguration.class);
@@ -221,7 +215,7 @@ public class XmppClientTest {
 
     @Test
     public void turnsOffSSL() throws Exception {
-        itemProxy.setAttributeValue("UseSSL", "Off");
+        itemProxy.setAttributeValue("UseSSL", "false");
         client.activate(server);
 
         ArgumentCaptor<TcpConnectionConfiguration> capt = ArgumentCaptor.forClass(TcpConnectionConfiguration.class);
@@ -231,7 +225,7 @@ public class XmppClientTest {
 
     @Test
     public void canTrustAnyCertificate() throws Exception {
-        itemProxy.setAttributeValue("TrustAnyCertificate", "On");
+        itemProxy.setAttributeValue("TrustAnyCertificate", "true");
         client.activate(server);
 
         ArgumentCaptor<TcpConnectionConfiguration> capt = ArgumentCaptor.forClass(TcpConnectionConfiguration.class);
@@ -241,7 +235,7 @@ public class XmppClientTest {
 
     @Test
     public void canNotTrustAnyCertificate() throws Exception {
-        itemProxy.setAttributeValue("TrustAnyCertificate", "Off");
+        itemProxy.setAttributeValue("TrustAnyCertificate", "false");
         client.activate(server);
 
         ArgumentCaptor<TcpConnectionConfiguration> capt = ArgumentCaptor.forClass(TcpConnectionConfiguration.class);

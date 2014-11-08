@@ -30,6 +30,7 @@ package nu.nethome.home.items.web.servergui;
 
 import nu.nethome.home.impl.InternalEvent;
 import nu.nethome.home.item.*;
+import nu.nethome.home.items.web.servergui.attributes.*;
 import nu.nethome.home.system.DirectoryEntry;
 import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
@@ -59,7 +60,7 @@ public class EditItemPage extends PortletPage {
     protected HomeService server;
     protected String bridgeBrokerId;
     protected String pageName = "edit";
-    protected Map<String, AttributeTypePrinterInterface> attributeHandlers = new HashMap<String, AttributeTypePrinterInterface>();
+    protected Map<String, AttributeTypePrinterInterface> attributeHandlers = new HashMap<>();
     private SelectClassPage selectClassPage;
     private CreationEventCache creationEventCache;
 
@@ -74,6 +75,8 @@ public class EditItemPage extends PortletPage {
 
     private void initiateAttributePlugins(String mediaDirectory) {
         addAttributePlugin(new StringAttributePrinter());
+        addAttributePlugin(new TextAttributePrinter());
+        addAttributePlugin(new BooleanAttributePrinter());
         addAttributePlugin(new StringListAttributePrinter());
         addAttributePlugin(new CommandAttributePrinter(this.server));
         addAttributePlugin(new OptionsAttributePrinter(this.server));
@@ -103,7 +106,7 @@ public class EditItemPage extends PortletPage {
 
     @Override
     public List<String> getJavaScriptFileNames() {
-        List<String> scripts = new ArrayList<String>();
+        List<String> scripts = new ArrayList<>();
         scripts.add("web/home/js/jquery-1.4.3.min.js");
         scripts.add("web/home/edititempage.js");
         scripts.addAll(selectClassPage.getJavaScriptFileNames());
@@ -166,7 +169,7 @@ public class EditItemPage extends PortletPage {
     }
 
     private void printItemEditPage(PrintWriter p, EditItemArguments pageArguments, HomeItemProxy item) throws ServletException, IOException {
-        List<HomeItemError> homeItemErrors = new ArrayList<HomeItemError>();
+        List<HomeItemError> homeItemErrors = new ArrayList<>();
         printItemEditColumnStart(p);
         HomeItemModel model = item.getModel();
         String name = item.getAttributeValue("Name");
