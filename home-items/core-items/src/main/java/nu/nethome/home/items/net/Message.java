@@ -40,29 +40,60 @@ public class Message extends HomeItemAdapter implements HomeItem {
     public static final String IN_BOUND = "In";
 
     private final String MODEL = ("<?xml version = \"1.0\"?> \n"
-			+ "<HomeItem Class=\"Message\" Category=\"Ports\"  >"
+            + "<HomeItem Class=\"Message\" Category=\"Ports\"  >"
             + "  <Attribute Name=\"To\" Type=\"String\" Get=\"getTo\" Set=\"setTo\"  />"
             + "  <Attribute Name=\"Subject\" Type=\"String\" Get=\"getSubject\" 	Set=\"setSubject\" />"
             + "  <Attribute Name=\"Message\" Type=\"Text\" Get=\"getMessage\" 	Set=\"setMessage\" />"
             + "  <Action Name=\"Send\" Method=\"send\" Default=\"true\" />"
-			+ "</HomeItem> ");
+            + "</HomeItem> ");
 
-	private static Logger logger = Logger.getLogger(Message.class.getName());
+    private static Logger logger = Logger.getLogger(Message.class.getName());
     private String to;
     private String subject;
     private String message;
 
-	public String getModel() {
-		return MODEL;
-	}
+    public String getModel() {
+        return MODEL;
+    }
 
     public void send() {
         Event messageEvent = server.createEvent(MESSAGE_TYPE, "");
         messageEvent.setAttribute(TO, to);
         messageEvent.setAttribute(SUBJECT, subject);
-        messageEvent.setAttribute(BODY, message);
+        messageEvent.setAttribute(BODY, replaceReferences(message));
         messageEvent.setAttribute(DIRECTION, OUT_BOUND);
         server.send(messageEvent);
+    }
+
+    private String replaceReferences(String message) {
+        String result = message;
+        int currentPosition = 0;
+        while (currentPosition < result.length()) {
+            int start = result.indexOf("${", currentPosition);
+            currentPosition = result.length();
+            if (start >= 0 && start < result.length() - 1) {
+                int end = result.indexOf("}", start + 1);
+                if (end > 0 && end > start + 1) {
+                    String reference = result.substring(start + 2, end);
+                    String value = extractAttributeValue(reference);
+                    result = result.substring(0, start) + value + result.substring(end + 1);
+                    currentPosition = start + value.length();
+                }
+            }
+        }
+        return result;
+    }
+
+    private String extractAttributeValue(String reference) {
+        String result = "";
+        String nameAndAtt[] = reference.split("\\.");
+        if (nameAndAtt.length == 2) {
+            HomeItemProxy homeItemProxy = server.openInstance(nameAndAtt[0]);
+            if (homeItemProxy != null) {
+                result = homeItemProxy.getAttributeValue(nameAndAtt[1]);
+            }
+        }
+        return result;
     }
 
     public String getTo() {
