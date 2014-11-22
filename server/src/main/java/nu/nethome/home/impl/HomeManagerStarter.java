@@ -80,6 +80,14 @@ public class HomeManagerStarter {
                  */
                 server.setLogDirectory(logFileName);
             }
+            if (args[i].startsWith("-d") && args[i].length() > 2) {
+                try {
+                    int startupDelay = Integer.parseInt(args[i].substring(2)) * 1000;
+                    Thread.sleep(startupDelay);
+                } catch (NumberFormatException | InterruptedException e) {
+                    // Ignore
+                }
+            }
             i++;
         }
 
