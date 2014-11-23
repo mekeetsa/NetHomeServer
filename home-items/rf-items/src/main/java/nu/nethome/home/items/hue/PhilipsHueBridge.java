@@ -27,6 +27,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -126,6 +127,32 @@ public class PhilipsHueBridge {
             List<LightId> list = new ArrayList<LightId>();
             for (String lampId : getFieldNames(result.getObject())) {
                 list.add(new LightId(lampId, result.getObject().getJSONObject(lampId).getString("name")));
+            }
+            return list;
+        } catch (JSONException e) {
+            throw new HueProcessingException(e);
+        }
+    }
+
+    /**
+     * List all sensors known to the bridge
+     *
+     * @param user Registered user
+     * @return List of sensors
+     * @throws IOException            If communication fails
+     * @throws HueProcessingException If the command cannot be executed
+     */
+    public List<Sensor> listSensors(String user) throws HueProcessingException, IOException {
+        try {
+            String resource = String.format("/api/%s/sensors", user);
+            JSONData result = client.get(url, resource, null);
+            checkForErrorResponse(result);
+            JSONObject sensors = result.getObject();
+            List<Sensor> list = new ArrayList<>();
+            Iterator<String> attributes = sensors.keys();
+            while (attributes.hasNext()) {
+                String id = attributes.next();
+                list.add(new Sensor(id, sensors.getJSONObject(id)));
             }
             return list;
         } catch (JSONException e) {
