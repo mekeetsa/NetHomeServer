@@ -21,7 +21,6 @@ package nu.nethome.home.items.net;
 
 import nu.nethome.home.impl.CommandLineExecutor;
 import nu.nethome.home.item.HomeItem;
-import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
@@ -29,22 +28,22 @@ import nu.nethome.util.plugin.Plugin;
 
 import java.util.logging.Logger;
 
-import static nu.nethome.home.items.net.Message.*;
-
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
 @HomeItemType("Ports")
-public class MessageReader extends HomeItemAdapter implements HomeItem {
+public class MessageInteractor extends Message implements HomeItem {
 
     private final String MODEL = ("<?xml version = \"1.0\"?> \n"
 			+ "<HomeItem Class=\"MessageReader\" Category=\"Ports\"  >"
-            + "  <Attribute Name=\"Message\" Type=\"Text\" Get=\"getMessage\" 	Set=\"setMessage\" />"
+            + "  <Attribute Name=\"Subject\" Type=\"String\" Get=\"getSubject\" 	Set=\"setSubject\" />"
+            + "  <Attribute Name=\"Reply\" Type=\"Text\" Get=\"getMessage\" 	Set=\"setMessage\" />"
+            + "  <Attribute Name=\"TriggerText\" Type=\"String\" Get=\"getTriggerText\" 	Set=\"setTriggerText\" />"
             + "  <Attribute Name=\"Command\" Type=\"Command\" Get=\"getCommand\" 	Set=\"setCommand\" />"
             + "</HomeItem> ");
 
-	private static Logger logger = Logger.getLogger(MessageReader.class.getName());
-    private String command;
-    private String message;
+	private static Logger logger = Logger.getLogger(MessageInteractor.class.getName());
+    private String command = "";
+    private String triggerText = "";
     private CommandLineExecutor commandLineExecutor;
 
 	public String getModel() {
@@ -58,21 +57,27 @@ public class MessageReader extends HomeItemAdapter implements HomeItem {
 
     @Override
     public boolean receiveEvent(Event event) {
-        if (isOutgoingMessage(event)) {
-            return processMessage(event.getAttribute(TO), event.getAttribute(BODY));
+        if (isInboundMessage(event)) {
+            return processMessage(event.getAttribute(FROM), event.getAttribute(BODY));
         }
         return false;
     }
 
-    private boolean isOutgoingMessage(Event event) {
+    private boolean isInboundMessage(Event event) {
         return event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(MESSAGE_TYPE) &&
                 event.getAttribute(DIRECTION).equals(IN_BOUND);
     }
 
-    private boolean processMessage(String to, String body) {
-        boolean hasSent = false;
-            // Do Stuff
-        return hasSent;
+    private boolean processMessage(String from, String body) {
+        if (body.contains(triggerText)) {
+            commandLineExecutor.executeCommandLine(command);
+            if (!getMessage().isEmpty()) {
+                sentTo(from);
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
 
@@ -84,11 +89,11 @@ public class MessageReader extends HomeItemAdapter implements HomeItem {
         this.command = command;
     }
 
-    public String getMessage() {
-        return message;
+    public String getTriggerText() {
+        return triggerText;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setTriggerText(String triggerText) {
+        this.triggerText = triggerText;
     }
 }

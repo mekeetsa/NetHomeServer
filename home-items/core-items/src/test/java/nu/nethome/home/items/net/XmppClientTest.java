@@ -169,7 +169,7 @@ public class XmppClientTest {
         assertThat(sentEvent.getAttribute(Message.DIRECTION), is(Message.IN_BOUND));
         assertThat(sentEvent.getAttribute(Message.BODY), is(inMessage.getBody()));
         assertThat(sentEvent.getAttribute(Message.SUBJECT), is(inMessage.getSubject()));
-        assertThat(sentEvent.getAttribute(Message.FROM), is(inMessage.getFrom().toString()));
+        assertThat(sentEvent.getAttribute(Message.FROM), is(XmppClient.XMPP_PREFIX + inMessage.getFrom().toString()));
     }
 
     @Test

@@ -57,6 +57,10 @@ public class Message extends HomeItemAdapter implements HomeItem {
     }
 
     public void send() {
+        sentTo(to);
+    }
+
+    protected void sentTo(String to) {
         Event messageEvent = server.createEvent(MESSAGE_TYPE, "");
         messageEvent.setAttribute(TO, to);
         messageEvent.setAttribute(SUBJECT, subject);

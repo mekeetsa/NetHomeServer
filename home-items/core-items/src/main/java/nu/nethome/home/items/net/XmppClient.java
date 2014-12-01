@@ -233,7 +233,7 @@ public class XmppClient extends HomeItemAdapter {
             Event homeEvent = server.createEvent(Message.MESSAGE_TYPE, "");
             homeEvent.setAttribute(Message.DIRECTION, Message.IN_BOUND);
             if (event.getMessage().getFrom() != null) {
-                homeEvent.setAttribute(Message.FROM, event.getMessage().getFrom().toString());
+                homeEvent.setAttribute(Message.FROM, XMPP_PREFIX + event.getMessage().getFrom().toString());
             }
             if (event.getMessage().getSubject() != null) {
                 homeEvent.setAttribute(Message.SUBJECT, event.getMessage().getSubject());
@@ -299,7 +299,11 @@ public class XmppClient extends HomeItemAdapter {
     }
 
     public void setAcceptedSenders(String acceptedSenders) {
-        this.acceptedSenders = new HashSet<>(Arrays.asList(acceptedSenders.split(",")));
+        HashSet<String> senders = new HashSet<>();
+        if (!acceptedSenders.isEmpty()) {
+            senders.addAll(Arrays.asList(acceptedSenders.split(",")));
+        }
+        this.acceptedSenders = senders;
     }
 
     public void setMaxMessagesPerDay(String maxMessagesPerDay) {
