@@ -229,7 +229,7 @@ public class XmppClient extends HomeItemAdapter {
     }
 
     void handleMessageEvent(MessageEvent event) {
-        if (event.isIncoming() && (acceptedSenders.isEmpty() || acceptedSenders.contains(event.getMessage().getFrom().toString()))) {
+        if (event.isIncoming() && isAnAcceptedSender(event.getMessage().getFrom().toString())) {
             Event homeEvent = server.createEvent(Message.MESSAGE_TYPE, "");
             homeEvent.setAttribute(Message.DIRECTION, Message.IN_BOUND);
             if (event.getMessage().getFrom() != null) {
@@ -245,8 +245,28 @@ public class XmppClient extends HomeItemAdapter {
         }
     }
 
+    private boolean isAnAcceptedSender(String sender) {
+        if (acceptedSenders.isEmpty()) {
+            return true;
+        }
+        String senderWithoutResource;
+        if (sender.contains("/")) {
+            senderWithoutResource = sender.substring(0, sender.indexOf("/"));
+        } else {
+            senderWithoutResource = sender;
+        }
+        for (String acceptedSender : acceptedSenders) {
+            if (acceptedSender.contains("/") && acceptedSender.equals(sender)) {
+                return true;
+            } else if (!acceptedSender.contains("/") && acceptedSender.equals(senderWithoutResource)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void handlePresenceEvent(PresenceEvent event) {
-        System.out.println("Received presence: " + event.getPresence().getStatus());
+        // Not yet handled
     }
 
     public String getDomain() {

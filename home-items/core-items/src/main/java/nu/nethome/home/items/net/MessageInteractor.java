@@ -26,6 +26,10 @@ import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
 import nu.nethome.util.plugin.Plugin;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.logging.Logger;
 
 @SuppressWarnings("UnusedDeclaration")
@@ -37,13 +41,13 @@ public class MessageInteractor extends Message implements HomeItem {
 			+ "<HomeItem Class=\"MessageReader\" Category=\"Ports\"  >"
             + "  <Attribute Name=\"Subject\" Type=\"String\" Get=\"getSubject\" 	Set=\"setSubject\" />"
             + "  <Attribute Name=\"Reply\" Type=\"Text\" Get=\"getMessage\" 	Set=\"setMessage\" />"
-            + "  <Attribute Name=\"TriggerText\" Type=\"String\" Get=\"getTriggerText\" 	Set=\"setTriggerText\" />"
+            + "  <Attribute Name=\"TriggerText\" Type=\"String\" Get=\"getTriggerTexts\" 	Set=\"setTriggerTexts\" />"
             + "  <Attribute Name=\"Command\" Type=\"Command\" Get=\"getCommand\" 	Set=\"setCommand\" />"
             + "</HomeItem> ");
 
 	private static Logger logger = Logger.getLogger(MessageInteractor.class.getName());
     private String command = "";
-    private String triggerText = "";
+    private List<String> triggerTexts = new ArrayList<>();
     private CommandLineExecutor commandLineExecutor;
 
 	public String getModel() {
@@ -69,7 +73,7 @@ public class MessageInteractor extends Message implements HomeItem {
     }
 
     private boolean processMessage(String from, String body) {
-        if (body.contains(triggerText)) {
+        if (containsTriggerText(body)) {
             commandLineExecutor.executeCommandLine(command);
             if (!getMessage().isEmpty()) {
                 sentTo(from);
@@ -80,6 +84,15 @@ public class MessageInteractor extends Message implements HomeItem {
         }
     }
 
+    private boolean containsTriggerText(String body) {
+        String lowerBody = body.toLowerCase();
+        for (String triggerText : triggerTexts) {
+            if (lowerBody.contains(triggerText)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public String getCommand() {
         return command;
@@ -89,11 +102,21 @@ public class MessageInteractor extends Message implements HomeItem {
         this.command = command;
     }
 
-    public String getTriggerText() {
-        return triggerText;
+    public String getTriggerTexts() {
+        String result = "";
+        String separator = "";
+        for (String s : triggerTexts) {
+            result += separator + s;
+            separator = ",";
+        }
+        return result;
     }
 
-    public void setTriggerText(String triggerText) {
-        this.triggerText = triggerText;
+    public void setTriggerTexts(String texts) {
+        List<String> senders = new ArrayList<>();
+        if (!texts.isEmpty()) {
+            senders.addAll(Arrays.asList(texts.toLowerCase().split(",")));
+        }
+        this.triggerTexts = senders;
     }
 }

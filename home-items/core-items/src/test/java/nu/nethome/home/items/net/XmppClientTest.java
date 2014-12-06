@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 
 public class XmppClientTest {
 
-    public static final String MESSAGE_SENDER = "a@b/c";
+    public static final String MESSAGE_SENDER = "a@b";
     XmppClient client;
     private HomeService server;
     private Event messageEvent;
@@ -201,6 +201,28 @@ public class XmppClientTest {
 
         verify(server, times(1)).createEvent(anyString(), anyString());
         verify(server, times(1)).send(any(Event.class));
+    }
+
+    @Test
+    public void makeMessageEventForSpecifiedSenderIgnoresResourceIfNotSpecified() throws Exception {
+        itemProxy.setAttributeValue("AcceptedSenders", "b@c," + MESSAGE_SENDER);
+        inMessage.setFrom(Jid.valueOf(MESSAGE_SENDER + "/Resource"));
+        client.activate(server);
+        client.handleMessageEvent(xmppMessageEvent);
+
+        verify(server, times(1)).createEvent(anyString(), anyString());
+        verify(server, times(1)).send(any(Event.class));
+    }
+
+    @Test
+    public void noMessageEventForSpecifiedSenderIfWringResource() throws Exception {
+        itemProxy.setAttributeValue("AcceptedSenders", "b@c," + MESSAGE_SENDER + "/OtherResource");
+        inMessage.setFrom(Jid.valueOf(MESSAGE_SENDER + "/Resource"));
+        client.activate(server);
+        client.handleMessageEvent(xmppMessageEvent);
+
+        verify(server, times(0)).createEvent(anyString(), anyString());
+        verify(server, times(0)).send(any(Event.class));
     }
 
     @Test
