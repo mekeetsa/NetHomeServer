@@ -38,7 +38,7 @@ import java.util.logging.Logger;
 public class MessageInteractor extends Message implements HomeItem {
 
     private final String MODEL = ("<?xml version = \"1.0\"?> \n"
-			+ "<HomeItem Class=\"MessageReader\" Category=\"Ports\"  >"
+			+ "<HomeItem Class=\"MessageInteractor\" Category=\"Ports\"  >"
             + "  <Attribute Name=\"Subject\" Type=\"String\" Get=\"getSubject\" 	Set=\"setSubject\" />"
             + "  <Attribute Name=\"Reply\" Type=\"Text\" Get=\"getMessage\" 	Set=\"setMessage\" />"
             + "  <Attribute Name=\"TriggerText\" Type=\"String\" Get=\"getTriggerTexts\" 	Set=\"setTriggerTexts\" />"
