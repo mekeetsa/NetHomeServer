@@ -88,6 +88,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("XmppClient", nu.nethome.home.items.net.XmppClient.class),
             new HomeItemClassInfo("Message", nu.nethome.home.items.net.Message.class),
             new HomeItemClassInfo("MessageInteractor", nu.nethome.home.items.net.MessageInteractor.class),
+            new HomeItemClassInfo("LampMessageInteractor", nu.nethome.home.items.net.LampMessageInteractor.class),
             new HomeItemClassInfo("TCPListener", nu.nethome.home.items.net.TCPListener.class),
             new HomeItemClassInfo("TCPCommandPort", nu.nethome.home.items.net.TCPCommandPort.class),
             new HomeItemClassInfo("UDPCommandPort", nu.nethome.home.items.net.UDPCommandPort.class),
