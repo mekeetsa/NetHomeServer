@@ -7,6 +7,8 @@ import nu.nethome.home.system.HomeService;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -87,5 +89,16 @@ public class LampMessageInteractorTest {
 
         verifyNoMoreInteractions(lamp1);
         verifyNoMoreInteractions(lamp2);
+    }
+
+    @Test
+    public void ReplacesItemNameVariable() throws Exception {
+        itemProxy.setAttributeValue("Reply", "test #LAMP message");
+        itemProxy.setAttributeValue("Lamps", "1,2");
+        doReturn("turn off bedroom Lamp").when(receivedEvent).getAttribute(Message.BODY);
+
+        interactor.receiveEvent(receivedEvent);
+
+        assertThat(sentEvent.getAttribute(Message.BODY), is("test " + "Bedroom Lamp" + " message"));
     }
 }

@@ -28,7 +28,6 @@ import nu.nethome.util.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -76,7 +75,7 @@ public class MessageInteractor extends Message implements HomeItem {
         if (containsTriggerText(body)) {
             commandLineExecutor.executeCommandLine(command);
             if (!getMessage().isEmpty()) {
-                sentTo(from);
+                sentTo(from, this.message);
             }
             return true;
         } else {

@@ -19,18 +19,14 @@
 
 package nu.nethome.home.items.net;
 
-import nu.nethome.home.impl.CommandLineExecutor;
 import nu.nethome.home.item.ExecutionFailure;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemProxy;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
-import nu.nethome.home.system.HomeService;
 import nu.nethome.util.plugin.Plugin;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Logger;
 
 @SuppressWarnings("UnusedDeclaration")
@@ -92,7 +88,8 @@ public class LampMessageInteractor extends Message implements HomeItem {
                         item.callAction("off");
                     }
                     if (!getMessage().isEmpty()) {
-                        sentTo(from);
+                        String reply = this.message.replace("#LAMP", item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE));
+                        sentTo(from, reply);
                     }
                     return true;
                 } catch (ExecutionFailure executionFailure) {
@@ -116,22 +113,13 @@ public class LampMessageInteractor extends Message implements HomeItem {
 
     private MessageContent parseContent(String body) {
         for (String commandString : Arrays.asList(onString, offString)) {
-            String itemName = parseContentForCommand(body, commandString);
-            if (!itemName.isEmpty()) {
-                return new MessageContent(commandString, itemName);
+            String result;
+            if (body.contains(commandString)) {
+                return new MessageContent(commandString, body.replace(commandString, "").trim());
             }
         }
         return null;
     }
-
-    private String parseContentForCommand(String body, String commandString) {
-        if (body.contains(commandString)) {
-            return body.replace(commandString, "").trim();
-        } else {
-            return "";
-        }
-    }
-
 
     public String getCommand() {
         return command;

@@ -50,17 +50,17 @@ public class Message extends HomeItemAdapter implements HomeItem {
     private static Logger logger = Logger.getLogger(Message.class.getName());
     private String to;
     private String subject;
-    private String message;
+    protected String message;
 
     public String getModel() {
         return MODEL;
     }
 
     public void send() {
-        sentTo(to);
+        sentTo(to, this.message);
     }
 
-    protected void sentTo(String to) {
+    protected void sentTo(String to, String message) {
         Event messageEvent = server.createEvent(MESSAGE_TYPE, "");
         messageEvent.setAttribute(TO, to);
         messageEvent.setAttribute(SUBJECT, subject);
