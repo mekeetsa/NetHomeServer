@@ -36,34 +36,6 @@ import java.util.logging.Logger;
 @HomeItemType("Ports")
 public class ArpScanner extends HomeItemAdapter implements HomeItem {
 
-    class ResponseParser extends Thread {
-        private InputStream is;
-        public List<String> responseLines = new ArrayList<>();
-
-        ResponseParser(InputStream is) {
-            super("arp-scan parser");
-            this.is = is;
-        }
-
-        public void run() {
-            try {
-                InputStreamReader isr = new InputStreamReader(is);
-                BufferedReader br = new BufferedReader(isr);
-                String line = null;
-                while ((line = br.readLine()) != null) {
-                    responseLines.add(line);
-/*                    Scanner lineScanner = new Scanner(line);
-                    String value = lineScanner.findInLine("[0-9,a-f][0-9,a-f]:[0-9,a-f][0-9,a-f]:[0-9,a-f][0-9,a-f]:[0-9,a-f][0-9,a-f]:[0-9,a-f][0-9,a-f]:[0-9,a-f][0-9,a-f]");
-                    if ((value != null) && (value.length() != 0)) {
-
-                    }
-*/                }
-            } catch (IOException e) {
-                logger.warning("Failed to execute arp-scan command: " + e.getMessage());
-            }
-        }
-    }
-
     private final String m_Model = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"ArpScanner\"  Category=\"Ports\" >"
             + "  <Attribute Name=\"Temperature\" 	Type=\"String\" Get=\"getValue\" Default=\"true\"  Unit=\"°C\" />"
@@ -132,4 +104,32 @@ public class ArpScanner extends HomeItemAdapter implements HomeItem {
     public String getExecName() {
         return execName;
     }
+
+    static class ResponseParser extends Thread {
+        private InputStream is;
+        public List<String> responseLines = new ArrayList<>();
+
+        ResponseParser(InputStream is) {
+            super("arp-scan parser");
+            this.is = is;
+        }
+
+        public void run() {
+            try {
+                InputStreamReader isr = new InputStreamReader(is);
+                BufferedReader br = new BufferedReader(isr);
+                String line;
+                while ((line = br.readLine()) != null) {
+                    Scanner lineScanner = new Scanner(line);
+                    String value = lineScanner.findInLine("[0-9,a-f][0-9,a-f]:[0-9,a-f][0-9,a-f]:[0-9,a-f][0-9,a-f]:[0-9,a-f][0-9,a-f]:[0-9,a-f][0-9,a-f]:[0-9,a-f][0-9,a-f]");
+                    if ((value != null) && (value.length() != 0)) {
+                        responseLines.add(value);
+                    }
+                }
+            } catch (IOException e) {
+                logger.warning("Failed to execute arp-scan command: " + e.getMessage());
+            }
+        }
+    }
+
 }

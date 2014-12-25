@@ -1,6 +1,13 @@
 package nu.nethome.home.items.misc;
 
 import org.junit.Before;
+import org.junit.Test;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  *
@@ -39,5 +46,17 @@ public class ArpScannerTest {
     @Before
     public void setUp() throws Exception {
 
+    }
+
+    @Test
+    public void canParseMACFromOutput() throws Exception {
+        InputStream is = new ByteArrayInputStream(SCAN_RESPONSE1.getBytes());
+        ArpScanner.ResponseParser parser = new ArpScanner.ResponseParser(is);
+        parser.start();
+        parser.join();
+        assertThat(parser.responseLines.size(), is(8));
+        assertThat(parser.responseLines.get(0), is("e4:f4:c6:09:2c:26"));
+        assertThat(parser.responseLines.get(1), is("20:d5:bf:02:bd:ab"));
+        assertThat(parser.responseLines.get(7), is("80:ea:96:1f:03:b5"));
     }
 }
