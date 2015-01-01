@@ -1,10 +1,9 @@
-package nu.nethome.home.items.misc;
+package nu.nethome.home.items.net;
 
 import nu.nethome.home.impl.InternalEvent;
 import nu.nethome.home.impl.LocalHomeItemProxy;
 import nu.nethome.home.item.ExecutionFailure;
-import nu.nethome.home.items.net.Message;
-import nu.nethome.home.system.Event;
+import nu.nethome.home.items.net.ArpScanner;
 import nu.nethome.home.system.HomeService;
 import org.junit.After;
 import org.junit.Before;

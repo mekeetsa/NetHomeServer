@@ -3,7 +3,6 @@ package nu.nethome.home.items.net;
 import nu.nethome.home.impl.InternalEvent;
 import nu.nethome.home.impl.LocalHomeItemProxy;
 import nu.nethome.home.item.HomeItemProxy;
-import nu.nethome.home.items.misc.ArpScanner;
 import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
 import org.junit.Before;
@@ -12,7 +11,6 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.isNotNull;
 import static org.mockito.Mockito.*;
 
 

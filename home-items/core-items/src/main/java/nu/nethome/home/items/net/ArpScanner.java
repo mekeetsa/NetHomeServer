@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nu.nethome.home.items.misc;
+package nu.nethome.home.items.net;
 
 import nu.nethome.home.item.*;
 import nu.nethome.util.plugin.Plugin;
