@@ -47,7 +47,7 @@ public class ArpScanner extends HomeItemAdapter implements HomeItem {
             + "</HomeItem> ");
 
     private static Logger logger = Logger.getLogger(ArpScanner.class.getName());
-    private Timer scanTimer;
+    private volatile Timer scanTimer;
 
     private String execName = "/usr/bin/arp-scan -r 3 -b 2 -q --interface=eth0 --localnet";
     private String macCount = "";
@@ -142,7 +142,9 @@ public class ArpScanner extends HomeItemAdapter implements HomeItem {
     public void setScanInterval(String scanInterval) {
         stopTimer();
         this.scanInterval = Long.parseLong(scanInterval) * 1000;
-        startTimer();
+        if (isActivated()) {
+            startTimer();
+        }
     }
 
     static class ResponseParser extends Thread {

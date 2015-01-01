@@ -105,6 +105,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("ValueTrigger", nu.nethome.home.items.misc.ValueTrigger.class),
             new HomeItemClassInfo("Scene", nu.nethome.home.items.misc.Scene.class),
             new HomeItemClassInfo("ArpScanner", nu.nethome.home.items.misc.ArpScanner.class),
+            new HomeItemClassInfo("MacDevice", nu.nethome.home.items.net.MacDevice.class),
             new HomeItemClassInfo("LmSensorsThermometer", nu.nethome.home.items.misc.LmSensorsThermometer.class),
             new HomeItemClassInfo("LmSensorsFan", nu.nethome.home.items.misc.LmSensorsFan.class),
             new HomeItemClassInfo("SatelliteCommander", nu.nethome.home.items.satellite.SatelliteCommander.class),

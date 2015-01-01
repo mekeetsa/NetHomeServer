@@ -13,9 +13,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.isNotNull;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 
 public class MacDeviceTest {
@@ -32,7 +30,11 @@ public class MacDeviceTest {
     public void setUp() throws Exception {
         macDevice = new MacDevice();
         itemProxy = new LocalHomeItemProxy(macDevice);
-        itemProxy.setAttributeValue("Reply", "Reply message");
+        itemProxy.setAttributeValue("MacAddress", CORRECT_MAC);
+        itemProxy.setAttributeValue("ActionWhilePresent", "call,foo,present");
+        itemProxy.setAttributeValue("ActionWhileAbsent", "call,foo,absent");
+        itemProxy.setAttributeValue("ActionOnPresent", "call,foo,onPresent");
+        itemProxy.setAttributeValue("ActionOnAbsent", "call,foo,onAbsent");
         sentEvent = new InternalEvent("Foo");
         server = mock(HomeService.class);
         doReturn(sentEvent).when(server).createEvent(anyString(), anyString());
@@ -52,21 +54,57 @@ public class MacDeviceTest {
 
     @Test
     public void performsActionWhileNotPresentWhenEmpty() throws Exception {
-        itemProxy.setAttributeValue("ActionWhileAbsent", "call,foo,fie");
         doReturn("").when(receivedEvent).getAttribute(Event.EVENT_VALUE_ATTRIBUTE);
 
         macDevice.receiveEvent(receivedEvent);
 
-        verify(fooItem).callAction("fie");
+        verify(fooItem).callAction("absent");
     }
 
     @Test
     public void performsActionWhileNotPresentWhenWrongMacs() throws Exception {
-        itemProxy.setAttributeValue("ActionWhileAbsent", "call,foo,fie");
         doReturn(WRONG_MAC).when(receivedEvent).getAttribute(Event.EVENT_VALUE_ATTRIBUTE);
 
         macDevice.receiveEvent(receivedEvent);
 
-        verify(fooItem).callAction("fie");
+        verify(fooItem, times(1)).callAction("absent");
+        verify(fooItem, times(0)).callAction("present");
     }
+
+    @Test
+    public void performsActionWhilePresentWhenRightMac() throws Exception {
+        doReturn(CORRECT_MAC).when(receivedEvent).getAttribute(Event.EVENT_VALUE_ATTRIBUTE);
+
+        macDevice.receiveEvent(receivedEvent);
+
+        verify(fooItem, times(1)).callAction("present");
+        verify(fooItem, times(0)).callAction("absent");
+    }
+
+    @Test
+    public void showsPresentState() throws Exception {
+        assertThat(itemProxy.getAttributeValue("State"), is(""));
+
+        doReturn(CORRECT_MAC).when(receivedEvent).getAttribute(Event.EVENT_VALUE_ATTRIBUTE);
+        macDevice.receiveEvent(receivedEvent);
+        assertThat(itemProxy.getAttributeValue("State"), is("Present"));
+
+        doReturn(WRONG_MAC).when(receivedEvent).getAttribute(Event.EVENT_VALUE_ATTRIBUTE);
+        macDevice.receiveEvent(receivedEvent);
+        assertThat(itemProxy.getAttributeValue("State"), is("Absent"));
+    }
+
+    @Test
+    public void callsOnAbsent() throws Exception {
+        doReturn(CORRECT_MAC).when(receivedEvent).getAttribute(Event.EVENT_VALUE_ATTRIBUTE);
+        macDevice.receiveEvent(receivedEvent);
+        verify(fooItem, times(0)).callAction("onPresent");
+        verify(fooItem, times(0)).callAction("onAbsent");
+
+        doReturn(WRONG_MAC).when(receivedEvent).getAttribute(Event.EVENT_VALUE_ATTRIBUTE);
+        macDevice.receiveEvent(receivedEvent);
+        verify(fooItem, times(1)).callAction("onAbsent");
+        verify(fooItem, times(0)).callAction("onPresent");
+    }
+
 }
