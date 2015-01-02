@@ -40,7 +40,6 @@ public class MacDevice extends HomeItemAdapter implements HomeItem {
             + "<HomeItem Class=\"MacDevice\" Category=\"Ports\"  >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"MacAddress\" Type=\"String\" Get=\"getMacAddress\" 	Set=\"setMacAddress\" />"
-            + "  <Attribute Name=\"Command\" Type=\"Command\" Get=\"getCommand\" 	Set=\"setCommand\" />"
             + "  <Attribute Name=\"ActionOnAbsent\" Type=\"Command\" Get=\"getActionOnAbsent\" 	Set=\"setActionOnAbsent\" />"
             + "  <Attribute Name=\"ActionOnPresent\" Type=\"Command\" Get=\"getActionOnPresent\" 	Set=\"setActionOnPresent\" />"
             + "  <Attribute Name=\"ActionWhileAbsent\" Type=\"Command\" Get=\"getActionWhileAbsent\" 	Set=\"setActionWhileAbsent\" />"
@@ -48,13 +47,11 @@ public class MacDevice extends HomeItemAdapter implements HomeItem {
             + "</HomeItem> ");
 
     private static Logger logger = Logger.getLogger(MacDevice.class.getName());
-    private String command = "";
     private String macAddress = "";
     private String actionOnAbsent = "";
     private String actionOnPresent = "";
     private String actionWhileAbsent = "";
     private String actionWhilePresent = "";
-    private List<String> triggerTexts = new ArrayList<>();
     private CommandLineExecutor commandLineExecutor;
     private Boolean isPresent = null;
 
@@ -105,15 +102,6 @@ public class MacDevice extends HomeItemAdapter implements HomeItem {
 
     private boolean isMacMessage(Event event) {
         return event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(ArpScanner.ARP_SCAN_MESSAGE);
-    }
-
-
-    public String getCommand() {
-        return command;
-    }
-
-    public void setCommand(String command) {
-        this.command = command;
     }
 
     public String getMacAddress() {
