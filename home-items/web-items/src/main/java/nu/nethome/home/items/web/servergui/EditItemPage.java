@@ -63,14 +63,16 @@ public class EditItemPage extends PortletPage {
     protected Map<String, AttributeTypePrinterInterface> attributeHandlers = new HashMap<>();
     private SelectClassPage selectClassPage;
     private CreationEventCache creationEventCache;
+    private boolean allowEdit = true;
 
-    public EditItemPage(String mLocalURL, HomeService server, String mediaDirectory, CreationEventCache creationEvents) {
+    public EditItemPage(String mLocalURL, HomeService server, String mediaDirectory, CreationEventCache creationEvents, boolean allowEdit) {
         super(mLocalURL);
         this.server = server;
         this.creationEventCache = creationEvents;
         bridgeBrokerId = findServerInstanceId();
         initiateAttributePlugins(mediaDirectory);
         selectClassPage = new SelectClassPage(mLocalURL, server, mediaDirectory, creationEvents);
+        this.allowEdit = allowEdit;
     }
 
     private void initiateAttributePlugins(String mediaDirectory) {
@@ -207,7 +209,9 @@ public class EditItemPage extends PortletPage {
         p.println("</div>");
 
         // Print the Delete and Rename buttons
-        printDeleteRenameSection(p, name);
+        if (allowEdit) {
+            printDeleteRenameSection(p, name);
+        }
 
         // Print page end
         printColumnEnd(p);
@@ -683,18 +687,20 @@ public class EditItemPage extends PortletPage {
                 p.println("</td></tr>");
             }
         }
-        // Print Attribute Footer
         p.println("</table>");
         p.println("<br>");
+        // Print Attribute Footer
         p.println("<div class=\"footer\">");
         p.print("<input class=\"ibutton\" type=\"submit\" name=\"save_type\" value=\""
                 + CANCEL_BUTTON_TEXT + "\"> ");
-        if (returnPage != null) {
+        if (allowEdit) {
+            if (returnPage != null) {
+                p.println("<input class=\"ibutton\" type=\"submit\" name=\"save_type\" value=\""
+                        + SAVE_BUTTON_TEXT + "\"> ");
+            }
             p.println("<input class=\"ibutton\" type=\"submit\" name=\"save_type\" value=\""
-                    + SAVE_BUTTON_TEXT + "\"> ");
+                    + APPLY_BUTTON_TEXT + "\"> ");
         }
-        p.println("<input class=\"ibutton\" type=\"submit\" name=\"save_type\" value=\""
-                + APPLY_BUTTON_TEXT + "\"> ");
         p.println("</div>");
         p.println("</form>");
     }
