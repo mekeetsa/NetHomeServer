@@ -40,9 +40,9 @@ public class MacDeviceGroup extends HomeItemAdapter implements HomeItem {
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"MacAddresses\" Type=\"String\" Get=\"getMacAddresses\" 	Set=\"setMacAddresses\" />"
             + "  <Attribute Name=\"ActionOnAllAbsent\" Type=\"Command\" Get=\"getActionOnAllAbsent\" 	Set=\"setActionOnAllAbsent\" />"
-            + "  <Attribute Name=\"ActionOnSomePresent\" Type=\"Command\" Get=\"getActionOnSomePresent\" 	Set=\"setActionOnSomePresent\" />"
+            + "  <Attribute Name=\"ActionOnPresent\" Type=\"Command\" Get=\"getActionOnSomePresent\" 	Set=\"setActionOnSomePresent\" />"
             + "  <Attribute Name=\"ActionWhileAllAbsent\" Type=\"Command\" Get=\"getActionWhileAllAbsent\" 	Set=\"setActionWhileAllAbsent\" />"
-            + "  <Attribute Name=\"ActionWhileSomePresent\" Type=\"Command\" Get=\"getActionWhileSomePresent\" 	Set=\"setActionWhileSomePresent\" />"
+            + "  <Attribute Name=\"ActionWhilePresent\" Type=\"Command\" Get=\"getActionWhileSomePresent\" 	Set=\"setActionWhileSomePresent\" />"
             + "</HomeItem> ");
 
     private static Logger logger = Logger.getLogger(MacDeviceGroup.class.getName());

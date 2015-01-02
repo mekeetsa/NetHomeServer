@@ -33,9 +33,9 @@ public class MacDeviceGroupTest {
         macDeviceGroup = new MacDeviceGroup();
         itemProxy = new LocalHomeItemProxy(macDeviceGroup);
         itemProxy.setAttributeValue("MacAddresses", ALL_MACS);
-        itemProxy.setAttributeValue("ActionWhileSomePresent", "call,foo,present");
+        itemProxy.setAttributeValue("ActionWhilePresent", "call,foo,present");
         itemProxy.setAttributeValue("ActionWhileAllAbsent", "call,foo,absent");
-        itemProxy.setAttributeValue("ActionOnSomePresent", "call,foo,onPresent");
+        itemProxy.setAttributeValue("ActionOnPresent", "call,foo,onPresent");
         itemProxy.setAttributeValue("ActionOnAllAbsent", "call,foo,onAbsent");
         sentEvent = new InternalEvent("Foo");
         server = mock(HomeService.class);
