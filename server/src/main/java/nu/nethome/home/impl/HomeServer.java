@@ -55,9 +55,9 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
                 + "  <Attribute Name=\"UpgradeCommand\" Type=\"String\" Get=\"getUpgradeCommand\" Set=\"setUpgradeCommand\" />"
                 + "  <Attribute Name=\"LogFile\" Type=\"String\" Get=\"getLogFile\" 	Set=\"setLogFile\" />"
                 + "  <Attribute Name=\"UpTime\" Type=\"String\" Get=\"getUpTime\" />"
-                + "  <Attribute Name=\"MaxDistributionTime\" Type=\"String\" Get=\"getMaxDistributionTime\" />"
-                + "  <Attribute Name=\"AverageDistributionTime\" Type=\"String\" Get=\"getAverageDistributionTime\" />"
-                + "  <Attribute Name=\"MaxItemTime\" Type=\"String\" Get=\"getMaxItemTime\" />"
+                + "  <Attribute Name=\"MaxDistributionTime\" Type=\"String\" Get=\"getMaxDistributionTime\" Unit=\"ms\" />"
+                + "  <Attribute Name=\"AverageDistributionTime\" Type=\"String\" Get=\"getAverageDistributionTime\"  Unit=\"ms\" />"
+                + "  <Attribute Name=\"MaxItemTime\" Type=\"String\" Get=\"getMaxItemTime\"  Unit=\"ms\" />"
                 + "  <Attribute Name=\"MaxItemName\" Type=\"String\" Get=\"getMaxItemName\" />"
                 + "  <Attribute Name=\"AlarmCount\" Type=\"String\" Get=\"getCurrentAlarmCountString\" />"
                 + "  <Attribute Name=\"TotalLogRows\" Type=\"String\" Get=\"getTotalLogRecordCountString\" />"
@@ -66,6 +66,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
                 + "  <Action Name=\"StopServer\" Method=\"stopServer\" />"
                 + "  <Action Name=\"UpgradeServer\" Method=\"upgradeServer\" />"
                 + "  <Action Name=\"ResetStatistics\" Method=\"resetStatistics\" />"
+                + "  <Action Name=\"ClearLog\" Method=\"clearLog\" />"
                 + "</HomeItem> ");
     }
 
@@ -161,6 +162,12 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
     private boolean isLogRecordInBlacklist(LogRecord record) {
         return record.getMessage().startsWith("Prefs file removed in background") ||
             record.getMessage().startsWith("Could not open/create prefs root node");
+    }
+
+    public String clearLog() {
+        logRecords.clear();
+        currentWarningCount = 0;
+        return "";
     }
 
     public void run(HomeItemFactory factory, HomeItemLoader loader, PluginProvider pluginProvider) {
