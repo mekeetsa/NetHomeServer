@@ -145,11 +145,20 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         pages.add(new PlanPage(localURL, getDefaultPlanAccessor()));
         pages.add(new RoomsPage(localURL, getDefaultLocationAccessor()));
         pages.add(new ServerFloor(localURL));
-        pages.add(new EditItemPage(localURL, homeServer, mediaDirectory, creationEvents, allowEdit));
-        pages.add(new SettingsBasePage(localURL, homeServer));
+        pages.add(new EditItemPage(localURL, homeServer, mediaDirectory, creationEvents, getEditPermission()));
+        pages.add(new SettingsBasePage(localURL, homeServer, getEditPermission()));
         pages.add(new GraphPage(localURL, homeServer));
         homeServer.registerFinalEventListener(this);
         creationEvents.addItemInfo(hserver.listClasses());
+    }
+
+    private EditPermission getEditPermission() {
+        return new EditPermission() {
+            @Override
+            public boolean isEditPermitted() {
+                return allowEdit;
+            }
+        };
     }
 
     private DefaultPageIdentity getDefaultLocationAccessor() {

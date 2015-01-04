@@ -63,16 +63,16 @@ public class EditItemPage extends PortletPage {
     protected Map<String, AttributeTypePrinterInterface> attributeHandlers = new HashMap<>();
     private SelectClassPage selectClassPage;
     private CreationEventCache creationEventCache;
-    private boolean allowEdit = true;
+    private EditPermission editPermission;
 
-    public EditItemPage(String mLocalURL, HomeService server, String mediaDirectory, CreationEventCache creationEvents, boolean allowEdit) {
+    public EditItemPage(String mLocalURL, HomeService server, String mediaDirectory, CreationEventCache creationEvents, EditPermission allowEdit) {
         super(mLocalURL);
         this.server = server;
         this.creationEventCache = creationEvents;
         bridgeBrokerId = findServerInstanceId();
         initiateAttributePlugins(mediaDirectory);
         selectClassPage = new SelectClassPage(mLocalURL, server, mediaDirectory, creationEvents);
-        this.allowEdit = allowEdit;
+        this.editPermission = allowEdit;
     }
 
     private void initiateAttributePlugins(String mediaDirectory) {
@@ -209,7 +209,7 @@ public class EditItemPage extends PortletPage {
         p.println("</div>");
 
         // Print the Delete and Rename buttons
-        if (allowEdit) {
+        if (editPermission.isEditPermitted()) {
             printDeleteRenameSection(p, name);
         }
 
@@ -693,7 +693,7 @@ public class EditItemPage extends PortletPage {
         p.println("<div class=\"footer\">");
         p.print("<input class=\"ibutton\" type=\"submit\" name=\"save_type\" value=\""
                 + CANCEL_BUTTON_TEXT + "\"> ");
-        if (allowEdit) {
+        if (editPermission.isEditPermitted()) {
             if (returnPage != null) {
                 p.println("<input class=\"ibutton\" type=\"submit\" name=\"save_type\" value=\""
                         + SAVE_BUTTON_TEXT + "\"> ");
