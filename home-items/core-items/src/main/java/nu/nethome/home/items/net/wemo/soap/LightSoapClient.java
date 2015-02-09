@@ -31,7 +31,6 @@ public class LightSoapClient {
     }
 
     private SOAPMessage sendRequest(String url, SOAPMessage request) throws SOAPException, IOException {
-        // Create SOAP Connection
         SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
         SOAPConnection soapConnection = soapConnectionFactory.createConnection();
 
