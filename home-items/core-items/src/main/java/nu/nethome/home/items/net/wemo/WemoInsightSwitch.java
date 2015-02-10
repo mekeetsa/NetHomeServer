@@ -32,11 +32,10 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
             + "</HomeItem> ");
 
     private static Logger logger = Logger.getLogger(WemoInsightSwitch.class.getName());
-    private WemoInsightSwitchClient insightSwitch = new WemoInsightSwitchClient("");
+    private WemoInsightSwitchClient insightSwitch = new WemoInsightSwitchClient("http://192.168.1.16:49153");
 
     // Public attributes
     private boolean state = false;
-    private String deviceURL = "http://192.168.1.16:49153";
 
     public String getModel() {
         return MODEL;
@@ -50,32 +49,30 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
     }
 
     public String getDeviceURL() {
-        return deviceURL;
+        return insightSwitch.getWemoURL();
     }
 
-    public void setDeviceURL(String button) {
-        deviceURL = button;
-        insightSwitch = new WemoInsightSwitchClient(deviceURL);
+    public void setDeviceURL(String url) {
+        insightSwitch.setWemoURL(url);
     }
 
     public void on() {
         logger.fine("Switching on " + name);
-        try {
-            insightSwitch.on();
-        } catch (WemoInsightSwitchClient.WemoException e) {
-            logger.warning("Failed to contact Wemo device: " + e.getMessage());
-        }
-        state = true;
+        setOnState(true);
     }
 
     public void off() {
         logger.fine("Switching off " + name);
+        setOnState(false);
+    }
+
+    private void setOnState(boolean isOn) {
         try {
-            insightSwitch.off();
+            insightSwitch.setOnState(isOn);
         } catch (WemoInsightSwitchClient.WemoException e) {
             logger.warning("Failed to contact Wemo device: " + e.getMessage());
         }
-        state = false;
+        state = isOn;
     }
 
     public void toggle() {
