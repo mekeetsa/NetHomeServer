@@ -32,6 +32,15 @@ public class UPnPScanner extends HomeItemAdapter implements HomeItem {
     }
 
     @Override
+    public boolean receiveEvent(Event event) {
+        if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals("ReportItems")) {
+            scan();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public void activate() {
         if (controlPoint.start()) {
             controlPoint.addDeviceChangeListener(new DeviceChangeListener() {
@@ -60,6 +69,8 @@ public class UPnPScanner extends HomeItemAdapter implements HomeItem {
         String eventType = "UPnP_" + device.getDeviceType() + "_Message";
         Event deviceEvent = server.createEvent(eventType, "");
         deviceEvent.setAttribute("Location", device.getLocation());
+        deviceEvent.setAttribute("SerialNumber", device.getSerialNumber());
+        deviceEvent.setAttribute("Direction", "In");
         server.send(deviceEvent);
     }
 
@@ -68,6 +79,9 @@ public class UPnPScanner extends HomeItemAdapter implements HomeItem {
     }
 
     public String scan() {
+        for (int i = 0; i < controlPoint.getDeviceList().size(); i++) {
+            reportDevice(controlPoint.getDeviceList().getDevice(i));
+        }
         controlPoint.search();
         return "";
     }

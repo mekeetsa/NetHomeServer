@@ -19,13 +19,14 @@ import java.util.logging.Logger;
  * @author Stefan
  */
 @Plugin
-@HomeItemType(value = "Lamps", creationEvents = "WemoInsightSwitch_Message")
+@HomeItemType(value = "Lamps", creationEvents = "UPnP_urn:Belkin:device:insight:1_Message")
 public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"WemoInsightSwitch\" Category=\"Lamps\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"DeviceURL\" Type=\"String\" Get=\"getDeviceURL\" 	Set=\"setDeviceURL\" />"
+            + "  <Attribute Name=\"SerialNumber\" Type=\"String\" Get=\"getSerialNumber\" 	Set=\"setSerialNumber\" />"
             + "  <Action Name=\"on\" 	Method=\"on\" />"
             + "  <Action Name=\"off\" 	Method=\"off\" />"
             + "  <Action Name=\"toggle\" 	Method=\"toggle\" Default=\"true\" />"
@@ -36,9 +37,29 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
 
     // Public attributes
     private boolean state = false;
+    private String serialNumber = "";
 
     public String getModel() {
         return MODEL;
+    }
+
+    public boolean receiveEvent(Event event) {
+        return handleInit(event);
+    }
+
+    @Override
+    protected boolean initAttributes(Event event) {
+        insightSwitch.setWemoURL(extractBaseUrl(event.getAttribute("Location")));
+        serialNumber = event.getAttribute("SerialNumber");
+        return true;
+    }
+
+    private String extractBaseUrl(String url) {
+        int pos = url.indexOf("/", 9);
+        if (pos > 0) {
+            return url.substring(0, pos);
+        }
+        return url;
     }
 
     public String getState() {
@@ -83,5 +104,13 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
         } else {
             off();
         }
+    }
+
+    public String getSerialNumber() {
+        return serialNumber;
+    }
+
+    public void setSerialNumber(String serialNumber) {
+        this.serialNumber = serialNumber;
     }
 }
