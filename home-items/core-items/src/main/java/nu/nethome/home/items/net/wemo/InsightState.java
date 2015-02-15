@@ -4,16 +4,16 @@ package nu.nethome.home.items.net.wemo;
  *
  */
 public class InsightState {
-    int state;          // 0 off, 1 on, 8 on without load
-    long lastChange;
-    long onForSeconds;
-    long onTodaySeconds;
-    long onTotalSeconds;
-    long timePeriod;    // Period over which averages are calculated
-    long currentMW;
-    long todayMW;
-    double totalMW;
-    long powerThresholdMW;
+    private int state;          // 0 off, 1 on, 8 on without load
+    private long lastChange;
+    private long onForSeconds;
+    private long onTodaySeconds;
+    private long onTotalSeconds;
+    private long timePeriod;    // Period over which averages are calculated
+    private long currentMW;
+    private long todayMW;
+    private double totalMW;
+    private long powerThresholdMW;
 
     public InsightState(String rawStateRepresentation) throws WemoException {
         String states[] = rawStateRepresentation.split("\\|");
@@ -33,8 +33,15 @@ public class InsightState {
         powerThresholdMW = Long.parseLong(states[10]);
     }
 
-    public int getState() {
-        return state;
+    public State getState() {
+        switch (state) {
+            case 1:
+            return State.On;
+            case 8:
+            return State.Idle;
+            default:
+                return State.Off;
+        }
     }
 
     public long getLastChange() {
@@ -57,8 +64,11 @@ public class InsightState {
         return timePeriod;
     }
 
-    public long getCurrentMW() {
-        return currentMW;
+    /**
+     * @return Current power consumption in Watt
+     */
+    public double getCurrentConsumption() {
+        return currentMW / 1000.0D;
     }
 
     public long getTodayMW() {
@@ -71,5 +81,9 @@ public class InsightState {
 
     public long getPowerThresholdMW() {
         return powerThresholdMW;
+    }
+
+    public enum State {
+        Off, Idle, On
     }
 }

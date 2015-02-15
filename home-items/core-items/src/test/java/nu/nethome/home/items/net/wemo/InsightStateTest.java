@@ -18,6 +18,20 @@ public class InsightStateTest {
     @Test
     public void canDecodeState() throws Exception, WemoException {
         InsightState insightState = new InsightState("8|1423995823|0|0|0|1185615|0|0|0|0.000000|8000");
-        assertThat(insightState.getState(), is(8));
+        assertThat(insightState.getState(), is(InsightState.State.Idle));
+
+        insightState = new InsightState("1|1424028730|713|784|762|1209600|105|105745|1322278|1322278.000000|8000");
+        assertThat(insightState.getState(), is(InsightState.State.On));
+
+        insightState = new InsightState("0|1424028730|713|784|762|1209600|105|105745|1322278|1322278.000000|8000");
+        assertThat(insightState.getState(), is(InsightState.State.Off));
     }
+
+    @Test
+    public void canDecodeCurrentPower() throws Exception, WemoException {
+        InsightState insightState = new InsightState("1|1424028730|713|784|762|1209600|105|105745|1322278|1322278.000000|8000");
+        assertThat(insightState.getCurrentConsumption(), is(105.745));
+    }
+
+
 }

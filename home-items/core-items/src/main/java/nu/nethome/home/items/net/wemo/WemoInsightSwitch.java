@@ -10,8 +10,6 @@ import java.util.logging.Logger;
 
 /**
  * Represents a Belkin wemo insight switch
- * <p/>
- * <br>
  *
  * @author Stefan
  */
@@ -24,6 +22,7 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"DeviceURL\" Type=\"String\" Get=\"getDeviceURL\" 	Set=\"setDeviceURL\" />"
             + "  <Attribute Name=\"SerialNumber\" Type=\"String\" Get=\"getSerialNumber\" 	Set=\"setSerialNumber\" />"
+            + "  <Attribute Name=\"CurrentConsumption\" Type=\"String\" Get=\"getCurrentPowerConsumption\" 	Unit=\"W\" />"
             + "  <Action Name=\"on\" 	Method=\"on\" />"
             + "  <Action Name=\"off\" 	Method=\"off\" />"
             + "  <Action Name=\"toggle\" 	Method=\"toggle\" Default=\"true\" />"
@@ -31,9 +30,10 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
 
     private static Logger logger = Logger.getLogger(WemoInsightSwitch.class.getName());
     private WemoInsightSwitchClient insightSwitch = new WemoInsightSwitchClient("http://192.168.1.16:49153");
+    private InsightState currentState;
+    private String wemoDescriptionUrl = "";
 
     // Public attributes
-    private boolean state = false;
     private String serialNumber = "";
 
     public String getModel() {
@@ -47,6 +47,7 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
     @Override
     protected boolean initAttributes(Event event) {
         insightSwitch.setWemoURL(extractBaseUrl(event.getAttribute("Location")));
+        wemoDescriptionUrl = wemoDescriptionUrl;
         serialNumber = event.getAttribute("SerialNumber");
         return true;
     }
@@ -60,18 +61,24 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
     }
 
     public String getState() {
-        if (state) {
-            return "On";
+        updateCurrentState();
+        if (currentState == null) {
+            return "";
+        } else if (currentState.getState() == InsightState.State.On) {
+            return "On " + getCurrentPowerConsumption();
+        } else if (currentState.getState() == InsightState.State.Idle) {
+            return "Idle";
         }
         return "Off";
     }
 
     public String getDeviceURL() {
-        return insightSwitch.getWemoURL();
+        return wemoDescriptionUrl;
     }
 
     public void setDeviceURL(String url) {
-        insightSwitch.setWemoURL(url);
+        wemoDescriptionUrl = url;
+        insightSwitch.setWemoURL(extractBaseUrl(url));
     }
 
     public void on() {
@@ -90,13 +97,15 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
         } catch (WemoException e) {
             logger.warning("Failed to contact Wemo device: " + e.getMessage());
         }
-        state = isOn;
     }
 
     public void toggle() {
         logger.fine("Toggling " + name);
-        state = !state;
-        if (state) {
+        updateCurrentState();
+        if (currentState == null) {
+            return;
+        }
+        if (currentState.getState() == InsightState.State.Off) {
             on();
         } else {
             off();
@@ -109,5 +118,18 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
 
     public void setSerialNumber(String serialNumber) {
         this.serialNumber = serialNumber;
+    }
+
+    public String getCurrentPowerConsumption() {
+        updateCurrentState();
+        return currentState != null ? String.format("%.1f", currentState.getCurrentConsumption()) : "";
+    }
+
+    private void updateCurrentState() {
+        try {
+            currentState = insightSwitch.getInsightParameters();
+        } catch (WemoException e) {
+            currentState = null;
+        }
     }
 }
