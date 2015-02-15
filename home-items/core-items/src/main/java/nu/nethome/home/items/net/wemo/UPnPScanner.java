@@ -3,7 +3,6 @@ package nu.nethome.home.items.net.wemo;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
-import nu.nethome.home.items.net.wemo.soap.WemoInsightSwitchClient;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
 import org.cybergarage.upnp.ControlPoint;

@@ -3,16 +3,13 @@ package nu.nethome.home.items.net.wemo;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
-import nu.nethome.home.items.net.wemo.soap.WemoInsightSwitchClient;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
 
 import java.util.logging.Logger;
 
 /**
- * Represents a switch (typically connected to a lamp) which is controlled by
- * the Zhejiang RF protocol. The ZhejiangLamp requires a port which can send Zhejiang
- * protocol messages as RF signals. This is typically done with the AudioProtocolTransmitter
+ * Represents a Belkin wemo insight switch
  * <p/>
  * <br>
  *
@@ -90,7 +87,7 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
     private void setOnState(boolean isOn) {
         try {
             insightSwitch.setOnState(isOn);
-        } catch (WemoInsightSwitchClient.WemoException e) {
+        } catch (WemoException e) {
             logger.warning("Failed to contact Wemo device: " + e.getMessage());
         }
         state = isOn;

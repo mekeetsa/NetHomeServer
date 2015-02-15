@@ -1,10 +1,15 @@
 package nu.nethome.home.items.net.wemo.soap;
 
+import org.w3c.dom.*;
+import org.w3c.dom.Node;
+
 import javax.xml.soap.*;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -31,11 +36,27 @@ public class LightSoapClient {
         headers.addHeader("SOAPACTION", "\"" + nameSpace + "#" + method + "\"");
         headers.addHeader("Content-Type", "text/xml; charset=\"utf-8\"");
         soapMessage.saveChanges();
-        SOAPMessage result = sendRequest(serverURI, soapMessage);
-        return null;
+        SOAPMessage response = sendRequest(serverURI, soapMessage);
+        Map<String, String> result = new HashMap<>();
+        SOAPBody soapBody1 = response.getSOAPBody();
+        Iterator childElements = soapBody1.getChildElements();
+        while (childElements.hasNext()) {
+            Object element = childElements.next();
+            if (element instanceof SOAPElement) {
+                SOAPElement methodResponseElement = (SOAPElement) element;
+                for (int i = 0; i < methodResponseElement.getChildNodes().getLength(); i++) {
+                    Node parameterNode = methodResponseElement.getChildNodes().item(i);
+                    if (parameterNode.getNodeType() == Node.ELEMENT_NODE && parameterNode.getChildNodes().getLength() == 1) {
+                        result.put(parameterNode.getLocalName(), parameterNode.getChildNodes().item(0).getTextContent());
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     private SOAPMessage sendRequest(String url, SOAPMessage request) throws SOAPException, IOException {
+        request.writeTo(System.out);
         SOAPConnection soapConnection = SOAPConnectionFactory.newInstance().createConnection();
         URL endpoint = new URL(new URL(url), "", new URLStreamHandler() {
             @Override
