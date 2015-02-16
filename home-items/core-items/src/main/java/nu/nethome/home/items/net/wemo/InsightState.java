@@ -12,7 +12,7 @@ public class InsightState {
     private long timePeriod;    // Period over which averages are calculated
     private long currentMW;
     private long todayMW;
-    private double totalMW;
+    private double total_mW;
     private long powerThresholdMW;
 
     public InsightState(String rawStateRepresentation) throws WemoException {
@@ -29,7 +29,7 @@ public class InsightState {
         String unknown = states[6];
         currentMW = Long.parseLong(states[7]);
         todayMW = Long.parseLong(states[8]);
-        totalMW = Double.parseDouble(states[9]);
+        total_mW = Double.parseDouble(states[9]);
         powerThresholdMW = Long.parseLong(states[10]);
     }
 
@@ -56,7 +56,10 @@ public class InsightState {
         return onTodaySeconds;
     }
 
-    public long getOnTotalSeconds() {
+    /**
+     * @return Total on time in seconds
+     */
+    public long getTotalOnTime() {
         return onTotalSeconds;
     }
 
@@ -75,8 +78,11 @@ public class InsightState {
         return todayMW;
     }
 
-    public double getTotalMW() {
-        return totalMW;
+    /**
+     * @return Total power consumption in Kilo Watt Hours
+     */
+    public double getTotalConsumption() {
+        return total_mW / 60_000_000.0D;
     }
 
     public long getPowerThresholdMW() {

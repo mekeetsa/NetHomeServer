@@ -12,6 +12,14 @@ import java.util.logging.Logger;
  * Represents a Belkin wemo insight switch
  *
  * @author Stefan
+ * Todo: Creation Event Class
+ * Todo: Cache state
+ * Todo: lastChange
+ * Todo: onForSeconds
+ * Todo: onTodaySeconds
+ * Todo: timePeriod
+ * Todo: todayMW
+ * Todo: powerThresholdMW
  */
 @Plugin
 @HomeItemType(value = "Lamps", creationEvents = "UPnP_urn:Belkin:device:insight:1_Message")
@@ -21,8 +29,10 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
             + "<HomeItem Class=\"WemoInsightSwitch\" Category=\"Lamps\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"DeviceURL\" Type=\"String\" Get=\"getDeviceURL\" 	Set=\"setDeviceURL\" />"
-            + "  <Attribute Name=\"SerialNumber\" Type=\"String\" Get=\"getSerialNumber\" 	Set=\"setSerialNumber\" />"
+            + "  <Attribute Name=\"SerialNumber\" Type=\"String\" Get=\"getSerialNumber\" 	Init=\"setSerialNumber\" />"
             + "  <Attribute Name=\"CurrentConsumption\" Type=\"String\" Get=\"getCurrentPowerConsumption\" 	Unit=\"W\" />"
+            + "  <Attribute Name=\"TotalOnTime\" Type=\"Duration\" Get=\"getTotalOnTime\" />"
+            + "  <Attribute Name=\"TotalConsumption\" Type=\"String\" Get=\"getTotalPowerConsumption\" 	Unit=\"kWh\" />"
             + "  <Action Name=\"on\" 	Method=\"on\" />"
             + "  <Action Name=\"off\" 	Method=\"off\" />"
             + "  <Action Name=\"toggle\" 	Method=\"toggle\" Default=\"true\" />"
@@ -123,6 +133,16 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
     public String getCurrentPowerConsumption() {
         updateCurrentState();
         return currentState != null ? String.format("%.1f", currentState.getCurrentConsumption()) : "";
+    }
+
+    public String getTotalPowerConsumption() {
+        updateCurrentState();
+        return currentState != null ? String.format("%.3f", currentState.getTotalConsumption()) : "";
+    }
+
+    public String getTotalOnTime() {
+        updateCurrentState();
+        return currentState != null ? String.format("%d", currentState.getTotalOnTime()) : "";
     }
 
     private void updateCurrentState() {

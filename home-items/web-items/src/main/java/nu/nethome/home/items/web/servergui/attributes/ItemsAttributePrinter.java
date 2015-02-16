@@ -41,7 +41,7 @@ public class ItemsAttributePrinter extends ItemAttributePrinter {
     }
 
     @Override
-    protected String attributeToPrintValue(String value) {
+    public String attributeToPrintValue(String value) {
         String[] references = value.split(",");
         StringBuilder result = new StringBuilder();
         boolean addComma = false;

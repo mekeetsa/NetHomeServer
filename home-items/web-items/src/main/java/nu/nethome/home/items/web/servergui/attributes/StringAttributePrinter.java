@@ -55,7 +55,7 @@ public class StringAttributePrinter implements AttributeTypePrinterInterface {
      * @param value the raw attribute value
      * @return the attribute value in a form adopted for html printing
      */
-    protected String attributeToPrintValue(String value) {
+    public String attributeToPrintValue(String value) {
         return HTMLEncode.encode(value);
     }
 

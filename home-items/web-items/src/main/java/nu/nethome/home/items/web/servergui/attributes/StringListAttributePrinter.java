@@ -37,6 +37,11 @@ public class StringListAttributePrinter implements
         return HomeItemModel.STRING_LIST_TYPE;
     }
 
+    @Override
+    public String attributeToPrintValue(String value) {
+        return value;
+    }
+
     public boolean printAttributeValue(PrintWriter p, Attribute attribute,
                                        int attributeNumber) {
         // Create an identity for the parameter

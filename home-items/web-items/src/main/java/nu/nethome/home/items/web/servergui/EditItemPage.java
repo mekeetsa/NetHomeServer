@@ -87,6 +87,7 @@ public class EditItemPage extends PortletPage {
         addAttributePlugin(new ItemsAttributePrinter(this.server));
         addAttributePlugin(new StringsAttributePrinter(this.server));
         addAttributePlugin(new MediaFileAttributePrinter(mediaDirectory));
+        addAttributePlugin(new DurationAttributePrinter());
     }
 
     private void addAttributePlugin(AttributeTypePrinterInterface attributePlugin) {
@@ -721,6 +722,11 @@ public class EditItemPage extends PortletPage {
         printer.printAttributeValue(p, attribute, counter);
     }
 
+    private String formatReadOnlyAttributeValue(Attribute attribute) {
+        AttributeTypePrinterInterface printer = getAttributeTypePrinter(attribute.getType());
+        return printer.attributeToPrintValue(attribute.getValue());
+    }
+
     protected void printAttribute(PrintWriter p, String prettyName,
                                   String htmlName, String value, boolean oddLine)
             throws ServletException, IOException {
@@ -746,7 +752,7 @@ public class EditItemPage extends PortletPage {
                 String unit = attribute.getValue().length() > 0 ? (" " + attribute.getUnit()) : "";
                 p.println("<tr>");
                 p.println("  <td class=\"attributename\">" + attribute.getName() + ": "
-                        + "</td> <td class=\"attributenameandvalue\">" + attribute.getValue() + unit + "</td>");
+                        + "</td> <td class=\"attributenameandvalue\">" + formatReadOnlyAttributeValue(attribute) + unit + "</td>");
                 p.println("</tr>");
             }
         }
