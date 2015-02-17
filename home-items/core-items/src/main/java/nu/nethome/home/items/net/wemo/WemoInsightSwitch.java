@@ -13,14 +13,19 @@ import java.util.logging.Logger;
  *
  * @author Stefan
  * Todo: Creation Event Class
- * Todo: Cache state
+ * Todo: Move out soap client
+ * Todo: Move+autocreate UPnPScanner
+ * Todo: Update URL based on serial number
+ * Todo: Handle lost connection
  * Todo: lastChange
  * Todo: onForSeconds
  * Todo: onTodaySeconds
  * Todo: timePeriod
  * Todo: todayMW
  * Todo: powerThresholdMW
+ * Todo: subscribe for state changes
  */
+
 @Plugin
 @HomeItemType(value = "Lamps", creationEvents = "UPnP_urn:Belkin:device:insight:1_Message")
 public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
@@ -37,10 +42,12 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
             + "  <Action Name=\"off\" 	Method=\"off\" />"
             + "  <Action Name=\"toggle\" 	Method=\"toggle\" Default=\"true\" />"
             + "</HomeItem> ");
+    public static final int TIME_TO_CACHE_STATE = 300;
 
     private static Logger logger = Logger.getLogger(WemoInsightSwitch.class.getName());
     private WemoInsightSwitchClient insightSwitch = new WemoInsightSwitchClient("http://192.168.1.16:49153");
     private InsightState currentState;
+    private long lastStateUpdate = 0;
     private String wemoDescriptionUrl = "";
 
     // Public attributes
@@ -56,8 +63,7 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
 
     @Override
     protected boolean initAttributes(Event event) {
-        insightSwitch.setWemoURL(extractBaseUrl(event.getAttribute("Location")));
-        wemoDescriptionUrl = wemoDescriptionUrl;
+        setDeviceURL(event.getAttribute("Location"));
         serialNumber = event.getAttribute("SerialNumber");
         return true;
     }
@@ -147,7 +153,10 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
 
     private void updateCurrentState() {
         try {
-            currentState = insightSwitch.getInsightParameters();
+            if (System.currentTimeMillis() - lastStateUpdate > TIME_TO_CACHE_STATE) {
+                currentState = insightSwitch.getInsightParameters();
+                lastStateUpdate = System.currentTimeMillis();
+            }
         } catch (WemoException e) {
             currentState = null;
         }

@@ -35,18 +35,22 @@ public class DurationAttributePrinter extends StringAttributePrinter {
 
     @Override
     public String attributeToPrintValue(String value) {
-        long duration = Long.parseLong(value);
-        long days = duration / S_PER_DAY;
-        duration = duration - days * S_PER_DAY;
-        long hours = duration / S_PER_HOUR;
-        duration = duration - hours * S_PER_HOUR;
-        long minutes = duration / S_PER_MINUTE;
-        duration = duration - minutes * S_PER_MINUTE;
-        long seconds = duration;
-        String result = (days != 0) ? Long.toString(days) + " days " : "";
-        result += (hours != 0) ? Long.toString(hours) + " hours " : "";
-        result += Long.toString(minutes) + " minutes ";
-        result += (days == 0) ? Long.toString(seconds) + " seconds": "";
-        return result;
+        try {
+            long duration = Long.parseLong(value);
+            long days = duration / S_PER_DAY;
+            duration = duration - days * S_PER_DAY;
+            long hours = duration / S_PER_HOUR;
+            duration = duration - hours * S_PER_HOUR;
+            long minutes = duration / S_PER_MINUTE;
+            duration = duration - minutes * S_PER_MINUTE;
+            long seconds = duration;
+            String result = (days != 0) ? Long.toString(days) + " days " : "";
+            result += (hours != 0) ? Long.toString(hours) + " hours " : "";
+            result += Long.toString(minutes) + " minutes ";
+            result += (days == 0) ? Long.toString(seconds) + " seconds" : "";
+            return result;
+        } catch (NumberFormatException e) {
+            return "";
+        }
     }
 }
