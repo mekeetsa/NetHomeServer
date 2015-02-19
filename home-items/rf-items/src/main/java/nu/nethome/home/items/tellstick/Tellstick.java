@@ -148,6 +148,7 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
                 logger.warning("Bad protocol message received: " + event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE));
             } catch (IOException e) {
                 logger.log(Level.WARNING, "Could not send message to Tellstick", e);
+                reconnect();
             }
         }
         return false;
@@ -227,6 +228,11 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
     public void receivedTellstickEvent(String message) {
         receivedMessages++;
         logger.fine("Received from Tellstick: " + message);
+        if (message.equals(TellstickPort.ERROR_MESSAGE)) {
+            logger.warning("Error in serial communication, disconnecting");
+            reconnect();
+            return;
+        }
         if (message.startsWith(RECIEVED_ACK) || message.startsWith(RECIEVED_ACK_EXTENDED)) {
             handleAck(message);
         } else if (message.startsWith(RECIEVED_MESSAGE)) {
