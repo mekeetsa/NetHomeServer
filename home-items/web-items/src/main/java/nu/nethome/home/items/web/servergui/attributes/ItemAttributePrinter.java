@@ -72,7 +72,7 @@ public class ItemAttributePrinter extends StringAttributePrinter {
     }
 
     @Override
-    protected String attributeToPrintValue(String value) {
+    public String attributeToPrintValue(String value) {
         return HTMLEncode.encode(itemRefToString(value));
     }
 

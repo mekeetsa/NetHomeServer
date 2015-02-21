@@ -86,3 +86,7 @@ maintained by the jQuery Foundation (https://jquery.org/) and released under the
 jqPlot is great javascript a graphing library written and maintained by Chris Leonello (http://www.jqplot.com).
 jqPlot is an open source project dual licensed under the MIT and GPL version 2 licenses.
 
+* Cyberlink4Java
+An uPnP stack for Java. Copyright (c) 2003-2010, Satoshi Konno, All rights reserved.
+See CyberLink4JavaLicense.txt for details
+

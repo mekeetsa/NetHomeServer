@@ -47,7 +47,7 @@ public class StringsAttributePrinter extends ItemAttributePrinter {
     }
 
     @Override
-    protected String attributeToPrintValue(String value) {
+    public String attributeToPrintValue(String value) {
         return HTMLEncode.encode(value);
     }
 

@@ -42,7 +42,12 @@ public class OptionsAttributePrinter implements AttributeTypePrinterInterface {
 		return "Options";
 	}
 
-	public boolean printAttributeValue(PrintWriter p, Attribute attribute,
+    @Override
+    public String attributeToPrintValue(String value) {
+        return value;
+    }
+
+    public boolean printAttributeValue(PrintWriter p, Attribute attribute,
 			int attributeNumber) {
 		String[] homeItems = attribute.getValue().split(",");
 

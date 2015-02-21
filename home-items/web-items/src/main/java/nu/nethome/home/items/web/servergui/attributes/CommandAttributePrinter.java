@@ -44,6 +44,11 @@ public class CommandAttributePrinter implements AttributeTypePrinterInterface {
         return "Command";
     }
 
+    @Override
+    public String attributeToPrintValue(String value) {
+        return value;
+    }
+
     public boolean printAttributeValue(PrintWriter p, Attribute attribute,
                                        int attributeNumber) {
         // Create an identity for the parameter
