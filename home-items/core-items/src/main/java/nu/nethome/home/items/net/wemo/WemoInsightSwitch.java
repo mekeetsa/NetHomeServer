@@ -1,5 +1,6 @@
 package nu.nethome.home.items.net.wemo;
 
+import nu.nethome.home.item.AutoCreationInfo;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
@@ -12,7 +13,7 @@ import java.util.logging.Logger;
  * Represents a Belkin wemo insight switch
  *
  * @author Stefan
- * Todo: Creation Event Class
+ * Todo: Consume creation event
  * Todo: Move out soap client
  * Todo: Move+autocreate UPnPScanner
  * Todo: Update URL based on serial number
@@ -27,8 +28,26 @@ import java.util.logging.Logger;
  */
 
 @Plugin
-@HomeItemType(value = "Lamps", creationEvents = "UPnP_urn:Belkin:device:insight:1_Message")
+@HomeItemType(value = "Lamps", creationInfo = WemoInsightSwitch.WemoCreationInfo.class)
 public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
+
+    public static class WemoCreationInfo implements AutoCreationInfo {
+        static final String[] CREATION_EVENTS = {"UPnP_Creation_Message"};
+        @Override
+        public String[] getCreationEvents() {
+            return CREATION_EVENTS;
+        }
+
+        @Override
+        public boolean canBeCreatedBy(Event e) {
+            return e.getAttribute("DeviceType").equals("urn:Belkin:device:insight:1");
+        }
+
+        @Override
+        public String getCreationIdentification(Event e) {
+            return String.format("Belkin Wemo Insight Switch: \"%s\", SerialNr: %s",e.getAttribute("FriendlyName"), e.getAttribute("SerialNumber"));
+        }
+    }
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"WemoInsightSwitch\" Category=\"Lamps\" >"
@@ -110,6 +129,7 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
     private void setOnState(boolean isOn) {
         try {
             insightSwitch.setOnState(isOn);
+            lastStateUpdate = 0;
         } catch (WemoException e) {
             logger.warning("Failed to contact Wemo device: " + e.getMessage());
         }

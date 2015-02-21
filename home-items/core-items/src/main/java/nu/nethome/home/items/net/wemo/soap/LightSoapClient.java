@@ -16,8 +16,8 @@ import java.util.Map;
  *
  */
 public class LightSoapClient {
-    public static final int CONNECT_TIMEOUT = 1000;
-    public static final int READ_TIMEOUT = 1000;
+    public static final int CONNECT_TIMEOUT = 100;
+    public static final int READ_TIMEOUT = 100;
 
     protected Map<String, String> sendRequest(String nameSpace, String serverURI, String method, Map<String, String> arguments) throws SOAPException, IOException {
         final String ns = "u";

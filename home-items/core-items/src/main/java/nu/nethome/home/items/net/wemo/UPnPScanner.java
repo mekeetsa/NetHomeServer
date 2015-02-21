@@ -21,6 +21,12 @@ public class UPnPScanner extends HomeItemAdapter implements HomeItem {
             + "  <Action Name=\"scan\" 	Method=\"scan\" />"
             + "</HomeItem> ");
 
+    public static final String UPN_P_CREATION_MESSAGE = "UPnP_Creation_Message";
+    public static final String DEVICE_TYPE = "DeviceType";
+    public static final String LOCATION = "Location";
+    public static final String SERIAL_NUMBER = "SerialNumber";
+    public static final String FRIENDLY_NAME = "FriendlyName";
+
     private static Logger logger = Logger.getLogger(UPnPScanner.class.getName());
     private final ControlPoint controlPoint = new ControlPoint();
     private int replies = 0;
@@ -65,10 +71,12 @@ public class UPnPScanner extends HomeItemAdapter implements HomeItem {
     }
 
     private void reportDevice(Device device) {
-        String eventType = "UPnP_" + device.getDeviceType() + "_Message";
-        Event deviceEvent = server.createEvent(eventType, "");
-        deviceEvent.setAttribute("Location", device.getLocation());
-        deviceEvent.setAttribute("SerialNumber", device.getSerialNumber());
+        replies++;
+        Event deviceEvent = server.createEvent(UPN_P_CREATION_MESSAGE, "");
+        deviceEvent.setAttribute(DEVICE_TYPE, device.getDeviceType());
+        deviceEvent.setAttribute(LOCATION, device.getLocation());
+        deviceEvent.setAttribute(SERIAL_NUMBER, device.getSerialNumber());
+        deviceEvent.setAttribute(FRIENDLY_NAME, device.getFriendlyName());
         deviceEvent.setAttribute("Direction", "In");
         server.send(deviceEvent);
     }
@@ -78,6 +86,7 @@ public class UPnPScanner extends HomeItemAdapter implements HomeItem {
     }
 
     public String scan() {
+        replies = 0;
         for (int i = 0; i < controlPoint.getDeviceList().size(); i++) {
             reportDevice(controlPoint.getDeviceList().getDevice(i));
         }
