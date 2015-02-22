@@ -1,6 +1,5 @@
 package nu.nethome.home.items.net.wemo.soap;
 
-import org.w3c.dom.*;
 import org.w3c.dom.Node;
 
 import javax.xml.soap.*;
@@ -11,13 +10,26 @@ import java.net.URLStreamHandler;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  *
  */
 public class LightSoapClient {
-    public static final int CONNECT_TIMEOUT = 100;
-    public static final int READ_TIMEOUT = 100;
+    public static final int DEFAULT_CONNECT_TIMEOUT = 700;
+    public static final int DEFAULT_READ_TIMEOUT = 700;
+
+    private static Logger logger = Logger.getLogger(LightSoapClient.class.getName());
+    private int connectionTimeout = DEFAULT_CONNECT_TIMEOUT;
+    private int readTimeout = DEFAULT_READ_TIMEOUT;
+
+    public LightSoapClient() {
+    }
+
+    public LightSoapClient(int connectionTimeout, int readTimeout) {
+        this.connectionTimeout = connectionTimeout;
+        this.readTimeout = readTimeout;
+    }
 
     protected Map<String, String> sendRequest(String nameSpace, String serverURI, String method, Map<String, String> arguments) throws SOAPException, IOException {
         final String ns = "u";
@@ -36,7 +48,9 @@ public class LightSoapClient {
         headers.addHeader("SOAPACTION", "\"" + nameSpace + "#" + method + "\"");
         headers.addHeader("Content-Type", "text/xml; charset=\"utf-8\"");
         soapMessage.saveChanges();
+        long startTime = System.currentTimeMillis();
         SOAPMessage response = sendRequest(serverURI, soapMessage);
+        logger.info(String.format("Soap request to: %s took %d mS", serverURI, System.currentTimeMillis() - startTime));
         Map<String, String> result = new HashMap<>();
         SOAPBody soapBody1 = response.getSOAPBody();
         Iterator childElements = soapBody1.getChildElements();
@@ -63,8 +77,8 @@ public class LightSoapClient {
             protected URLConnection openConnection(URL url) throws IOException {
                 URL target = new URL(url.toString());
                 URLConnection connection = target.openConnection();
-                connection.setConnectTimeout(CONNECT_TIMEOUT);
-                connection.setReadTimeout(READ_TIMEOUT);
+                connection.setConnectTimeout(connectionTimeout);
+                connection.setReadTimeout(readTimeout);
                 return (connection);
             }
         });
