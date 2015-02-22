@@ -13,10 +13,8 @@ import java.util.logging.Logger;
  * Represents a Belkin wemo insight switch
  *
  * @author Stefan
- * Todo: Consume creation event
  * Todo: Move out soap client
  * Todo: Move+autocreate UPnPScanner
- * Todo: Update URL based on serial number
  * Todo: Handle lost connection
  * Todo: lastChange
  * Todo: onForSeconds
@@ -31,8 +29,10 @@ import java.util.logging.Logger;
 @HomeItemType(value = "Lamps", creationInfo = WemoInsightSwitch.WemoCreationInfo.class)
 public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
 
+    public static final String UPN_P_CREATION_MESSAGE = "UPnP_Creation_Message";
+
     public static class WemoCreationInfo implements AutoCreationInfo {
-        static final String[] CREATION_EVENTS = {"UPnP_Creation_Message"};
+        static final String[] CREATION_EVENTS = {UPN_P_CREATION_MESSAGE};
         @Override
         public String[] getCreationEvents() {
             return CREATION_EVENTS;
@@ -77,6 +77,12 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
     }
 
     public boolean receiveEvent(Event event) {
+        if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(UPN_P_CREATION_MESSAGE) &&
+                event.getAttribute("DeviceType").equals("urn:Belkin:device:insight:1") &&
+                event.getAttribute("SerialNumber").equals(serialNumber)) {
+            setDeviceURL(event.getAttribute("Location"));
+            return true;
+        }
         return handleInit(event);
     }
 
