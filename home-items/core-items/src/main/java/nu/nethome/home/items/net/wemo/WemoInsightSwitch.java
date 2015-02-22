@@ -16,12 +16,10 @@ import java.util.logging.Logger;
  * Todo: Move out soap client
  * Todo: Move+autocreate UPnPScanner
  * Todo: Handle lost connection
- * Todo: lastChange
- * Todo: onForSeconds
- * Todo: onTodaySeconds
  * Todo: timePeriod
  * Todo: todayMW
  * Todo: powerThresholdMW
+ * Todo: lastChange (??)
  * Todo: subscribe for state changes
  */
 
@@ -55,6 +53,8 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
             + "  <Attribute Name=\"DeviceURL\" Type=\"String\" Get=\"getDeviceURL\" 	Set=\"setDeviceURL\" />"
             + "  <Attribute Name=\"SerialNumber\" Type=\"String\" Get=\"getSerialNumber\" 	Init=\"setSerialNumber\" />"
             + "  <Attribute Name=\"CurrentConsumption\" Type=\"String\" Get=\"getCurrentPowerConsumption\" 	Unit=\"W\" />"
+            + "  <Attribute Name=\"LastOnTime\" Type=\"Duration\" Get=\"getLastOnTime\" />"
+            + "  <Attribute Name=\"OnTimeToday\" Type=\"Duration\" Get=\"getOnTimeToday\" />"
             + "  <Attribute Name=\"TotalOnTime\" Type=\"Duration\" Get=\"getTotalOnTime\" />"
             + "  <Attribute Name=\"TotalConsumption\" Type=\"String\" Get=\"getTotalPowerConsumption\" 	Unit=\"kWh\" />"
             + "  <Action Name=\"on\" 	Method=\"on\" />"
@@ -175,6 +175,16 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
     public String getTotalOnTime() {
         updateCurrentState();
         return currentState != null ? String.format("%d", currentState.getTotalOnTime()) : "";
+    }
+
+    public String getLastOnTime() {
+        updateCurrentState();
+        return currentState != null ? String.format("%d", currentState.getLastOnTime()) : "";
+    }
+
+    public String getOnTimeToday() {
+        updateCurrentState();
+        return currentState != null ? String.format("%d", currentState.getOnTimeToday()) : "";
     }
 
     private void updateCurrentState() {
