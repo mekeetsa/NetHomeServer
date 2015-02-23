@@ -116,6 +116,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("TeamCityBuildMonitor", nu.nethome.home.items.net.TeamCityBuildMonitor.class),
             new HomeItemClassInfo("DebugManager", nu.nethome.home.items.misc.DebugManager.class),
             new HomeItemClassInfo("WemoInsightSwitch", nu.nethome.home.items.net.wemo.WemoInsightSwitch.class),
+            new HomeItemClassInfo("WemoSwitch", nu.nethome.home.items.net.wemo.WemoSwitch.class),
             new HomeItemClassInfo("UPnPScanner", nu.nethome.home.items.net.wemo.UPnPScanner.class),
 
             // rf-items
