@@ -118,7 +118,7 @@ public class HueLamp extends HomeItemAdapter implements HomeItem {
         ev.setAttribute("Hue.Brightness", percentToHue(brightness));
         if (colorTemperature != 0) {
             ev.setAttribute("Hue.Temperature", colorTemperature);
-        } else {
+        } else if (hue != 0 && saturation != 0 ) {
             ev.setAttribute("Hue.Saturation", saturation);
             ev.setAttribute("Hue.Hue", hue);
         }
@@ -198,8 +198,12 @@ public class HueLamp extends HomeItemAdapter implements HomeItem {
             hue = Integer.parseInt(colourParts[0]);
             saturation = Integer.parseInt(colourParts[1]);
             colorTemperature = 0;
-        } else if (color.length() > 0) {
+        } else if (colourParts.length == 1) {
             colorTemperature = Integer.parseInt(color);
+        } else if (color.isEmpty()) {
+            colorTemperature = 0;
+            hue = 0;
+            saturation = 0;
         }
         this.color = color;
     }
