@@ -19,6 +19,7 @@
 
 package nu.nethome.home.items.hue;
 
+import nu.nethome.home.item.AutoCreationInfo;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
@@ -34,8 +35,32 @@ import java.util.logging.Logger;
  */
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
-@HomeItemType("Hardware")
+@HomeItemType(value = "Hardware", creationInfo = HueBridge.HueCreationInfo.class)
 public class HueBridge extends HomeItemAdapter {
+
+    public static final String UPN_P_CREATION_MESSAGE = "UPnP_Creation_Message";
+
+    public static class HueCreationInfo implements AutoCreationInfo {
+        static final String[] CREATION_EVENTS = {UPN_P_CREATION_MESSAGE};
+        @Override
+        public String[] getCreationEvents() {
+            return CREATION_EVENTS;
+        }
+
+        @Override
+        public boolean canBeCreatedBy(Event e) {
+            return isPhilipsHueUPnPEvent(e);
+        }
+
+        @Override
+        public String getCreationIdentification(Event e) {
+            return String.format("Philips Hue bridge: \"%s\"",e.getAttribute("FriendlyName"));
+        }
+    }
+
+    private static boolean isPhilipsHueUPnPEvent(Event e) {
+        return e.getAttribute("ModelName").startsWith("Philips hue bridge");
+    }
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"HueBridge\"  Category=\"Hardware\" >"
@@ -111,7 +136,7 @@ public class HueBridge extends HomeItemAdapter {
     @Override
     public boolean receiveEvent(Event event) {
         if (!isActivated()) {
-            return false;
+            return handleInit(event);
         }
         if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals("Hue_Message") &&
                 event.getAttribute("Direction").equals("Out")) {
@@ -132,8 +157,28 @@ public class HueBridge extends HomeItemAdapter {
                 reportKnownSensors();
             }
             return true;
+        } else if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(UPN_P_CREATION_MESSAGE) &&
+                isPhilipsHueUPnPEvent(event) &&
+                event.getAttribute("SerialNumber").equals(getBridgeIdentity())) {
+            setUrl(extractBaseUrl(event.getAttribute("Location")));
+            return true;
         }
         return false;
+    }
+
+    @Override
+    protected boolean initAttributes(Event event) {
+        setUrl(extractBaseUrl(event.getAttribute("Location")));
+        setBridgeIdentity(event.getAttribute("SerialNumber"));
+        return true;
+    }
+
+    private String extractBaseUrl(String url) {
+        int pos = url.indexOf("/", 9);
+        if (pos > 0) {
+            return url.substring(0, pos);
+        }
+        return url;
     }
 
     private void reportAllLampsState() {
