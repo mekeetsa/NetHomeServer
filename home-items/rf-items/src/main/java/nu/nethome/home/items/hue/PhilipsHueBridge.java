@@ -29,14 +29,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  *
  */
 public class PhilipsHueBridge {
 
+    private static Logger logger = Logger.getLogger(PhilipsHueBridge.class.getName());
     public static final String WWW_MEETHUE_COM_API = "https://www.meethue.com";
     public static final String HUE_NUPNP = "/api/nupnp";
+
 
     private String url = "http://192.168.1.174";
     private String id = "";
@@ -79,6 +82,7 @@ public class PhilipsHueBridge {
             }
             String resource = String.format("/api/%s/lights/%s/state", user, lamp);
             JSONData result = client.put(url, resource, stateParameter);
+            logger.fine(result.toString());
             checkForErrorResponse(result);
         } catch (JSONException e) {
             throw new HueProcessingException(e);
@@ -104,6 +108,7 @@ public class PhilipsHueBridge {
         try {
             String resource = String.format("/api/%s/lights/%s", user, lamp);
             JSONData result = client.get(url, resource, null);
+            logger.fine(result.toString());
             checkForErrorResponse(result);
             return new Light(result.getObject());
         } catch (JSONException e) {
@@ -123,6 +128,7 @@ public class PhilipsHueBridge {
         try {
             String resource = String.format("/api/%s/lights", user);
             JSONData result = client.get(url, resource, null);
+            logger.fine(result.toString());
             checkForErrorResponse(result);
             List<LightId> list = new ArrayList<LightId>();
             for (String lampId : getFieldNames(result.getObject())) {
@@ -146,6 +152,7 @@ public class PhilipsHueBridge {
         try {
             String resource = String.format("/api/%s/sensors", user);
             JSONData result = client.get(url, resource, null);
+            logger.fine(result.toString());
             checkForErrorResponse(result);
             JSONObject sensors = result.getObject();
             List<Sensor> list = new ArrayList<>();
