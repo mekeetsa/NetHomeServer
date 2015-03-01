@@ -76,6 +76,10 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
         return MODEL;
     }
 
+    WemoInsightSwitchClient getInsightSwitch() {
+        return insightSwitch;
+    }
+
     public boolean receiveEvent(Event event) {
         if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(UPN_P_CREATION_MESSAGE) &&
                 event.getAttribute("DeviceType").equals("urn:Belkin:device:insight:1") &&
@@ -119,7 +123,7 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
 
     public void setDeviceURL(String url) {
         wemoDescriptionUrl = url;
-        insightSwitch.setWemoURL(extractBaseUrl(url));
+        getInsightSwitch().setWemoURL(extractBaseUrl(url));
     }
 
     public void on() {
@@ -134,7 +138,7 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
 
     private void setOnState(boolean isOn) {
         try {
-            insightSwitch.setOnState(isOn);
+            getInsightSwitch().setOnState(isOn);
             lastStateUpdate = 0;
         } catch (WemoException e) {
             logger.warning("Failed to contact Wemo device: " + e.getMessage());
@@ -190,7 +194,7 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
     private void updateCurrentState() {
         try {
             if (System.currentTimeMillis() - lastStateUpdate > TIME_TO_CACHE_STATE) {
-                currentState = insightSwitch.getInsightParameters();
+                currentState = getInsightSwitch().getInsightParameters();
                 lastStateUpdate = System.currentTimeMillis();
             }
         } catch (WemoException e) {
