@@ -7,6 +7,7 @@ import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -44,15 +45,32 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
             + "<HomeItem Class=\"WemoBridge\" Category=\"Hardware\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"DeviceURL\" Type=\"String\" Get=\"getDeviceURL\" 	Set=\"setDeviceURL\" />"
-            + "  <Attribute Name=\"UDN\" Type=\"String\" Get=\"getUDN\" 	Init=\"setUDN\" />"
+            + "  <Attribute Name=\"Identity\" Type=\"String\" Get=\"getUDN\" 	Init=\"setUDN\" />"
+            + "  <Attribute Name=\"ConnectedLamps\" Type=\"String\" Get=\"getConnectedLamps\" />"
+            + "  <Action Name=\"ReportDevices\" Method=\"reportAllDevices\" />"
             + "</HomeItem> ");
 
     private static Logger logger = Logger.getLogger(WemoBridge.class.getName());
     private String wemoDescriptionUrl = "";
     private String udn = "";
+    private WemoBridgeSoapClient soapClient;
+    private int connectedLamps = -1;
+
+    public WemoBridge() {
+        soapClient = new WemoBridgeSoapClient("");
+    }
+
+    WemoBridgeSoapClient getSoapClient() {
+        return soapClient;
+    }
 
     public String getModel() {
         return MODEL;
+    }
+
+    @Override
+    public void activate() {
+        reportAllDevices();
     }
 
     public boolean receiveEvent(Event event) {
@@ -60,6 +78,9 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
                 event.getAttribute("DeviceType").equals(BELKIN_WEMO_BRIDGE_DEVICE) &&
                 event.getAttribute("UDN").equals(udn)) {
             setDeviceURL(event.getAttribute("Location"));
+            return true;
+        }  else if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals("ReportItems")) {
+            reportAllDevices();
             return true;
         }
         return handleInit(event);
@@ -72,12 +93,29 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
         return true;
     }
 
-    private String extractBaseUrl(String url) {
-        int pos = url.indexOf("/", 9);
-        if (pos > 0) {
-            return url.substring(0, pos);
+    public String reportAllDevices() {
+        try {
+            List<BridgeDevice> endDevices = getSoapClient().getEndDevices(udn);
+            connectedLamps = endDevices.size();
+            for (BridgeDevice device : endDevices) {
+                reportDevice(device);
+            }
+        } catch (WemoException e) {
+            logger.warning("Failed to connect to WeMo Bridge: " + e.getMessage());
         }
-        return url;
+        return "";
+    }
+
+    private void reportDevice(BridgeDevice device) {
+        Event event = server.createEvent("WemoLight_Message", "");
+        event.setAttribute("DeviceIndex", device.getDeviceIndex());
+        event.setAttribute("DeviceID", device.getDeviceID());
+        event.setAttribute("FriendlyName", device.getFriendlyName());
+        event.setAttribute("FirmwareVersion", device.getFirmwareVersion());
+        event.setAttribute("CapabilityIDs", device.getCapabilityIDs());
+        event.setAttribute("OnState", device.getOnState());
+        event.setAttribute("Brightness", device.getBrightness());
+        server.send(event);
     }
 
     public String getDeviceURL() {
@@ -86,6 +124,15 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
 
     public void setDeviceURL(String url) {
         wemoDescriptionUrl = url;
+        getSoapClient().setWemoURL(extractBaseUrl(url));
+    }
+
+    private String extractBaseUrl(String url) {
+        int pos = url.indexOf("/", 9);
+        if (pos > 0) {
+            return url.substring(0, pos);
+        }
+        return url;
     }
 
     public String getUDN() {
@@ -94,5 +141,9 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
 
     public void setUDN(String udn) {
         this.udn = udn;
+    }
+
+    public String getConnectedLamps() {
+        return connectedLamps > 0 ? Integer.toString(connectedLamps) : "";
     }
 }

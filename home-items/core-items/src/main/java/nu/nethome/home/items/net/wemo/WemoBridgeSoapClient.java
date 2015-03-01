@@ -19,6 +19,7 @@ public class WemoBridgeSoapClient extends LightSoapClient {
     public static final String GET_END_DEVICES = "GetEndDevices";
     public static final String BRIDGE_SERVICE_URL = "/upnp/control/bridge1";
     public static final String BRIDGE_NAMESPACE = "urn:Belkin:service:bridge:1";
+    public static final int UNKNOWN = -1;
 
     private String wemoURL;
 
@@ -26,11 +27,11 @@ public class WemoBridgeSoapClient extends LightSoapClient {
         this.wemoURL = wemoURL;
     }
 
-    public List<BridgeDevice> getEndDevices() throws WemoException {
+    public List<BridgeDevice> getEndDevices(String deviceUdn) throws WemoException {
         try {
             List<Argument> arguments = new ArrayList<>();
-            arguments.add(new Argument("DevUDN", "uuid:Bridge-1_0-231447B0100DE4")); // ToDo: Temporary!
-            arguments.add(new Argument("ReqListType", "PAIRED_LIST")); // ToDo: Temporary!
+            arguments.add(new Argument("DevUDN", deviceUdn));
+            arguments.add(new Argument("ReqListType", "PAIRED_LIST"));
             Map<String, String> result = sendRequest(BRIDGE_NAMESPACE, wemoURL + BRIDGE_SERVICE_URL, GET_END_DEVICES, arguments);
             String deviceLists = result.get("DeviceLists");
             return parseDeviceList(deviceLists);

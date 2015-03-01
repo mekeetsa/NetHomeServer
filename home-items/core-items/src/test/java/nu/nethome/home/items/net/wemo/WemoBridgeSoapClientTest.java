@@ -9,7 +9,6 @@ import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Matchers.anyCollection;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -30,8 +29,8 @@ public class WemoBridgeSoapClientTest {
 
     @Test
     public void testConnection() throws Exception, WemoException {
-        // List<BridgeDevice> endDevices = client.getEndDevices();
-        // int size = endDevices.size();
+        List<BridgeDevice> endDevices = client.getEndDevices("uuid:Bridge-1_0-231447B0100DE4");
+        int size = endDevices.size();
     }
 
     @Test
@@ -41,14 +40,16 @@ public class WemoBridgeSoapClientTest {
         result.put("DeviceLists", DEVICE_LIST_RESPONSE);
         doReturn(result).when(client).sendRequest(anyString(), anyString(), anyString(), anyList());
 
-        List<BridgeDevice> endDevices = client.getEndDevices();
+        List<BridgeDevice> endDevices = client.getEndDevices("");
         assertThat(endDevices.size(), is(1));
         assertThat(endDevices.get(0).getDeviceIndex(), is(0));
         assertThat(endDevices.get(0).getDeviceID(), is("94103EA2B278CAD5"));
         assertThat(endDevices.get(0).getFriendlyName(), is("Lightbulb 01"));
         assertThat(endDevices.get(0).getFirmwareVersion(), is("7E"));
         assertThat(endDevices.get(0).getCapabilityIDs(), is("10006,10008,30008,30009,3000A"));
-        assertThat(endDevices.get(0).getCurrentState(), is(",,,,"));
+        assertThat(endDevices.get(0).getCurrentRawState(), is(",,,,"));
+        assertThat(endDevices.get(0).getOnState(), is(WemoBridgeSoapClient.UNKNOWN));
+        assertThat(endDevices.get(0).getBrightness(), is(WemoBridgeSoapClient.UNKNOWN));
     }
 
     static final String DEVICE_LIST_RESPONSE = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -69,7 +70,4 @@ public class WemoBridgeSoapClientTest {
             "    </DeviceList>\n" +
             "</DeviceLists>";
 
-    static final String offState = "0,255:0,0:0,,";
-    static final String onState = "1,128:0,0:0,,";
-    static final String unknownState = ",,,,";
 }
