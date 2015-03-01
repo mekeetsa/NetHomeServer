@@ -79,6 +79,7 @@ public class UPnPScanner extends HomeItemAdapter implements HomeItem {
         deviceEvent.setAttribute(LOCATION, device.getLocation());
         deviceEvent.setAttribute(SERIAL_NUMBER, device.getSerialNumber());
         deviceEvent.setAttribute(FRIENDLY_NAME, device.getFriendlyName());
+        deviceEvent.setAttribute("UDN", device.getUDN());
         deviceEvent.setAttribute("Direction", "In");
         server.send(deviceEvent);
     }
