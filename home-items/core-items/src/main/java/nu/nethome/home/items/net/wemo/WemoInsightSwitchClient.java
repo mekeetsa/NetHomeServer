@@ -4,9 +4,7 @@ import nu.nethome.home.items.net.wemo.soap.LightSoapClient;
 
 import javax.xml.soap.SOAPException;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class WemoInsightSwitchClient extends LightSoapClient {
     public static final String BASICEVENT1_SERVICE_URL = "/upnp/control/basicevent1";
@@ -24,10 +22,10 @@ public class WemoInsightSwitchClient extends LightSoapClient {
     }
 
     public void setOnState(boolean isOn) throws WemoException {
-        Map<String, String> args =  new HashMap<>();
-        args.put("BinaryState", isOn ? "1" :  "0");
+        List<Argument> arguments = new ArrayList<>();
+        arguments.add(new Argument("BinaryState", isOn ? "1" :  "0"));
         try {
-            sendRequest(BASICEVENT_NAMESPACE, wemoURL + BASICEVENT1_SERVICE_URL, SET_BINARY_STATE, args);
+            sendRequest(BASICEVENT_NAMESPACE, wemoURL + BASICEVENT1_SERVICE_URL, SET_BINARY_STATE, arguments);
         } catch (SOAPException|IOException e) {
             throw new WemoException(e);
         }
@@ -35,7 +33,8 @@ public class WemoInsightSwitchClient extends LightSoapClient {
 
     public boolean getOnState() throws WemoException {
         try {
-            Map<String, String> result = sendRequest(BASICEVENT_NAMESPACE, wemoURL + BASICEVENT1_SERVICE_URL, GET_BINARY_STATE, Collections.<String, String>emptyMap());
+            List<Argument> args = new ArrayList<>();
+            Map<String, String> result = sendRequest(BASICEVENT_NAMESPACE, wemoURL + BASICEVENT1_SERVICE_URL, GET_BINARY_STATE, args);
             return !result.values().iterator().next().equals("0");
         } catch (SOAPException|IOException e) {
             throw new WemoException(e);
@@ -43,7 +42,7 @@ public class WemoInsightSwitchClient extends LightSoapClient {
     }
 
     public InsightState getInsightParameters() throws WemoException {
-        Map<String, String> args =  new HashMap<>();
+        List<Argument> args = new ArrayList<>();
         try {
             Map<String, String> stringStringMap = sendRequest(INSIGHT1_NAMESPACE, wemoURL + INSIGHT1_SERVICE_URL, GET_INSIGHT_PARAMS, args);
             return new InsightState(stringStringMap.values().iterator().next());

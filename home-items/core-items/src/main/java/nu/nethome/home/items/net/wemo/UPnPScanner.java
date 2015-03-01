@@ -27,6 +27,7 @@ public class UPnPScanner extends HomeItemAdapter implements HomeItem {
     public static final String SERIAL_NUMBER = "SerialNumber";
     public static final String FRIENDLY_NAME = "FriendlyName";
     public static final String MODEL_NAME = "ModelName";
+    public static final String UDN = "UDN";
 
     private static Logger logger = Logger.getLogger(UPnPScanner.class.getName());
     private final ControlPoint controlPoint = new ControlPoint();
@@ -79,7 +80,7 @@ public class UPnPScanner extends HomeItemAdapter implements HomeItem {
         deviceEvent.setAttribute(LOCATION, device.getLocation());
         deviceEvent.setAttribute(SERIAL_NUMBER, device.getSerialNumber());
         deviceEvent.setAttribute(FRIENDLY_NAME, device.getFriendlyName());
-        deviceEvent.setAttribute("UDN", device.getUDN());
+        deviceEvent.setAttribute(UDN, device.getUDN());
         deviceEvent.setAttribute("Direction", "In");
         server.send(deviceEvent);
     }
