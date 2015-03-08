@@ -44,8 +44,8 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"WemoBridge\" Category=\"Hardware\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
-            + "  <Attribute Name=\"DeviceURL\" Type=\"String\" Get=\"getDeviceURL\" 	Set=\"setDeviceURL\" />"
-            + "  <Attribute Name=\"Identity\" Type=\"String\" Get=\"getUDN\" 	Init=\"setUDN\" />"
+            + "  <Attribute Name=\"DeviceURL\" Type=\"String\" Get=\"getDeviceURL\" Set=\"setDeviceURL\" />"
+            + "  <Attribute Name=\"Identity\" Type=\"String\" Get=\"getUDN\" Init=\"setUDN\" />"
             + "  <Attribute Name=\"ConnectedLamps\" Type=\"String\" Get=\"getConnectedLamps\" />"
             + "  <Action Name=\"ReportDevices\" Method=\"reportAllDevices\" />"
             + "</HomeItem> ");
@@ -115,6 +115,9 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
         event.setAttribute("CapabilityIDs", device.getCapabilityIDs());
         event.setAttribute("OnState", device.getOnState());
         event.setAttribute("Brightness", device.getBrightness());
+        event.setAttribute("BridgeUrl", wemoDescriptionUrl);
+        event.setAttribute("BridgeUDN", udn);
+        event.setAttribute("Direction", "In");
         server.send(event);
     }
 
