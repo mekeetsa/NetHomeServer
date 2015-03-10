@@ -13,9 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-/**
- *
- */
 public class LightSoapClient {
     public static final int DEFAULT_CONNECT_TIMEOUT = 700;
     public static final int DEFAULT_READ_TIMEOUT = 700;
@@ -51,7 +48,7 @@ public class LightSoapClient {
         soapMessage.saveChanges();
         long startTime = System.currentTimeMillis();
         SOAPMessage response = sendRequest(serverURI, soapMessage);
-        logger.info(String.format("Soap request to: %s took %d mS", serverURI, System.currentTimeMillis() - startTime));
+        logger.fine(String.format("Soap request to: %s took %d mS", serverURI, System.currentTimeMillis() - startTime));
         Map<String, String> result = new HashMap<>();
         SOAPBody soapBody1 = response.getSOAPBody();
         Iterator childElements = soapBody1.getChildElements();
@@ -71,7 +68,7 @@ public class LightSoapClient {
     }
 
     private SOAPMessage sendRequest(String url, SOAPMessage request) throws SOAPException, IOException {
-        request.writeTo(System.out);
+        // request.writeTo(System.out);
         SOAPConnection soapConnection = SOAPConnectionFactory.newInstance().createConnection();
         URL endpoint = new URL(new URL(url), "", new URLStreamHandler() {
             @Override
@@ -84,7 +81,7 @@ public class LightSoapClient {
             }
         });
         SOAPMessage soapResponse = soapConnection.call(request, endpoint);
-        soapResponse.writeTo(System.out);
+        // soapResponse.writeTo(System.out);
         soapConnection.close();
         return soapResponse;
     }

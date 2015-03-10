@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005-2013, Stefan Strömberg <stefangs@nethome.nu>
+ * Copyright (C) 2005-2015, Stefan Strömberg <stefangs@nethome.nu>
  *
  * This file is part of OpenNetHome  (http://www.nethome.nu)
  *
@@ -83,6 +83,7 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
         addEventReceiver(new NexaEventReceiver(this));
         addEventReceiver(new OregonEventReceiver(this));
         addEventReceiver(new FineOffsetEventReceiver(this));
+        addEventReceiver(new RollerTrolEventReceiver(this));
     }
 
     private void addEventReceiver(TellstickEventReceiver eventReceiver) {

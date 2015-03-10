@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005-2014, Stefan Strömberg <stefangs@nethome.nu>
+ * Copyright (C) 2005-2015, Stefan Strömberg <stefangs@nethome.nu>
  *
  * This file is part of OpenNetHome  (http://www.nethome.nu)
  *
@@ -160,7 +160,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("Tellstick", Tellstick.class),
             new HomeItemClassInfo("HueBridge", nu.nethome.home.items.hue.HueBridge.class),
             new HomeItemClassInfo("HueLamp", nu.nethome.home.items.hue.HueLamp.class),
-
+            new HomeItemClassInfo("RollerTrolBlind", nu.nethome.home.items.rollertrol.RollerTrolBlind.class),
 
             // web-items
             new HomeItemClassInfo("Room", nu.nethome.home.items.infra.Room.class),
