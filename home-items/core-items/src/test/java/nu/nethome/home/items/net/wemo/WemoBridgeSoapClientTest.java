@@ -1,6 +1,7 @@
 package nu.nethome.home.items.net.wemo;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -27,6 +28,7 @@ public class WemoBridgeSoapClientTest {
         //client = new WemoBridgeSoapClient("http://127.0.0.1:49000");
     }
 
+    @Ignore
     @Test
     public void testConnection() throws Exception, WemoException {
         List<BridgeDevice> endDevices = client.getEndDevices("uuid:Bridge-1_0-231447B0100DE4");

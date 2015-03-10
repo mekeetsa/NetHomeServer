@@ -37,7 +37,7 @@ public class RollerTrolEventReceiver extends TellstickEventReceiverAdaptor {
     public void processActiveEvent(TellstickEvent event) {
         long tellstickData = event.getData();
         BitString data = new BitString(40);
-        data.insert(RollerTrol.HOUSE_CODE, (int)tellstickData >> 16);
+        data.insert(RollerTrol.HOUSE_CODE, (int)(((tellstickData >> 24) & 0xFF) + ((tellstickData >> 8) & 0xFF00)));
         data.insert(RollerTrol.DEVICE_CODE, (int)(tellstickData >> 8) & 0xF);
         data.insert(RollerTrol.COMMAND, (int)(tellstickData >> 12) & 0xF);
         data.insert(RollerTrol.CHECK_SUM, RollerTrol.calculateChecksum(data));
@@ -46,7 +46,7 @@ public class RollerTrolEventReceiver extends TellstickEventReceiverAdaptor {
 
     @Override
     public String getEventType() {
-        return "Wprotocol:hasta;model:selflearningv2;";
+        return "protocol:hasta;model:selflearningv2";
     }
 
     @Override
