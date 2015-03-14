@@ -63,7 +63,9 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"RollerTrolBlind\" Category=\"Hardware\" >"
+            + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"RemoteId\" Type=\"String\" Get=\"getHouseCode\" 	Set=\"setHouseCode\" />"
+            + "  <Attribute Name=\"TravelTime\" Type=\"String\" Get=\"getTravelTime\" 	Set=\"setTravelTime\" />"
             + "  <Attribute Name=\"Channel\" Type=\"StringList\" Get=\"getDeviceCode\" Set=\"setDeviceCode\" >"
             + "     <item>1</item> <item>2</item> <item>3</item> <item>4</item> <item>5</item> <item>6</item> <item>7</item> <item>8</item> <item>All</item></Attribute>"
             + "  <Action Name=\"up\" 	Method=\"up\" />"
@@ -77,6 +79,8 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
     // Public attributes
     private int houseCode = 1;
     private int deviceCode = 1;
+    private BlindState state = new BlindState();
+    private String travelTime;
 
     public boolean receiveEvent(Event event) {
         // Check if this is an inward event directed to this instance
@@ -85,6 +89,14 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
                 (event.getAttributeInt(HOUSE_CODE_ATTRIBUTE) == houseCode) &&
                 event.getAttributeInt(DEVICE_CODE_ATTRIBUTE) == deviceCode) {
             // In that case, update our state accordingly
+            int command = event.getAttributeInt(COMMAND_ATTRIBUTE);
+            if (command == UP) {
+                state.up();
+            } else if (command == DOWN) {
+                state.down();
+            } else if (command == STOP) {
+                state.stop();
+            }
             return true;
         } else {
             return handleInit(event);
@@ -133,19 +145,38 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
         server.send(ev);
     }
 
+    public String getState() {
+        return state.getStateString();
+    }
+
     public void up() {
         sendCommand(UP);
+        state.up();
     }
 
     public void stop() {
         sendCommand(STOP);
+        state.stop();
     }
 
     public void down() {
         sendCommand(DOWN);
+        state.down();
     }
 
     public void confirm() {
         sendCommand(CONFIRM);
+    }
+
+    public String getTravelTime() {
+        return Long.toString(state.getTravelTime() / 1000);
+    }
+
+    public void setTravelTime(String travelTime) {
+        if (travelTime.length() == 0) {
+            state.setTravelTime(0);
+        } else {
+            state.setTravelTime(Long.parseLong(travelTime) * 1000);
+        }
     }
 }
