@@ -1,30 +1,22 @@
 package nu.nethome.home.items.rollertrol;
 
-/**
- *
- */
 public class BlindState {
     public static final String UP_STRING = "Up";
     public static final String DOWN_STRING = "Down";
-    private String state;
     private long fullTravelTime = 0;
     private long travelStartTime = 0;
     private long travelStartPosition = 0;
     private int travelDirection = 0;
 
-    public BlindState() {
-        state = UP_STRING;
-    }
-
     public String getStateString() {
         String result = getCurrentPosition() == 0 && travelDirection != 1 ? UP_STRING : DOWN_STRING;
         if (!isInEndPosition()) {
-            result += String.format(" %d%%", currentPositionInPercent());
+            result += String.format(" %d%%", currentPositionInRoundedPercent());
         }
         return result;
     }
 
-    private long currentPositionInPercent() {
+    private long currentPositionInRoundedPercent() {
         long percent = getCurrentPosition() * 100 / fullTravelTime;
         percent = ((percent) / 5) * 5;
         return percent;
@@ -36,12 +28,24 @@ public class BlindState {
     }
 
     public void down() {
-        travelStartPosition = getCurrentPosition();
-        travelStartTime = System.currentTimeMillis();
-        travelDirection = 1;
+        move(1);
     }
 
-    private long getCurrentPosition() {
+    public void up() {
+        move(-1);
+    }
+
+    public void stop() {
+        move(0);
+    }
+
+    private void move(int direction) {
+        travelStartPosition = getCurrentPosition();
+        travelStartTime = System.currentTimeMillis();
+        travelDirection = direction;
+    }
+
+    public long getCurrentPosition() {
         long rawPosition;
         if (fullTravelTime != 0) {
             rawPosition = travelStartPosition + travelDirection * timePassedSince(travelStartTime);
@@ -51,12 +55,6 @@ public class BlindState {
         rawPosition = Math.min(rawPosition, fullTravelTime + 1);
         rawPosition = Math.max(rawPosition, 0);
         return rawPosition;
-    }
-
-    public void up() {
-        travelStartPosition = getCurrentPosition();
-        travelStartTime = System.currentTimeMillis();
-        travelDirection = -1;
     }
 
     /**
@@ -73,11 +71,5 @@ public class BlindState {
 
     public long timePassedSince(long time) {
         return System.currentTimeMillis() - time;
-    }
-
-    public void stop() {
-        travelStartPosition = getCurrentPosition();
-        travelStartTime = System.currentTimeMillis();
-        travelDirection = 0;
     }
 }

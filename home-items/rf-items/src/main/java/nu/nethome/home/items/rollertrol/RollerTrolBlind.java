@@ -19,7 +19,6 @@
 
 package nu.nethome.home.items.rollertrol;
 
-import nu.nethome.coders.RollerTrol;
 import nu.nethome.home.item.AutoCreationInfo;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
@@ -27,6 +26,8 @@ import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Logger;
 
 import static nu.nethome.coders.RollerTrol.*;
@@ -41,6 +42,7 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
     public static final String HOUSE_CODE_ATTRIBUTE = "RollerTrol.HouseCode";
     public static final String DEVICE_CODE_ATTRIBUTE = "RollerTrol.DeviceCode";
     public static final String COMMAND_ATTRIBUTE = "RollerTrol.Command";
+    public static final int MINIMAL_MOVEMENT_TIME = 1000;
 
     public static class RollerTrolCreationInfo implements AutoCreationInfo {
         static final String[] CREATION_EVENTS = {"RollerTrol_Message"};
@@ -65,22 +67,29 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
             + "<HomeItem Class=\"RollerTrolBlind\" Category=\"Hardware\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"RemoteId\" Type=\"String\" Get=\"getHouseCode\" 	Set=\"setHouseCode\" />"
-            + "  <Attribute Name=\"TravelTime\" Type=\"String\" Get=\"getTravelTime\" 	Set=\"setTravelTime\" />"
             + "  <Attribute Name=\"Channel\" Type=\"StringList\" Get=\"getDeviceCode\" Set=\"setDeviceCode\" >"
             + "     <item>1</item> <item>2</item> <item>3</item> <item>4</item> <item>5</item> <item>6</item> <item>7</item> <item>8</item> <item>All</item></Attribute>"
-            + "  <Action Name=\"up\" 	Method=\"up\" />"
-            + "  <Action Name=\"stop\" 	Method=\"stop\" />"
-            + "  <Action Name=\"down\" 	Method=\"down\" Default=\"true\" />"
-            + "  <Action Name=\"confirm\" 	Method=\"confirm\" />"
+            + "  <Attribute Name=\"TravelTime\" Type=\"String\" Get=\"getTravelTime\" 	Set=\"setTravelTime\" />"
+            + "  <Attribute Name=\"Position1\" Type=\"String\" Get=\"getPosition1\" 	Set=\"setPosition1\" />"
+            + "  <Attribute Name=\"Position2\" Type=\"String\" Get=\"getPosition2\" 	Set=\"setPosition2\" />"
+            + "  <Action Name=\"up\" 	Method=\"blindUp\" />"
+            + "  <Action Name=\"stop\" 	Method=\"blindStop\" />"
+            + "  <Action Name=\"down\" 	Method=\"blindDown\" Default=\"true\" />"
+            + "  <Action Name=\"Position1\" 	Method=\"position1\" />"
+            + "  <Action Name=\"Position2\" 	Method=\"position2\" />"
+            + "  <Action Name=\"setupConfirm\" 	Method=\"blindConfirm\" />"
+            + "  <Action Name=\"setupLimit\" 	Method=\"blindLimit\" />"
+            + "  <Action Name=\"setupReverse\" 	Method=\"blindReverse\" />"
             + "</HomeItem> ");
 
     private static Logger logger = Logger.getLogger(RollerTrolBlind.class.getName());
 
-    // Public attributes
+    private Timer stopTimer = new Timer("RollerTrolBlind", true);
     private int houseCode = 1;
     private int deviceCode = 1;
     private BlindState state = new BlindState();
-    private String travelTime;
+    private int position1;
+    private int position2;
 
     public boolean receiveEvent(Event event) {
         // Check if this is an inward event directed to this instance
@@ -110,9 +119,19 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
         return true;
     }
 
-
+    @Override
     public String getModel() {
         return MODEL;
+    }
+
+    @Override
+    public void stop() {
+        super.stop();
+        deactivateStopTimer();
+    }
+
+    private void deactivateStopTimer() {
+        stopTimer.cancel();
     }
 
     public String getHouseCode() {
@@ -143,29 +162,38 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
         ev.setAttribute(COMMAND_ATTRIBUTE, command);
         ev.setAttribute("Repeat", 15);
         server.send(ev);
+        deactivateStopTimer();
     }
 
     public String getState() {
         return state.getStateString();
     }
 
-    public void up() {
+    public void blindUp() {
         sendCommand(UP);
         state.up();
     }
 
-    public void stop() {
+    public void blindStop() {
         sendCommand(STOP);
         state.stop();
     }
 
-    public void down() {
+    public void blindDown() {
         sendCommand(DOWN);
         state.down();
     }
 
-    public void confirm() {
+    public void blindConfirm() {
         sendCommand(CONFIRM);
+    }
+
+    public void blindLimit() {
+        sendCommand(LIMIT);
+    }
+
+    public void blindReverse() {
+        sendCommand(REVERSE);
     }
 
     public String getTravelTime() {
@@ -178,5 +206,70 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
         } else {
             state.setTravelTime(Long.parseLong(travelTime) * 1000);
         }
+    }
+
+    public String getPosition1() {
+        return position1 > 0 ? Integer.toString(position1) : "";
+    }
+
+    public void setPosition1(String position) {
+        this.position1 = calculatePosition(position, this.position1);
+    }
+
+    public String position1() {
+        return goToPosition(position1);
+    }
+
+    private String goToPosition(int pos) {
+        long wantedPosition = state.getTravelTime() * pos / 100;
+        long currentPosition = state.getCurrentPosition();
+        long distance = Math.abs(wantedPosition - currentPosition);
+        if (distance < MINIMAL_MOVEMENT_TIME) {
+            return "";
+        }
+        if (wantedPosition > currentPosition) {
+            blindDown();
+        } else {
+            blindUp();
+        }
+        activateStopTimer(distance);
+        return "";
+    }
+
+
+    public String getPosition2() {
+        return position2 > 0 ? Integer.toString(position2) : "";
+    }
+
+    public void setPosition2(String position) {
+        this.position2 = calculatePosition(position, this.position2);
+    }
+
+    private int calculatePosition(String position, int result) {
+        if (position.length() == 0) {
+            result = 0;
+        } else {
+            int pos = Integer.parseInt(position);
+            if (pos > 1 && pos < 100) {
+                result = pos;
+            }
+        }
+        return result;
+    }
+
+    public String position2() {
+        return goToPosition(position2);
+    }
+
+
+
+    private void activateStopTimer(long time) {
+        stopTimer = new Timer("RollerTrolBlind", true);
+        stopTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                blindStop();
+            }
+        }, time);
     }
 }
