@@ -36,7 +36,7 @@ import static nu.nethome.coders.RollerTrol.*;
  * @author Stefan
  */
 @Plugin
-@HomeItemType(value = "Hardware", creationInfo = RollerTrolBlind.RollerTrolCreationInfo.class)
+@HomeItemType(value = "Actuators", creationInfo = RollerTrolBlind.RollerTrolCreationInfo.class)
 public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
 
     public static final String HOUSE_CODE_ATTRIBUTE = "RollerTrol.HouseCode";
@@ -64,7 +64,7 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
     }
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
-            + "<HomeItem Class=\"RollerTrolBlind\" Category=\"Hardware\" >"
+            + "<HomeItem Class=\"RollerTrolBlind\" Category=\"Actuators\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"RemoteId\" Type=\"String\" Get=\"getHouseCode\" 	Set=\"setHouseCode\" />"
             + "  <Attribute Name=\"Channel\" Type=\"StringList\" Get=\"getDeviceCode\" Set=\"setDeviceCode\" >"
@@ -74,7 +74,8 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
             + "  <Attribute Name=\"Position2\" Type=\"String\" Get=\"getPosition2\" 	Set=\"setPosition2\" />"
             + "  <Action Name=\"up\" 	Method=\"blindUp\" />"
             + "  <Action Name=\"stop\" 	Method=\"blindStop\" />"
-            + "  <Action Name=\"down\" 	Method=\"blindDown\" Default=\"true\" />"
+            + "  <Action Name=\"down\" 	Method=\"blindDown\" />"
+            + "  <Action Name=\"toggle\" 	Method=\"blindToggle\" Default=\"true\" />"
             + "  <Action Name=\"Position1\" 	Method=\"position1\" />"
             + "  <Action Name=\"Position2\" 	Method=\"position2\" />"
             + "  <Action Name=\"setupConfirm\" 	Method=\"blindConfirm\" />"
@@ -184,6 +185,14 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
         state.down();
     }
 
+    public void blindToggle() {
+        if (state.getStateString().equals(BlindState.UP_STRING)) {
+            blindDown();
+        } else {
+            blindUp();
+        }
+    }
+
     public void blindConfirm() {
         sendCommand(CONFIRM);
     }
@@ -197,7 +206,7 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
     }
 
     public String getTravelTime() {
-        return Long.toString(state.getTravelTime() / 1000);
+        return state.getTravelTime() > 0 ? Long.toString(state.getTravelTime() / 1000) : "";
     }
 
     public void setTravelTime(String travelTime) {
