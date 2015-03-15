@@ -78,9 +78,9 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
             + "  <Action Name=\"toggle\" 	Method=\"blindToggle\" Default=\"true\" />"
             + "  <Action Name=\"Position1\" 	Method=\"position1\" />"
             + "  <Action Name=\"Position2\" 	Method=\"position2\" />"
-            + "  <Action Name=\"setupConfirm\" 	Method=\"blindConfirm\" />"
-            + "  <Action Name=\"setupLimit\" 	Method=\"blindLimit\" />"
-            + "  <Action Name=\"setupReverse\" 	Method=\"blindReverse\" />"
+            + "  <Action Name=\"setConfirm\" 	Method=\"blindConfirm\" />"
+            + "  <Action Name=\"setLimit\" 	Method=\"blindLimit\" />"
+            + "  <Action Name=\"setReverse\" 	Method=\"blindReverse\" />"
             + "</HomeItem> ");
 
     private static Logger logger = Logger.getLogger(RollerTrolBlind.class.getName());
