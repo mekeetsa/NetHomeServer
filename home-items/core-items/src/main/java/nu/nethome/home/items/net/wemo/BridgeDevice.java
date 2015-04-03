@@ -5,37 +5,17 @@ package nu.nethome.home.items.net.wemo;
  */
 public class BridgeDevice {
     private final int deviceIndex;
-    private final String deviceID;
     private final String friendlyName;
     private final String iconVersion;
     private final String firmwareVersion;
-    private final String capabilityIDs;
-    private final String currentState;
-    private final int onState;
-    private final int brightness;
+    private final BridgeDeviceStatus status;
 
     public BridgeDevice(int deviceIndex, String deviceID, String friendlyName, String iconVersion, String firmwareVersion, String capabilityIDs, String currentState) {
+        this.status = new BridgeDeviceStatus(deviceID, capabilityIDs, currentState);
         this.deviceIndex = deviceIndex;
-        this.deviceID = deviceID;
         this.friendlyName = friendlyName;
         this.iconVersion = iconVersion;
         this.firmwareVersion = firmwareVersion;
-        this.capabilityIDs = capabilityIDs;
-        this.currentState = currentState;
-        String stateParts[] = currentState.split(",");
-        if (stateParts.length >= 2) {
-            if (stateParts[0].equals("1")) {
-                onState = 1;
-            } else {
-                onState = 0;
-            }
-            String brightParts[] = stateParts[1].split(":");
-            brightness = Integer.parseInt(brightParts[0]);
-        } else {
-            onState = -1;
-            brightness = -1;
-        }
-
     }
 
     public int getDeviceIndex() {
@@ -43,7 +23,7 @@ public class BridgeDevice {
     }
 
     public String getDeviceID() {
-        return deviceID;
+        return status.getDeviceID();
     }
 
     public String getFriendlyName() {
@@ -59,18 +39,18 @@ public class BridgeDevice {
     }
 
     public String getCapabilityIDs() {
-        return capabilityIDs;
+        return status.getCapabilityIDs();
     }
 
     public String getCurrentRawState() {
-        return currentState;
+        return status.getCurrentRawState();
     }
 
     public int getOnState() {
-        return onState;
+        return status.getOnState();
     }
 
     public int getBrightness() {
-        return brightness;
+        return status.getBrightness();
     }
 }

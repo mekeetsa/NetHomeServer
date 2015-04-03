@@ -39,8 +39,7 @@ public class LightSoapClient {
         SOAPBody soapBody = envelope.getBody();
         SOAPElement soapBodyElem = soapBody.addChildElement(method, ns);
         for (Argument argument : arguments) {
-            SOAPElement soapBodyElem1 = soapBodyElem.addChildElement(argument.name);
-            soapBodyElem1.addTextNode(argument.value);
+            argument.addAsChild(soapBodyElem);
         }
         MimeHeaders headers = soapMessage.getMimeHeaders();
         headers.addHeader("SOAPACTION", "\"" + nameSpace + "#" + method + "\"");
@@ -86,13 +85,23 @@ public class LightSoapClient {
         return soapResponse;
     }
 
-    public static class Argument {
-        public final String name;
-        public final String value;
+    public interface Argument {
+        public void addAsChild(SOAPElement parent) throws SOAPException;
+    }
 
-        public Argument(String name, String value) {
+    public static class StringArgument implements Argument{
+        private final String name;
+        private final String value;
+
+        public StringArgument(String name, String value) {
             this.name = name;
             this.value = value;
+        }
+
+        @Override
+        public void addAsChild(SOAPElement parent) throws SOAPException {
+            SOAPElement soapArgumentElement = parent.addChildElement(name);
+            soapArgumentElement.addTextNode(value);
         }
 
         @Override
@@ -100,7 +109,7 @@ public class LightSoapClient {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Argument argument = (Argument) o;
+            StringArgument argument = (StringArgument) o;
 
             if (!name.equals(argument.name)) return false;
             if (!value.equals(argument.value)) return false;

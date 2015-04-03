@@ -23,7 +23,7 @@ public class WemoInsightSwitchClient extends LightSoapClient {
 
     public void setOnState(boolean isOn) throws WemoException {
         List<Argument> arguments = new ArrayList<>();
-        arguments.add(new Argument("BinaryState", isOn ? "1" :  "0"));
+        arguments.add(new StringArgument("BinaryState", isOn ? "1" :  "0"));
         try {
             sendRequest(BASICEVENT_NAMESPACE, wemoURL + BASICEVENT1_SERVICE_URL, SET_BINARY_STATE, arguments);
         } catch (SOAPException|IOException e) {

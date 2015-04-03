@@ -24,7 +24,7 @@ public class WemoBridgeSoapClientTest {
 
     @Before
     public void setUp() throws Exception {
-        client = new WemoBridgeSoapClient("http://192.168.1.17:49153");
+        client = new WemoBridgeSoapClient("http://192.168.1.5:49153");
         //client = new WemoBridgeSoapClient("http://127.0.0.1:49000");
     }
 
@@ -33,6 +33,20 @@ public class WemoBridgeSoapClientTest {
     public void testConnection() throws Exception, WemoException {
         List<BridgeDevice> endDevices = client.getEndDevices("uuid:Bridge-1_0-231447B0100DE4");
         int size = endDevices.size();
+    }
+
+    @Ignore
+    @Test
+    public void testConnection2() throws Exception, WemoException {
+        String endDevices = client.getDeviceStatus("uuid:Bridge-1_0-231447B0100DE4");
+        int size = endDevices.length();
+    }
+
+    @Ignore
+    @Test
+    public void testConnection3() throws Exception, WemoException {
+        boolean result = client.setDeviceStatus("94103EA2B278CAD5", true, 50);
+        int size = result ? 1 : 0;
     }
 
     @Test

@@ -1,7 +1,6 @@
 package nu.nethome.home.items.net.wemo;
 
 import com.sun.org.apache.xerces.internal.parsers.DOMParser;
-import nu.nethome.home.impl.ModelException;
 import nu.nethome.home.items.net.wemo.soap.LightSoapClient;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -9,10 +8,10 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 public class WemoBridgeSoapClient extends LightSoapClient {
@@ -24,17 +23,48 @@ public class WemoBridgeSoapClient extends LightSoapClient {
     private String wemoURL;
 
     public WemoBridgeSoapClient(String wemoURL) {
+        super(500, 2000);
         this.wemoURL = wemoURL;
     }
 
     public List<BridgeDevice> getEndDevices(String deviceUdn) throws WemoException {
         try {
             List<Argument> arguments = new ArrayList<>();
-            arguments.add(new Argument("DevUDN", deviceUdn));
-            arguments.add(new Argument("ReqListType", "PAIRED_LIST"));
+            arguments.add(new StringArgument("DevUDN", deviceUdn));
+            arguments.add(new StringArgument("ReqListType", "PAIRED_LIST"));
             Map<String, String> result = sendRequest(BRIDGE_NAMESPACE, wemoURL + BRIDGE_SERVICE_URL, GET_END_DEVICES, arguments);
             String deviceLists = result.get("DeviceLists");
             return parseDeviceList(deviceLists);
+        } catch (SOAPException | IOException e) {
+            throw new WemoException(e);
+        }
+    }
+
+    /**
+     * Just for testing - does not work really
+     */
+    public String getDeviceStatus(String deviceUdn) throws WemoException {
+        try {
+            List<Argument> arguments = new ArrayList<>();
+            arguments.add(new StringArgument("DeviceIDs", "94103EA2B278CAD5"));
+            Map<String, String> result = sendRequest(BRIDGE_NAMESPACE, wemoURL + BRIDGE_SERVICE_URL, "GetDeviceStatus", arguments);
+            String deviceLists = result.get("DeviceStatusList");
+            return deviceLists;
+        } catch (SOAPException | IOException e) {
+            throw new WemoException(e);
+        }
+    }
+
+    public boolean setDeviceStatus(String deviceId, boolean isOn, int brightness) throws WemoException {
+        try {
+            List<Argument> arguments = new ArrayList<>();
+            arguments.add(new BridgeDeviceStatus(deviceId, isOn, brightness));
+            Map<String, String> result = sendRequest(BRIDGE_NAMESPACE, wemoURL + BRIDGE_SERVICE_URL, "SetDeviceStatus", arguments);
+            if (result.size() == 0) {
+                return true;
+            } else {
+                return false;
+            }
         } catch (SOAPException | IOException e) {
             throw new WemoException(e);
         }
