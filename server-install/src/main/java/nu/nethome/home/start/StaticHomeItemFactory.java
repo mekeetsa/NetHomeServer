@@ -118,6 +118,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("WemoInsightSwitch", nu.nethome.home.items.net.wemo.WemoInsightSwitch.class),
             new HomeItemClassInfo("WemoSwitch", nu.nethome.home.items.net.wemo.WemoSwitch.class),
             new HomeItemClassInfo("WemoBridge", nu.nethome.home.items.net.wemo.WemoBridge.class),
+            new HomeItemClassInfo("WemoLamp", nu.nethome.home.items.net.wemo.WemoLamp.class),
             new HomeItemClassInfo("UPnPScanner", nu.nethome.home.items.net.wemo.UPnPScanner.class),
 
             // rf-items

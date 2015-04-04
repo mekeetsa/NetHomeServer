@@ -22,6 +22,16 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
 
     public static final String UPN_P_CREATION_MESSAGE = "UPnP_Creation_Message";
     public static final String BELKIN_WEMO_BRIDGE_DEVICE = "urn:Belkin:device:bridge:1";
+    public static final String WEMO_LIGHT_MESSAGE = "WemoLight_Message";
+    public static final String DEVICE_INDEX = "DeviceIndex";
+    public static final String DEVICE_ID = "DeviceID";
+    public static final String FRIENDLY_NAME = "FriendlyName";
+    public static final String FIRMWARE_VERSION = "FirmwareVersion";
+    public static final String CAPABILITY_IDS = "CapabilityIDs";
+    public static final String ON_STATE = "OnState";
+    public static final String BRIGHTNESS = "Brightness";
+    public static final String BRIDGE_URL = "BridgeUrl";
+    public static final String BRIDGE_UDN = "BridgeUDN";
 
     public static class WemoCreationInfo implements AutoCreationInfo {
         static final String[] CREATION_EVENTS = {UPN_P_CREATION_MESSAGE};
@@ -74,16 +84,30 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
     }
 
     public boolean receiveEvent(Event event) {
-        if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(UPN_P_CREATION_MESSAGE) &&
+        if (event.isType(UPN_P_CREATION_MESSAGE) &&
                 event.getAttribute("DeviceType").equals(BELKIN_WEMO_BRIDGE_DEVICE) &&
                 event.getAttribute("UDN").equals(udn)) {
             setDeviceURL(event.getAttribute("Location"));
             return true;
-        }  else if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals("ReportItems")) {
+        }  else if (event.isType("ReportItems")) {
             reportAllDevices();
             return true;
+        } else if (event.isType(WEMO_LIGHT_MESSAGE) &&
+                event.getAttribute("Direction").equals("Out")) {
+            return updateDeviceState(event);
         }
         return handleInit(event);
+    }
+
+    private boolean updateDeviceState(Event event) {
+        boolean isOn = event.getAttributeInt(ON_STATE) == 1;
+        int brightness = event.getAttributeInt(BRIGHTNESS);
+        try {
+            return soapClient.setDeviceStatus(event.getAttribute(DEVICE_ID), isOn, brightness);
+        } catch (WemoException e) {
+            logger.warning("Failed to send message to Wemo bridge");
+            return false;
+        }
     }
 
     @Override
@@ -107,16 +131,16 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
     }
 
     private void reportDevice(BridgeDevice device) {
-        Event event = server.createEvent("WemoLight_Message", "");
-        event.setAttribute("DeviceIndex", device.getDeviceIndex());
-        event.setAttribute("DeviceID", device.getDeviceID());
-        event.setAttribute("FriendlyName", device.getFriendlyName());
-        event.setAttribute("FirmwareVersion", device.getFirmwareVersion());
-        event.setAttribute("CapabilityIDs", device.getCapabilityIDs());
-        event.setAttribute("OnState", device.getOnState());
-        event.setAttribute("Brightness", device.getBrightness());
-        event.setAttribute("BridgeUrl", wemoDescriptionUrl);
-        event.setAttribute("BridgeUDN", udn);
+        Event event = server.createEvent(WEMO_LIGHT_MESSAGE, "");
+        event.setAttribute(DEVICE_INDEX, device.getDeviceIndex());
+        event.setAttribute(DEVICE_ID, device.getDeviceID());
+        event.setAttribute(FRIENDLY_NAME, device.getFriendlyName());
+        event.setAttribute(FIRMWARE_VERSION, device.getFirmwareVersion());
+        event.setAttribute(CAPABILITY_IDS, device.getCapabilityIDs());
+        event.setAttribute(ON_STATE, device.getOnState());
+        event.setAttribute(BRIGHTNESS, device.getBrightness());
+        event.setAttribute(BRIDGE_URL, wemoDescriptionUrl);
+        event.setAttribute(BRIDGE_UDN, udn);
         event.setAttribute("Direction", "In");
         server.send(event);
     }

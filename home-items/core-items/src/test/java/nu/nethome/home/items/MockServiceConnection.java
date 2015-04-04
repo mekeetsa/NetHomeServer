@@ -68,6 +68,10 @@ public class MockServiceConnection implements HomeService {
             return new int[0];  //To change body of implemented methods use File | Settings | File Templates.
         }
 
+        public boolean isType(String typeName) {
+            return getAttribute(EVENT_TYPE_ATTRIBUTE).equals(typeName);
+        }
+
         public void setAttribute(String name, String value) {
             attributes.put(name, value);
         }

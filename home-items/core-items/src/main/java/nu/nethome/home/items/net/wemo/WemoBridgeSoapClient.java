@@ -78,8 +78,8 @@ public class WemoBridgeSoapClient extends LightSoapClient {
             InputSource source = new InputSource(byteStream);
             parser.parse(source);
             Document document = parser.getDocument();
-            Node deviceListsx = getChildNode(document, "DeviceLists");;
-            Node deviceList = getChildNode(deviceListsx, "DeviceList");;
+            Node deviceListsx = getChildNode(document, "DeviceLists");
+            Node deviceList = getChildNode(deviceListsx, "DeviceList");
             Node deviceInfos = getChildNode(deviceList, "DeviceInfos");
             NodeList deviceNodes = deviceInfos.getChildNodes();
             List<BridgeDevice> devices = new ArrayList<>();
