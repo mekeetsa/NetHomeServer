@@ -23,7 +23,7 @@ public class WemoBridgeSoapClient extends LightSoapClient {
     private String wemoURL;
 
     public WemoBridgeSoapClient(String wemoURL) {
-        super(500, 2000);
+        super(500, 10000);
         this.wemoURL = wemoURL;
     }
 
@@ -43,16 +43,59 @@ public class WemoBridgeSoapClient extends LightSoapClient {
     /**
      * Just for testing - does not work really
      */
-    public String getDeviceStatus(String deviceUdn) throws WemoException {
+    public List<BridgeDeviceStatus> getDeviceStatus(String deviceId) throws WemoException {
         try {
             List<Argument> arguments = new ArrayList<>();
-            arguments.add(new StringArgument("DeviceIDs", "94103EA2B278CAD5"));
+            arguments.add(new StringArgument("DeviceIDs", deviceId));
             Map<String, String> result = sendRequest(BRIDGE_NAMESPACE, wemoURL + BRIDGE_SERVICE_URL, "GetDeviceStatus", arguments);
-            String deviceLists = result.get("DeviceStatusList");
-            return deviceLists;
+            String deviceList = result.get("DeviceStatusList");
+            return parseDeviceStatusList(deviceList);
         } catch (SOAPException | IOException e) {
             throw new WemoException(e);
         }
+    }
+
+    private List<BridgeDeviceStatus> parseDeviceStatusList(String deviceListString) {
+        DOMParser parser = new DOMParser();
+        ByteArrayInputStream byteStream;
+        try {
+            byteStream = new ByteArrayInputStream(deviceListString.getBytes("UTF-8"));
+            InputSource source = new InputSource(byteStream);
+            parser.parse(source);
+            Document document = parser.getDocument();
+            Node deviceStatusList = getChildNode(document, "DeviceStatusList");
+            NodeList deviceStatusNodes = deviceStatusList.getChildNodes();
+            List<BridgeDeviceStatus> devices = new ArrayList<>();
+            for (int i = 0; i < deviceStatusNodes.getLength(); i++) {
+                Node possibleDevice = deviceStatusNodes.item(i);
+                if (possibleDevice.getNodeType() == Node.ELEMENT_NODE && possibleDevice.getLocalName().equals("DeviceStatus")) {
+                    devices.add(parseBridgeDeviceStatus(deviceStatusNodes.item(i)));
+                }
+            }
+            return devices;
+        } catch (SAXException | IOException e) {
+            return Collections.emptyList();
+        }
+    }
+
+    private BridgeDeviceStatus parseBridgeDeviceStatus(Node statusNode) {
+        String deviceID = "";
+        String capabilityIDs = "";
+        String currentState = "";
+        NodeList childNodes = statusNode.getChildNodes();
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            Node possibleAttribute = childNodes.item(i);
+            if (isElementNamed(possibleAttribute, "DeviceID")) {
+                deviceID = possibleAttribute.getTextContent();
+            }
+            if (isElementNamed(possibleAttribute, "CapabilityID")) {
+                capabilityIDs = possibleAttribute.getTextContent();
+            }
+            if (isElementNamed(possibleAttribute, "CapabilityValue")) {
+                currentState = possibleAttribute.getTextContent();
+            }
+        }
+        return new BridgeDeviceStatus(deviceID, capabilityIDs, currentState);
     }
 
     public boolean setDeviceStatus(String deviceId, boolean isOn, int brightness) throws WemoException {

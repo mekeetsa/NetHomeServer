@@ -38,8 +38,8 @@ public class WemoBridgeSoapClientTest {
     @Ignore
     @Test
     public void testConnection2() throws Exception, WemoException {
-        String endDevices = client.getDeviceStatus("uuid:Bridge-1_0-231447B0100DE4");
-        int size = endDevices.length();
+        List<BridgeDeviceStatus> statuses = client.getDeviceStatus("94103EA2B278CAD5");
+        int size = statuses.size();
     }
 
     @Ignore
@@ -86,4 +86,28 @@ public class WemoBridgeSoapClientTest {
             "    </DeviceList>\n" +
             "</DeviceLists>";
 
+    @Test
+    public void canListDeviceStatuses() throws Exception, WemoException {
+        client = spy(client);
+        Map<String, String> result = new HashMap<>();
+        result.put("DeviceStatusList", DEVICE_STATUS_RESPONSE);
+        doReturn(result).when(client).sendRequest(anyString(), anyString(), anyString(), anyList());
+
+        List<BridgeDeviceStatus> deviceStatus = client.getDeviceStatus("94103EA2B278CAD5");
+        assertThat(deviceStatus.size(), is(1));
+        assertThat(deviceStatus.get(0).getDeviceID(), is("94103EA2B278CAD5"));
+        assertThat(deviceStatus.get(0).getCapabilityIDs(), is("10006,10008,30008,30009,3000A"));
+        assertThat(deviceStatus.get(0).getOnState(), is(1));
+        assertThat(deviceStatus.get(0).getBrightness(), is(68));
+    }
+
+    private static final String DEVICE_STATUS_RESPONSE = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
+            "<DeviceStatusList>\n" +
+            "<DeviceStatus>\n" +
+            "    <IsGroupAction>NO</IsGroupAction>\n" +
+            "    <DeviceID available=\"YES\">94103EA2B278CAD5</DeviceID>\n" +
+            "    <CapabilityID>10006,10008,30008,30009,3000A</CapabilityID>\n" +
+            "    <CapabilityValue>1,68:0,0:0,,</CapabilityValue>\n" +
+            "</DeviceStatus>\n" +
+            "</DeviceStatusList>";
 }

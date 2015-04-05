@@ -8,6 +8,7 @@ import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
 
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
 
 /**
@@ -32,9 +33,12 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
     public static final String BRIGHTNESS = "Brightness";
     public static final String BRIDGE_URL = "BridgeUrl";
     public static final String BRIDGE_UDN = "BridgeUDN";
+    public static final String QUIT_EVENT = "QUIT";
+    private LinkedBlockingQueue<Event> eventQueue;
 
     public static class WemoCreationInfo implements AutoCreationInfo {
         static final String[] CREATION_EVENTS = {UPN_P_CREATION_MESSAGE};
+
         @Override
         public String[] getCreationEvents() {
             return CREATION_EVENTS;
@@ -47,7 +51,7 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
 
         @Override
         public String getCreationIdentification(Event e) {
-            return String.format("Belkin Wemo Bridge: \"%s\", UDN: %s",e.getAttribute("FriendlyName"), e.getAttribute("UDN"));
+            return String.format("Belkin Wemo Bridge: \"%s\", UDN: %s", e.getAttribute("FriendlyName"), e.getAttribute("UDN"));
         }
     }
 
@@ -68,6 +72,7 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
 
     public WemoBridge() {
         soapClient = new WemoBridgeSoapClient("");
+        eventQueue = new LinkedBlockingQueue<Event>(5);
     }
 
     WemoBridgeSoapClient getSoapClient() {
@@ -80,7 +85,24 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
 
     @Override
     public void activate() {
-        reportAllDevices();
+        startBackgroundProcessThread();
+        backgroundProcess(server.createEvent("ReportItems", ""));
+    }
+
+    @Override
+    public void stop() {
+        eventQueue.clear();
+        backgroundProcess(server.createEvent(QUIT_EVENT, ""));
+        super.stop();
+    }
+
+    private void startBackgroundProcessThread() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                backgroundProcessor();
+            }
+        }, "WemoBridge").start();
     }
 
     public boolean receiveEvent(Event event) {
@@ -89,25 +111,64 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
                 event.getAttribute("UDN").equals(udn)) {
             setDeviceURL(event.getAttribute("Location"));
             return true;
-        }  else if (event.isType("ReportItems")) {
-            reportAllDevices();
-            return true;
-        } else if (event.isType(WEMO_LIGHT_MESSAGE) &&
-                event.getAttribute("Direction").equals("Out")) {
-            return updateDeviceState(event);
+        } else if (event.isType("ReportItems") || event.isType(WEMO_LIGHT_MESSAGE)) {
+            backgroundProcess(event);
         }
         return handleInit(event);
+    }
+
+    private boolean backgroundProcess(Event event) {
+        return eventQueue.offer(event);
+    }
+
+    public void backgroundProcessor() {
+        while (true) {
+            Event event;
+            try {
+                event = eventQueue.take();
+                if (event.isType(QUIT_EVENT)) {
+                    return;
+                } else if (event.isType("ReportItems")) {
+                    reportAllDevices();
+                } else if (event.isType(WEMO_LIGHT_MESSAGE) &&
+                        event.getAttribute("Direction").equals("Out")) {
+                    updateDeviceState(event);
+                }
+            } catch (InterruptedException e) {
+                return;
+            }
+        }
     }
 
     private boolean updateDeviceState(Event event) {
         boolean isOn = event.getAttributeInt(ON_STATE) == 1;
         int brightness = event.getAttributeInt(BRIGHTNESS);
         try {
-            return soapClient.setDeviceStatus(event.getAttribute(DEVICE_ID), isOn, brightness);
+            boolean result = soapClient.setDeviceStatus(event.getAttribute(DEVICE_ID), isOn, brightness);
         } catch (WemoException e) {
             logger.warning("Failed to send message to Wemo bridge");
-            return false;
         }
+        try {
+            List<BridgeDeviceStatus> deviceStatuses = soapClient.getDeviceStatus(event.getAttribute(DEVICE_ID));
+            for (BridgeDeviceStatus deviceStatus : deviceStatuses) {
+                reportDeviceStatus(deviceStatus);
+            }
+        } catch (WemoException e) {
+            logger.warning("Failed to send message to Wemo bridge");
+        }
+        return true;
+    }
+
+    private void reportDeviceStatus(BridgeDeviceStatus deviceStatus) {
+        Event event = server.createEvent(WEMO_LIGHT_MESSAGE, "");
+        event.setAttribute(DEVICE_ID, deviceStatus.getDeviceID());
+        event.setAttribute(CAPABILITY_IDS, deviceStatus.getCapabilityIDs());
+        event.setAttribute(ON_STATE, deviceStatus.getOnState());
+        event.setAttribute(BRIGHTNESS, deviceStatus.getBrightness());
+        event.setAttribute(BRIDGE_URL, wemoDescriptionUrl);
+        event.setAttribute(BRIDGE_UDN, udn);
+        event.setAttribute("Direction", "In");
+        server.send(event);
     }
 
     @Override

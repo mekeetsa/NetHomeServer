@@ -25,7 +25,6 @@ import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
-
 import static nu.nethome.home.items.net.wemo.WemoBridge.*;
 
 /**
@@ -102,7 +101,18 @@ public class WemoLamp extends HomeItemAdapter implements HomeItem {
     }
 
     public boolean receiveEvent(Event event) {
-        return handleInit(event);
+        if (event.isType(WEMO_LIGHT_MESSAGE) &&
+                event.getAttribute("Direction").equals("In") &&
+                event.getAttribute(DEVICE_ID).equals(deviceId)) {
+            onState = event.getAttributeInt(ON_STATE);
+            int dimLevel = event.getAttributeInt(BRIGHTNESS);
+            if (dimLevel > 0) {
+                currentDimLevel = (int) (dimLevel / DIM_LEVEL_K);
+            }
+            return true;
+        } else {
+            return handleInit(event);
+        }
     }
 
     @Override
