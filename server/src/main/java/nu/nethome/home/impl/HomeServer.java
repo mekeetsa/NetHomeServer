@@ -20,6 +20,7 @@
 package nu.nethome.home.impl;
 
 import nu.nethome.home.item.*;
+import nu.nethome.home.items.UPnPScanner;
 import nu.nethome.home.system.*;
 import nu.nethome.util.plugin.PluginProvider;
 
@@ -433,9 +434,13 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
      */
     public void loadItems() {
         String currentFileName = getFileName();
-        List<HomeItem> sortedItems = homeItemLoader.loadItems(getFileName(), factory, this);
+        List<HomeItem> loadedItems = homeItemLoader.loadItems(getFileName(), factory, this);
 
-        for (HomeItem item : sortedItems) {
+        addSingletonItems(loadedItems);
+
+        sortOnStartOrder(loadedItems);
+
+        for (HomeItem item : loadedItems) {
             if (item.getItemId() > maxID) {
                 maxID = item.getItemId();
             }
@@ -443,7 +448,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
         maxID += 1;
 
         // Loop through all created Items, and register them
-        for (HomeItem item : sortedItems) {
+        for (HomeItem item : loadedItems) {
 
             // This is a backward compatibility check. If the Item has no valid ID, assign one
             if (item.getItemId() == 0) {
@@ -461,9 +466,9 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
         }
 
         // Now loop through all Items again in start order and activate them
-        int itemCount = sortedItems.size();
+        int itemCount = loadedItems.size();
         int activatedItemCount = 0;
-        for (HomeItem item : sortedItems) {
+        for (HomeItem item : loadedItems) {
             if (!item.getName().startsWith("#") && (item.getItemId() != 0)) {
                 try {
                     item.activate(this);
@@ -475,6 +480,35 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
         }
         HomeServer.logger.info("Activated " + Integer.toString(activatedItemCount) + " of " + Integer.toString(itemCount) + " Items");
         setFileName(currentFileName);
+    }
+
+    private void addSingletonItems(List<HomeItem> loadedItems) {
+        for (HomeItem loadedItem : loadedItems) {
+            if (loadedItem instanceof UPnPScanner) {
+                return;
+            }
+        }
+        UPnPScanner uPnPScanner = new UPnPScanner();
+        uPnPScanner.setName("UPnP_Scanner");
+        loadedItems.add(uPnPScanner);
+    }
+
+    private void sortOnStartOrder(List<HomeItem> sortedItems) {
+        Collections.sort(sortedItems, new Comparator<HomeItem>() {
+            public int compare(HomeItem o1, HomeItem o2) {
+                try {
+                    HomeItemModel m1 = StaticHomeItemModel.getModel(o1);
+                    HomeItemModel m2 = StaticHomeItemModel.getModel(o2);
+                    if (m1.getStartOrder() == m2.getStartOrder()) {
+                        return o1.getName().compareTo(o2.getName());
+                    }
+                    return m1.getStartOrder() > m2.getStartOrder() ? 1 : -1;
+                } catch (ModelException e) {
+                    // This should not happen...
+                    return 0;
+                }
+            }
+        });
     }
 
     public void saveItems() {

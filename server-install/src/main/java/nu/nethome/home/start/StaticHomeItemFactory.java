@@ -22,6 +22,7 @@ package nu.nethome.home.start;
 import nu.nethome.home.impl.HomeItemFactory;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemInfo;
+import nu.nethome.home.items.UPnPScanner;
 import nu.nethome.home.items.net.ArpScanner;
 import nu.nethome.home.items.tellstick.Tellstick;
 
@@ -119,7 +120,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("WemoSwitch", nu.nethome.home.items.net.wemo.WemoSwitch.class),
             new HomeItemClassInfo("WemoBridge", nu.nethome.home.items.net.wemo.WemoBridge.class),
             new HomeItemClassInfo("WemoLamp", nu.nethome.home.items.net.wemo.WemoLamp.class),
-            new HomeItemClassInfo("UPnPScanner", nu.nethome.home.items.net.wemo.UPnPScanner.class),
+            new HomeItemClassInfo("UPnPScanner", UPnPScanner.class),
 
             // rf-items
             new HomeItemClassInfo("UPMThermometer", nu.nethome.home.items.upm.UPMThermometer.class),

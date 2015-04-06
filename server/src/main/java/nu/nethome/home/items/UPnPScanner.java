@@ -1,4 +1,4 @@
-package nu.nethome.home.items.net.wemo;
+package nu.nethome.home.items;
 
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
@@ -60,7 +60,6 @@ public class UPnPScanner extends HomeItemAdapter implements HomeItem {
                 public void deviceRemoved(Device device) {
                 }
             });
-            controlPoint.search();
         } else {
             logger.warning("Could not start UPnP scanner");
         }

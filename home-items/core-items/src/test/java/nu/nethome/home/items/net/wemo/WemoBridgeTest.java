@@ -2,6 +2,7 @@ package nu.nethome.home.items.net.wemo;
 
 import com.sun.org.apache.xerces.internal.parsers.SAXParser;
 import nu.nethome.home.impl.InternalEvent;
+import nu.nethome.home.items.UPnPScanner;
 import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
 import org.junit.Before;
