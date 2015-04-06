@@ -18,6 +18,7 @@ public class WemoInsightSwitchClient extends LightSoapClient {
     private String wemoURL;
 
     public WemoInsightSwitchClient(String wemoURL) {
+        super(1000, 1000);
         this.wemoURL = wemoURL;
     }
 

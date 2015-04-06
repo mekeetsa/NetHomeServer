@@ -357,7 +357,8 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
                         itemName = home.getName();
                         logger.finest("Distributing event to " + itemName);
                         statistics.startItemDistribution(itemName);
-                        eventIsHandled |= home.receiveEvent(event);
+                        boolean handled = home.receiveEvent(event);
+                        eventIsHandled |= handled;
                     } catch (Exception e) {
                         logger.log(Level.WARNING, "Failed to distribute event to \"" + itemName + "\" (" + event.toString() + ") ", e);
                     }

@@ -27,11 +27,6 @@ import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
 import static nu.nethome.home.items.net.wemo.WemoBridge.*;
 
-/**
- * TODO:
- * Wemo bridge sends status events
- * Receive events and update state
- */
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
 @HomeItemType(value = "Lamps", creationInfo = WemoLamp.WemoCreationInfo.class)

@@ -14,7 +14,6 @@ import java.util.logging.Logger;
  *
  * @author Stefan
  * Todo: Move out soap client
- * Todo: Move+autocreate UPnPScanner
  * Todo: Handle lost connection
  * Todo: timePeriod
  * Todo: todayMW
