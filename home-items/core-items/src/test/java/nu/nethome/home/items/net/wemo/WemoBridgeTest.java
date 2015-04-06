@@ -85,6 +85,7 @@ public class WemoBridgeTest {
 
     @Test
     public void canListDevices() throws Exception, WemoException {
+        doReturn(new InternalEvent("WemoLight_Message")).when(homeService).createEvent(anyString(), anyString());
         wemoBridge.activate(homeService);
         BridgeDevice device = new BridgeDevice(1, "ID", "Name", "", "FW", "xx", "1,128:0,0:0,,");
         doReturn(Arrays.asList(device)).when(soapClient).getEndDevices(anyString());
