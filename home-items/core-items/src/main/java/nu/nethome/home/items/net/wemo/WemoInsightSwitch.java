@@ -7,6 +7,7 @@ import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -140,7 +141,7 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
             getInsightSwitch().setOnState(isOn);
             lastStateUpdate = 0;
         } catch (WemoException e) {
-            logger.warning("Failed to contact Wemo device: " + e.getMessage());
+            logger.warning("Failed to set on state in Wemo device " + wemoDescriptionUrl);
         }
     }
 
@@ -197,6 +198,7 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
                 lastStateUpdate = System.currentTimeMillis();
             }
         } catch (WemoException e) {
+            logger.log(Level.WARNING, "Failed to get insight parameters in Wemo Device " + wemoDescriptionUrl, e);
             currentState = null;
         }
     }

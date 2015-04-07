@@ -9,6 +9,7 @@ import nu.nethome.util.plugin.Plugin;
 
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -146,7 +147,7 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
         try {
             boolean result = soapClient.setDeviceStatus(event.getAttribute(DEVICE_ID), isOn, brightness);
         } catch (WemoException e) {
-            logger.warning("Failed to send message to Wemo bridge");
+            logger.log(Level.WARNING, "Failed to set device status in Wemo bridge " + wemoDescriptionUrl, e);
         }
         try {
             List<BridgeDeviceStatus> deviceStatuses = soapClient.getDeviceStatus(event.getAttribute(DEVICE_ID));
@@ -154,7 +155,7 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
                 reportDeviceStatus(deviceStatus);
             }
         } catch (WemoException e) {
-            logger.warning("Failed to send message to Wemo bridge");
+            logger.log(Level.WARNING, "Failed to get device status in Wemo bridge " + wemoDescriptionUrl, e);
         }
         return true;
     }
@@ -186,7 +187,7 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
                 reportDevice(device);
             }
         } catch (WemoException e) {
-            logger.warning("Failed to connect to WeMo Bridge: " + e.getMessage());
+            logger.log(Level.WARNING, "Failed to get devices from Wemo bridge " + wemoDescriptionUrl, e);
         }
         return "";
     }

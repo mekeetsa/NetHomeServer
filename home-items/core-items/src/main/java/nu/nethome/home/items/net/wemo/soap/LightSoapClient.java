@@ -68,6 +68,7 @@ public class LightSoapClient {
 
     private SOAPMessage sendRequest(String url, SOAPMessage request) throws SOAPException, IOException {
         // request.writeTo(System.out);
+        long starttime = System.currentTimeMillis();
         SOAPConnection soapConnection = SOAPConnectionFactory.newInstance().createConnection();
         URL endpoint = new URL(new URL(url), "", new URLStreamHandler() {
             @Override
@@ -82,6 +83,7 @@ public class LightSoapClient {
         SOAPMessage soapResponse = soapConnection.call(request, endpoint);
         // soapResponse.writeTo(System.out);
         soapConnection.close();
+        logger.info("SOAP message to " + url + " took " + (System.currentTimeMillis() - starttime) + " ms");
         return soapResponse;
     }
 
