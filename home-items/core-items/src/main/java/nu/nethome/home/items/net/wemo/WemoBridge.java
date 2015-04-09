@@ -35,6 +35,7 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
     public static final String BRIDGE_URL = "BridgeUrl";
     public static final String BRIDGE_UDN = "BridgeUDN";
     public static final String QUIT_EVENT = "QUIT";
+    public static final int UPDATE_ATTEMPTS = 3;
     private LinkedBlockingQueue<Event> eventQueue;
 
     public static class WemoCreationInfo implements AutoCreationInfo {
@@ -144,10 +145,13 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
     private boolean updateDeviceState(Event event) {
         boolean isOn = event.getAttributeInt(ON_STATE) == 1;
         int brightness = event.getAttributeInt(BRIGHTNESS);
-        try {
-            boolean result = soapClient.setDeviceStatus(event.getAttribute(DEVICE_ID), isOn, brightness);
-        } catch (WemoException e) {
-            logger.log(Level.WARNING, "Failed to set device status in Wemo bridge " + wemoDescriptionUrl, e);
+        for (int retry = 0; retry < UPDATE_ATTEMPTS; retry++) {
+            try {
+                boolean result = soapClient.setDeviceStatus(event.getAttribute(DEVICE_ID), isOn, brightness);
+                break;
+            } catch (WemoException e) {
+                logger.log(Level.WARNING, "Failed to set device status in " + wemoDescriptionUrl, e);
+            }
         }
         try {
             List<BridgeDeviceStatus> deviceStatuses = soapClient.getDeviceStatus(event.getAttribute(DEVICE_ID));
@@ -155,7 +159,7 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
                 reportDeviceStatus(deviceStatus);
             }
         } catch (WemoException e) {
-            logger.log(Level.WARNING, "Failed to get device status in Wemo bridge " + wemoDescriptionUrl, e);
+            logger.log(Level.WARNING, "Failed to get device status in " + wemoDescriptionUrl, e);
         }
         return true;
     }
@@ -187,7 +191,7 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
                 reportDevice(device);
             }
         } catch (WemoException e) {
-            logger.log(Level.WARNING, "Failed to get devices from Wemo bridge " + wemoDescriptionUrl, e);
+            logger.log(Level.WARNING, "Failed to get devices from " + wemoDescriptionUrl, e);
         }
         return "";
     }

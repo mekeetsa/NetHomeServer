@@ -14,13 +14,13 @@ import java.util.logging.Logger;
  * Represents a Belkin wemo insight switch
  *
  * @author Stefan
- * Todo: Move out soap client
- * Todo: Handle lost connection
- * Todo: timePeriod
- * Todo: todayMW
- * Todo: powerThresholdMW
- * Todo: lastChange (??)
- * Todo: subscribe for state changes
+ *         Todo: Move out soap client
+ *         Todo: Handle lost connection
+ *         Todo: timePeriod
+ *         Todo: todayMW
+ *         Todo: powerThresholdMW
+ *         Todo: lastChange (??)
+ *         Todo: subscribe for state changes
  */
 
 @Plugin
@@ -28,9 +28,12 @@ import java.util.logging.Logger;
 public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
 
     public static final String UPN_P_CREATION_MESSAGE = "UPnP_Creation_Message";
+    public static final int RETRY_ATTEMPTS = 3;
+    public static final int READ_RETRY_ATTEMPTS = 2;
 
     public static class WemoCreationInfo implements AutoCreationInfo {
         static final String[] CREATION_EVENTS = {UPN_P_CREATION_MESSAGE};
+
         @Override
         public String[] getCreationEvents() {
             return CREATION_EVENTS;
@@ -43,7 +46,7 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
 
         @Override
         public String getCreationIdentification(Event e) {
-            return String.format("Belkin Wemo Insight Switch: \"%s\", SerialNr: %s",e.getAttribute("FriendlyName"), e.getAttribute("SerialNumber"));
+            return String.format("Belkin Wemo Insight Switch: \"%s\", SerialNr: %s", e.getAttribute("FriendlyName"), e.getAttribute("SerialNumber"));
         }
     }
 
@@ -137,12 +140,16 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
     }
 
     private void setOnState(boolean isOn) {
-        try {
-            getInsightSwitch().setOnState(isOn);
-            lastStateUpdate = 0;
-        } catch (WemoException e) {
-            logger.warning("Failed to set on state in Wemo device " + wemoDescriptionUrl);
+        for (int retry = 0; retry < RETRY_ATTEMPTS; retry++) {
+            try {
+                getInsightSwitch().setOnState(isOn);
+                lastStateUpdate = 0;
+                return;
+            } catch (WemoException e) {
+                logger.log(Level.WARNING, "Failed to set on state in " + wemoDescriptionUrl, e);
+            }
         }
+        logger.log(Level.WARNING, "Failed to set on state " + RETRY_ATTEMPTS + " Times");
     }
 
     public void toggle() {
@@ -192,14 +199,18 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
     }
 
     private void updateCurrentState() {
-        try {
-            if (System.currentTimeMillis() - lastStateUpdate > TIME_TO_CACHE_STATE) {
-                currentState = getInsightSwitch().getInsightParameters();
-                lastStateUpdate = System.currentTimeMillis();
+        if (System.currentTimeMillis() - lastStateUpdate > TIME_TO_CACHE_STATE) {
+            for (int retry = 0; retry < READ_RETRY_ATTEMPTS; retry++) {
+                try {
+                    currentState = getInsightSwitch().getInsightParameters();
+                    lastStateUpdate = System.currentTimeMillis();
+                    return;
+                } catch (WemoException e) {
+                    logger.log(Level.WARNING, "Failed to get from " + wemoDescriptionUrl, e);
+                    currentState = null;
+                }
             }
-        } catch (WemoException e) {
-            logger.log(Level.WARNING, "Failed to get insight parameters in Wemo Device " + wemoDescriptionUrl, e);
-            currentState = null;
+
         }
     }
 }

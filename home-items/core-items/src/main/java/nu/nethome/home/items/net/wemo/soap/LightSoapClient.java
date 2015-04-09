@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class LightSoapClient {
@@ -22,9 +23,11 @@ public class LightSoapClient {
     private int readTimeout = DEFAULT_READ_TIMEOUT;
 
     public LightSoapClient() {
+        Logger.getLogger("com.sun.xml.internal.messaging.saaj.client").setLevel(Level.OFF);
     }
 
     public LightSoapClient(int connectionTimeout, int readTimeout) {
+        this();
         this.connectionTimeout = connectionTimeout;
         this.readTimeout = readTimeout;
     }
@@ -83,7 +86,7 @@ public class LightSoapClient {
         SOAPMessage soapResponse = soapConnection.call(request, endpoint);
         // soapResponse.writeTo(System.out);
         soapConnection.close();
-        logger.info("SOAP message to " + url + " took " + (System.currentTimeMillis() - starttime) + " ms");
+        logger.info("SOAP msg " + url + " (" + (System.currentTimeMillis() - starttime) + " ms)");
         return soapResponse;
     }
 
