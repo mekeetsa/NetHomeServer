@@ -23,7 +23,7 @@ public class LightSoapClient {
     private int readTimeout = DEFAULT_READ_TIMEOUT;
 
     public LightSoapClient() {
-        Logger.getLogger("com.sun.xml.internal.messaging.saaj.client").setLevel(Level.OFF);
+        Logger.getLogger("com.sun.xml.internal.messaging").setLevel(Level.OFF);
     }
 
     public LightSoapClient(int connectionTimeout, int readTimeout) {

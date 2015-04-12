@@ -96,7 +96,6 @@ public class WemoBridgeTest {
         verify(homeService, times(1)).send(captor.capture());
 
         assertThat(captor.getValue().getAttribute(Event.EVENT_TYPE_ATTRIBUTE), is("WemoLight_Message"));
-        assertThat(captor.getValue().getAttribute("DeviceIndex"), is("1"));
         assertThat(captor.getValue().getAttribute("DeviceID"), is("ID"));
         assertThat(captor.getValue().getAttribute("FriendlyName"), is("Name"));
         assertThat(captor.getValue().getAttribute("FirmwareVersion"), is("FW"));

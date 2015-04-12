@@ -5,6 +5,7 @@ import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
+import nu.nethome.home.system.HomeService;
 import nu.nethome.util.plugin.Plugin;
 
 import java.util.List;
@@ -25,18 +26,14 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
     public static final String UPN_P_CREATION_MESSAGE = "UPnP_Creation_Message";
     public static final String BELKIN_WEMO_BRIDGE_DEVICE = "urn:Belkin:device:bridge:1";
     public static final String WEMO_LIGHT_MESSAGE = "WemoLight_Message";
-    public static final String DEVICE_INDEX = "DeviceIndex";
     public static final String DEVICE_ID = "DeviceID";
     public static final String FRIENDLY_NAME = "FriendlyName";
     public static final String FIRMWARE_VERSION = "FirmwareVersion";
     public static final String CAPABILITY_IDS = "CapabilityIDs";
     public static final String ON_STATE = "OnState";
     public static final String BRIGHTNESS = "Brightness";
-    public static final String BRIDGE_URL = "BridgeUrl";
-    public static final String BRIDGE_UDN = "BridgeUDN";
     public static final String QUIT_EVENT = "QUIT";
     public static final int UPDATE_ATTEMPTS = 3;
-    private LinkedBlockingQueue<Event> eventQueue;
 
     public static class WemoCreationInfo implements AutoCreationInfo {
         static final String[] CREATION_EVENTS = {UPN_P_CREATION_MESSAGE};
@@ -61,6 +58,7 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
             + "<HomeItem Class=\"WemoBridge\" Category=\"Hardware\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"DeviceURL\" Type=\"String\" Get=\"getDeviceURL\" Set=\"setDeviceURL\" />"
+            + "  <Attribute Name=\"RefreshInterval\" Type=\"String\" Get=\"getRefreshInterval\" Set=\"setRefreshInterval\" />"
             + "  <Attribute Name=\"Identity\" Type=\"String\" Get=\"getUDN\" Init=\"setUDN\" />"
             + "  <Attribute Name=\"ConnectedLamps\" Type=\"String\" Get=\"getConnectedLamps\" />"
             + "  <Action Name=\"ReportDevices\" Method=\"reportAllDevices\" />"
@@ -71,6 +69,9 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
     private String udn = "";
     private WemoBridgeSoapClient soapClient;
     private int connectedLamps = -1;
+    private LinkedBlockingQueue<Event> eventQueue;
+    private int refreshInterval = 63;
+    private int refreshCounter = 3;
 
     public WemoBridge() {
         soapClient = new WemoBridgeSoapClient("");
@@ -113,7 +114,7 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
                 event.getAttribute("UDN").equals(udn)) {
             setDeviceURL(event.getAttribute("Location"));
             return true;
-        } else if (event.isType("ReportItems") || event.isType(WEMO_LIGHT_MESSAGE)) {
+        } else if (event.isType("ReportItems") || event.isType(WEMO_LIGHT_MESSAGE) || event.isType(HomeService.MINUTE_EVENT_TYPE)) {
             backgroundProcess(event);
         }
         return handleInit(event);
@@ -135,10 +136,27 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
                 } else if (event.isType(WEMO_LIGHT_MESSAGE) &&
                         event.getAttribute("Direction").equals("Out")) {
                     updateDeviceState(event);
+                } else if (event.isType(HomeService.MINUTE_EVENT_TYPE) && --refreshCounter <= 0) {
+                    refreshCounter = refreshInterval;
+                    reportAllDeviceStates();
                 }
             } catch (InterruptedException e) {
                 return;
             }
+        }
+    }
+
+    private void reportAllDeviceStates() {
+        try {
+            List<BridgeDevice> endDevices = getSoapClient().getEndDevices(udn);
+            for (BridgeDevice endDevice : endDevices) {
+                List<BridgeDeviceStatus> deviceStatuses = soapClient.getDeviceStatus(endDevice.getDeviceID());
+                for (BridgeDeviceStatus deviceStatus : deviceStatuses) {
+                    reportDeviceStatus(deviceStatus);
+                }
+            }
+        } catch (WemoException e) {
+            logger.log(Level.WARNING, "Failed to get device states from " + wemoDescriptionUrl, e);
         }
     }
 
@@ -170,8 +188,6 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
         event.setAttribute(CAPABILITY_IDS, deviceStatus.getCapabilityIDs());
         event.setAttribute(ON_STATE, deviceStatus.getOnState());
         event.setAttribute(BRIGHTNESS, deviceStatus.getBrightness());
-        event.setAttribute(BRIDGE_URL, wemoDescriptionUrl);
-        event.setAttribute(BRIDGE_UDN, udn);
         event.setAttribute("Direction", "In");
         server.send(event);
     }
@@ -198,15 +214,12 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
 
     private void reportDevice(BridgeDevice device) {
         Event event = server.createEvent(WEMO_LIGHT_MESSAGE, "");
-        event.setAttribute(DEVICE_INDEX, device.getDeviceIndex());
         event.setAttribute(DEVICE_ID, device.getDeviceID());
         event.setAttribute(FRIENDLY_NAME, device.getFriendlyName());
         event.setAttribute(FIRMWARE_VERSION, device.getFirmwareVersion());
         event.setAttribute(CAPABILITY_IDS, device.getCapabilityIDs());
         event.setAttribute(ON_STATE, device.getOnState());
         event.setAttribute(BRIGHTNESS, device.getBrightness());
-        event.setAttribute(BRIDGE_URL, wemoDescriptionUrl);
-        event.setAttribute(BRIDGE_UDN, udn);
         event.setAttribute("Direction", "In");
         server.send(event);
     }
@@ -238,5 +251,14 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
 
     public String getConnectedLamps() {
         return connectedLamps > 0 ? Integer.toString(connectedLamps) : "";
+    }
+
+    public String getRefreshInterval() {
+        return Integer.toString(refreshInterval);
+    }
+
+    public void setRefreshInterval(String refreshInterval) {
+        this.refreshInterval = Integer.parseInt(refreshInterval);
+        this.refreshCounter = this.refreshInterval;
     }
 }
