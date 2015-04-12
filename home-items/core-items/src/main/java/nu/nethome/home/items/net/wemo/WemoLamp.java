@@ -99,11 +99,7 @@ public class WemoLamp extends HomeItemAdapter implements HomeItem {
         if (event.isType(WEMO_LIGHT_MESSAGE) &&
                 event.getAttribute("Direction").equals("In") &&
                 event.getAttribute(DEVICE_ID).equals(deviceId)) {
-            onState = event.getAttributeInt(ON_STATE);
-            int dimLevel = event.getAttributeInt(BRIGHTNESS);
-            if (dimLevel > 0) {
-                currentDimLevel = (int) (dimLevel / DIM_LEVEL_K);
-            }
+            updateAttributesFromEvent(event);
             return true;
         } else {
             return handleInit(event);
@@ -113,9 +109,18 @@ public class WemoLamp extends HomeItemAdapter implements HomeItem {
     @Override
     protected boolean initAttributes(Event event) {
         deviceId = event.getAttribute(DEVICE_ID);
+        updateAttributesFromEvent(event);
+        return true;
+    }
+
+    private void updateAttributesFromEvent(Event event) {
         friendlyName = event.getAttribute(FRIENDLY_NAME);
         firmwareVersion = event.getAttribute(FIRMWARE_VERSION);
-        return true;
+        onState = event.getAttributeInt(ON_STATE);
+        int dimLevel = event.getAttributeInt(BRIGHTNESS);
+        if (dimLevel > 0) {
+            currentDimLevel = (int) (dimLevel / DIM_LEVEL_K);
+        }
     }
 
     /**
