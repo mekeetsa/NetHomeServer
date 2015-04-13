@@ -150,36 +150,43 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
         try {
             List<BridgeDevice> endDevices = getSoapClient().getEndDevices(udn);
             for (BridgeDevice endDevice : endDevices) {
-                List<BridgeDeviceStatus> deviceStatuses = soapClient.getDeviceStatus(endDevice.getDeviceID());
-                for (BridgeDeviceStatus deviceStatus : deviceStatuses) {
-                    reportDeviceStatus(deviceStatus);
-                }
+                fetchAndReportDeviceStatus(endDevice.getDeviceID());
             }
         } catch (WemoException e) {
-            logger.log(Level.WARNING, "Failed to get device states from " + wemoDescriptionUrl, e);
+            logger.log(Level.INFO, "Failed to get device states from " + name, e);
         }
     }
 
     private boolean updateDeviceState(Event event) {
         boolean isOn = event.getAttributeInt(ON_STATE) == 1;
-        int brightness = event.getAttributeInt(BRIGHTNESS);
+        boolean result = setDeviceStatus(isOn, event.getAttributeInt(BRIGHTNESS), event.getAttribute(DEVICE_ID));
+        fetchAndReportDeviceStatus(event.getAttribute(DEVICE_ID));
+        return result;
+    }
+
+    private boolean setDeviceStatus(boolean on, int brightness, String deviceId) {
+        boolean result = false;
         for (int retry = 0; retry < UPDATE_ATTEMPTS; retry++) {
             try {
-                boolean result = soapClient.setDeviceStatus(event.getAttribute(DEVICE_ID), isOn, brightness);
-                break;
+                return soapClient.setDeviceStatus(deviceId, on, brightness);
             } catch (WemoException e) {
-                logger.log(Level.WARNING, "Failed to set device status in " + wemoDescriptionUrl, e);
+                logger.log(Level.FINE, "Failed to set device status in " + wemoDescriptionUrl, e);
             }
         }
+        logger.log(Level.INFO, String.format("Failed to set lamp status in %s after %d retries", name, UPDATE_ATTEMPTS));
+        return false;
+    }
+
+    private void fetchAndReportDeviceStatus(String deviceId) {
+        List<BridgeDeviceStatus> deviceStatuses = null;
         try {
-            List<BridgeDeviceStatus> deviceStatuses = soapClient.getDeviceStatus(event.getAttribute(DEVICE_ID));
+            deviceStatuses = soapClient.getDeviceStatus(deviceId);
             for (BridgeDeviceStatus deviceStatus : deviceStatuses) {
                 reportDeviceStatus(deviceStatus);
             }
         } catch (WemoException e) {
-            logger.log(Level.WARNING, "Failed to get device status in " + wemoDescriptionUrl, e);
+            logger.log(Level.INFO, String.format("Failed to get lamp status from %s", name));
         }
-        return true;
     }
 
     private void reportDeviceStatus(BridgeDeviceStatus deviceStatus) {
@@ -207,7 +214,7 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
                 reportDevice(device);
             }
         } catch (WemoException e) {
-            logger.log(Level.WARNING, "Failed to get devices from " + wemoDescriptionUrl, e);
+            logger.log(Level.INFO, "Failed to get devices from " + wemoDescriptionUrl, e);
         }
         return "";
     }

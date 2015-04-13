@@ -48,9 +48,7 @@ public class LightSoapClient {
         headers.addHeader("SOAPACTION", "\"" + nameSpace + "#" + method + "\"");
         headers.addHeader("Content-Type", "text/xml; charset=\"utf-8\"");
         soapMessage.saveChanges();
-        long startTime = System.currentTimeMillis();
         SOAPMessage response = sendRequest(serverURI, soapMessage);
-        logger.fine(String.format("Soap request to: %s took %d mS", serverURI, System.currentTimeMillis() - startTime));
         Map<String, String> result = new HashMap<>();
         SOAPBody soapBody1 = response.getSOAPBody();
         Iterator childElements = soapBody1.getChildElements();
@@ -86,7 +84,7 @@ public class LightSoapClient {
         SOAPMessage soapResponse = soapConnection.call(request, endpoint);
         // soapResponse.writeTo(System.out);
         soapConnection.close();
-        logger.info("SOAP msg " + url + " (" + (System.currentTimeMillis() - starttime) + " ms)");
+        logger.fine("SOAP msg " + url + " (" + (System.currentTimeMillis() - starttime) + " ms)");
         return soapResponse;
     }
 

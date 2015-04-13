@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
 
     public static final String UPN_P_CREATION_MESSAGE = "UPnP_Creation_Message";
-    public static final int RETRY_ATTEMPTS = 3;
+    public static final int UPDATE_RETRY_ATTEMPTS = 4;
     public static final int READ_RETRY_ATTEMPTS = 2;
 
     public static class WemoCreationInfo implements AutoCreationInfo {
@@ -140,16 +140,16 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
     }
 
     private void setOnState(boolean isOn) {
-        for (int retry = 0; retry < RETRY_ATTEMPTS; retry++) {
+        for (int retry = 0; retry < UPDATE_RETRY_ATTEMPTS; retry++) {
             try {
                 getInsightSwitch().setOnState(isOn);
                 lastStateUpdate = 0;
                 return;
             } catch (WemoException e) {
-                logger.log(Level.WARNING, "Failed to set on state in " + wemoDescriptionUrl, e);
+                logger.log(Level.FINE, "Failed to set on state in " + wemoDescriptionUrl, e);
             }
         }
-        logger.log(Level.WARNING, "Failed to set on state " + RETRY_ATTEMPTS + " Times");
+        logger.log(Level.INFO, String.format("Failed to set on state in %s after %d retries", name, UPDATE_RETRY_ATTEMPTS));
     }
 
     public void toggle() {
@@ -206,11 +206,11 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
                     lastStateUpdate = System.currentTimeMillis();
                     return;
                 } catch (WemoException e) {
-                    logger.log(Level.WARNING, "Failed to get from " + wemoDescriptionUrl, e);
+                    logger.log(Level.FINE, "Failed to get from " + wemoDescriptionUrl, e);
                     currentState = null;
                 }
             }
-
+            logger.log(Level.INFO, String.format("Failed to get state in %s after %d retries", name, READ_RETRY_ATTEMPTS));
         }
     }
 }
