@@ -4,6 +4,7 @@ import nu.nethome.home.item.AutoCreationInfo;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
+import nu.nethome.home.items.UPnPScanner;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
 
@@ -25,11 +26,10 @@ import java.util.logging.Logger;
 
 @Plugin
 @HomeItemType(value = "Lamps", creationInfo = WemoInsightSwitch.WemoCreationInfo.class)
-public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
+public class WemoInsightSwitch extends WemoSwitch implements HomeItem {
 
-    public static final String UPN_P_CREATION_MESSAGE = "UPnP_Creation_Message";
-    public static final int UPDATE_RETRY_ATTEMPTS = 4;
-    public static final int READ_RETRY_ATTEMPTS = 2;
+    public static final int READ_RETRY_ATTEMPTS = 1;
+    public static final String BELKIN_DEVICE_INSIGHT_URN = "urn:Belkin:device:insight:1";
 
     public static class WemoCreationInfo implements AutoCreationInfo {
         static final String[] CREATION_EVENTS = {UPN_P_CREATION_MESSAGE};
@@ -41,7 +41,7 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
 
         @Override
         public boolean canBeCreatedBy(Event e) {
-            return e.getAttribute("DeviceType").equals("urn:Belkin:device:insight:1");
+            return e.getAttribute("DeviceType").equals(BELKIN_DEVICE_INSIGHT_URN);
         }
 
         @Override
@@ -67,47 +67,19 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
     public static final int TIME_TO_CACHE_STATE = 300;
 
     private static Logger logger = Logger.getLogger(WemoInsightSwitch.class.getName());
-    private WemoInsightSwitchClient insightSwitch = new WemoInsightSwitchClient("http://192.168.1.16:49153");
     private InsightState currentState;
     private long lastStateUpdate = 0;
-    private String wemoDescriptionUrl = "";
-
-    // Public attributes
-    private String serialNumber = "";
 
     public String getModel() {
         return MODEL;
     }
 
-    WemoInsightSwitchClient getInsightSwitch() {
-        return insightSwitch;
-    }
-
-    public boolean receiveEvent(Event event) {
-        if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(UPN_P_CREATION_MESSAGE) &&
-                event.getAttribute("DeviceType").equals("urn:Belkin:device:insight:1") &&
-                event.getAttribute("SerialNumber").equals(serialNumber)) {
-            setDeviceURL(event.getAttribute("Location"));
-            return true;
-        }
-        return handleInit(event);
+    @Override
+    protected String getDeviceType() {
+        return BELKIN_DEVICE_INSIGHT_URN;
     }
 
     @Override
-    protected boolean initAttributes(Event event) {
-        setDeviceURL(event.getAttribute("Location"));
-        serialNumber = event.getAttribute("SerialNumber");
-        return true;
-    }
-
-    private String extractBaseUrl(String url) {
-        int pos = url.indexOf("/", 9);
-        if (pos > 0) {
-            return url.substring(0, pos);
-        }
-        return url;
-    }
-
     public String getState() {
         updateCurrentState();
         if (currentState == null) {
@@ -120,38 +92,13 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
         return "Off";
     }
 
-    public String getDeviceURL() {
-        return wemoDescriptionUrl;
+    @Override
+    protected void setOnState(boolean isOn) {
+        super.setOnState(isOn);
+        lastStateUpdate = 0;
     }
 
-    public void setDeviceURL(String url) {
-        wemoDescriptionUrl = url;
-        getInsightSwitch().setWemoURL(extractBaseUrl(url));
-    }
-
-    public void on() {
-        logger.fine("Switching on " + name);
-        setOnState(true);
-    }
-
-    public void off() {
-        logger.fine("Switching off " + name);
-        setOnState(false);
-    }
-
-    private void setOnState(boolean isOn) {
-        for (int retry = 0; retry < UPDATE_RETRY_ATTEMPTS; retry++) {
-            try {
-                getInsightSwitch().setOnState(isOn);
-                lastStateUpdate = 0;
-                return;
-            } catch (WemoException e) {
-                logger.log(Level.FINE, "Failed to set on state in " + wemoDescriptionUrl, e);
-            }
-        }
-        logger.log(Level.INFO, String.format("Failed to set on state in %s after %d retries", name, UPDATE_RETRY_ATTEMPTS));
-    }
-
+    @Override
     public void toggle() {
         logger.fine("Toggling " + name);
         updateCurrentState();
@@ -163,14 +110,6 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
         } else {
             off();
         }
-    }
-
-    public String getSerialNumber() {
-        return serialNumber;
-    }
-
-    public void setSerialNumber(String serialNumber) {
-        this.serialNumber = serialNumber;
     }
 
     public String getCurrentPowerConsumption() {
@@ -208,9 +147,13 @@ public class WemoInsightSwitch extends HomeItemAdapter implements HomeItem {
                 } catch (WemoException e) {
                     logger.log(Level.FINE, "Failed to get from " + wemoDescriptionUrl, e);
                     currentState = null;
+                    lastStateUpdate = System.currentTimeMillis(); // Treat this as an update too
+                    if (retry == 0) {
+                        server.send(server.createEvent(UPnPScanner.UPN_P_SCAN_MESSAGE, ""));
+                    }
                 }
             }
-            logger.log(Level.INFO, String.format("Failed to get state in %s after %d retries", name, READ_RETRY_ATTEMPTS));
+            logger.log(Level.FINE, String.format("Failed to get state in %s after %d retries", name, READ_RETRY_ATTEMPTS));
         }
     }
 }
