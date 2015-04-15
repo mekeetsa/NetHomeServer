@@ -153,7 +153,7 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
                 fetchAndReportDeviceStatus(endDevice.getDeviceID());
             }
         } catch (WemoException e) {
-            logger.log(Level.INFO, "Failed to get device states from " + name, e);
+            logger.log(Level.FINE, "Failed to get device states from " + name, e);
         }
     }
 
@@ -185,7 +185,7 @@ public class WemoBridge extends HomeItemAdapter implements HomeItem {
                 reportDeviceStatus(deviceStatus);
             }
         } catch (WemoException e) {
-            logger.log(Level.INFO, String.format("Failed to get lamp status from %s", name));
+            logger.log(Level.FINE, String.format("Failed to get lamp status from %s", name));
         }
     }
 
