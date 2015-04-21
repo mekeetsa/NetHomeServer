@@ -2,7 +2,6 @@ package nu.nethome.home.items.net.wemo;
 
 import nu.nethome.home.item.AutoCreationInfo;
 import nu.nethome.home.item.HomeItem;
-import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.items.UPnPScanner;
 import nu.nethome.home.system.Event;
@@ -93,8 +92,8 @@ public class WemoInsightSwitch extends WemoSwitch implements HomeItem {
     }
 
     @Override
-    protected void setOnState(boolean isOn) {
-        super.setOnState(isOn);
+    protected void setOnStateWithRetry(boolean isOn) {
+        super.setOnStateWithRetry(isOn);
         lastStateUpdate = 0;
     }
 

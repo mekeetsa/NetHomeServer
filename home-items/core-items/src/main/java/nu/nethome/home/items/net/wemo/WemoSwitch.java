@@ -8,6 +8,8 @@ import nu.nethome.home.items.UPnPScanner;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,6 +26,9 @@ public class WemoSwitch extends HomeItemAdapter implements HomeItem {
     public static final String UPN_P_CREATION_MESSAGE = "UPnP_Creation_Message";
     public static final String BELKIN_DEVICE_TYPE_URN = "urn:Belkin:device:controllee:1";
     public static final int UPDATE_RETRY_ATTEMPTS = 4;
+    public static final int RETRY_DELAY = 30000;
+    private Timer retryTimer;
+    private volatile boolean lastWantedOnState = false;
 
 
     public static class WemoCreationInfo implements AutoCreationInfo {
@@ -117,34 +122,49 @@ public class WemoSwitch extends HomeItemAdapter implements HomeItem {
 
     public void on() {
         logger.fine("Switching on " + name);
-        setOnState(true);
+        setOnStateWithRetry(true);
     }
 
     public void off() {
         logger.fine("Switching off " + name);
-        setOnState(false);
+        setOnStateWithRetry(false);
     }
 
-    protected void setOnState(boolean isOn) {
+    protected synchronized void setOnStateWithRetry(boolean isOn) {
+        lastWantedOnState = isOn;
+        if (retryTimer != null) {
+            retryTimer.cancel();
+            retryTimer = null;
+        }
+        if (!setInternalOnState(isOn)) {
+            server.send(server.createEvent(UPnPScanner.UPN_P_SCAN_MESSAGE, ""));
+            retryTimer = new Timer("WemoSwithRetryTimer", true);
+            retryTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    setInternalOnState(lastWantedOnState);
+                }
+            }, RETRY_DELAY);
+        }
+    }
+
+    boolean setInternalOnState(boolean isOn) {
         for (int retry = 0; retry < UPDATE_RETRY_ATTEMPTS; retry++) {
             try {
                 getInsightSwitch().setOnState(isOn);
-                return;
+                return true;
             } catch (WemoException e) {
-                if (retry == 0) {
-                    server.send(server.createEvent(UPnPScanner.UPN_P_SCAN_MESSAGE, ""));
-                }
                 logger.log(Level.FINE, "Failed to set on state in " + wemoDescriptionUrl, e);
             }
         }
         logger.log(Level.INFO, String.format("Failed to set on state in %s after %d retries", name, UPDATE_RETRY_ATTEMPTS));
+        return false;
     }
-
 
 
     public void toggle() {
         try {
-            setOnState(!insightSwitch.getOnState());
+            setOnStateWithRetry(!insightSwitch.getOnState());
         } catch (WemoException e) {
             logger.warning("Failed to contact Wemo device: " + e.getMessage());
         }
