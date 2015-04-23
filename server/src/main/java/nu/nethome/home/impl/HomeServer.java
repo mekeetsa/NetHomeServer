@@ -163,7 +163,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
     private boolean isLogRecordInBlacklist(LogRecord record) {
         return record.getMessage().startsWith("Prefs file removed in background") ||
                 record.getMessage().startsWith("Could not open/create prefs root node") ||
-                record.getMessage().startsWith("SAAJ0009.p2p.msg.send.failed");
+                record.getMessage().startsWith("SAAJ0009");
     }
 
     public String clearLog() {
