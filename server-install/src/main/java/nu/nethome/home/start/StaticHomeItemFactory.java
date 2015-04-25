@@ -154,6 +154,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("FS20Lamp", nu.nethome.home.items.fs20.FS20Lamp.class),
             new HomeItemClassInfo("RisingSunLamp", nu.nethome.home.items.risingsun.RisingSunLamp.class),
             new HomeItemClassInfo("CULTransceiver", nu.nethome.home.items.cul.CULTransceiver.class),
+            new HomeItemClassInfo("JeeLink", nu.nethome.home.items.jeelink.JeeLink.class),
             new HomeItemClassInfo("GenericProntoCommander", nu.nethome.home.items.pronto.GenericProntoCommander.class),
             new HomeItemClassInfo("ZhejiangLamp", nu.nethome.home.items.zhejiang.ZhejiangLamp.class),
             new HomeItemClassInfo("RFBitBangerTransmitter", nu.nethome.home.items.rfbitbanger.RFBitBangerTransmitter.class),
