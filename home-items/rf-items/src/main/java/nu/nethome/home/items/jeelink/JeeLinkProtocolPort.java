@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.TooManyListenersException;
 
 /**
@@ -274,7 +275,7 @@ public class JeeLinkProtocolPort implements SerialPortEventListener, Runnable, P
         m_Decoder.parse(pulseLength, isMark);
     }
 
-    public String[] getPortNames() {
+    public List<String> listAvailablePortNames() {
         ArrayList<String> result = new ArrayList<String>();
         /* Find the serial ports */
         portList = CommPortIdentifier.getPortIdentifiers();
@@ -284,7 +285,7 @@ public class JeeLinkProtocolPort implements SerialPortEventListener, Runnable, P
                 result.add(portId.getName());
             }
         }
-        return result.toArray(new String[result.size()]);
+        return result;
     }
 
     public String getSerialPort() {

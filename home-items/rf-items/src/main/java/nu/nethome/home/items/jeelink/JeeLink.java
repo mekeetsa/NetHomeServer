@@ -30,10 +30,10 @@ import nu.nethome.home.system.HomeService;
 import nu.nethome.home.util.EncoderFactory;
 import nu.nethome.util.plugin.Plugin;
 import nu.nethome.util.ps.*;
-import nu.nethome.util.ps.impl.CULProtocolPort;
 import nu.nethome.util.ps.impl.ProtocolDecoderGroup;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -45,11 +45,11 @@ import java.util.logging.Logger;
 @HomeItemType("Hardware")
 public class JeeLink extends HomeItemAdapter implements HomeItem, ProtocolDecoderSink {
 
-    private final String m_Model = ("<?xml version = \"1.0\"?> \n"
+    private final String MODEL1 = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"JeeLink\" Category=\"Hardware\" >"
-            + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getConnected\" Default=\"true\" />"
-            + "  <Attribute Name=\"SerialPort\" Type=\"String\" Get=\"getSerialPort\" 	Set=\"setSerialPort\" />"
-            + "  <Attribute Name=\"FirmwareVersion\" Type=\"String\" Get=\"getFirmwareVersion\"  />"
+            + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getConnected\" Default=\"true\" />" );
+
+    private final String MODEL2 = ("  <Attribute Name=\"FirmwareVersion\" Type=\"String\" Get=\"getFirmwareVersion\"  />"
             + "  <Attribute Name=\"SendCount\" Type=\"String\" Get=\"getSendCount\"  />"
             + "  <Action Name=\"Reconnect\"		Method=\"reconnect\" Default=\"true\" />"
             + "  <Action Name=\"PlayTestBeep\"		Method=\"playTestBeep\" />"
@@ -132,8 +132,26 @@ public class JeeLink extends HomeItemAdapter implements HomeItem, ProtocolDecode
       * @see ssg.home.HomeItem#getModel()
       */
     public String getModel() {
-        return m_Model;
+        return MODEL1 + getPortNameAttribute() + MODEL2;
     }
+
+    private String getPortNameAttribute() {
+        StringBuilder model = new StringBuilder();
+        model.append("  <Attribute Name=\"SerialPort\" Type=\"StringList\" Get=\"getSerialPort\" Set=\"setSerialPort\" >");
+        List<String> ports = port.listAvailablePortNames();
+        model.append("<item>");
+        model.append(port.getSerialPort());
+        model.append("</item>");
+        for (String port : ports) {
+            model.append("<item>");
+            model.append(port);
+            model.append("</item>");
+        }
+        model.append("</Attribute>");
+        return model.toString();
+    }
+
+
 
     public void activate(HomeService server) {
         super.activate(server);
