@@ -1,5 +1,6 @@
 package nu.nethome.home.items.jeelink;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -7,6 +8,7 @@ import org.junit.Test;
  */
 public class JeeLinkProtocolPortTest {
 
+    @Ignore
     @Test
     public void testReadingVersion() throws Exception {
 
