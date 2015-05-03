@@ -34,7 +34,7 @@
 		<Attribute Name="Version">Unknown</Attribute>
 		<Attribute Name="SentEventCount">20</Attribute>
 		<Attribute Name="EventsPerMinute">0</Attribute>
-		<Attribute Name="FileName">server-install\src\main\resources\demo.xml</Attribute>
+		<Attribute Name="FileName">default.xml</Attribute>
 		<Attribute Name="UpgradeCommand">c:\upgrade.bat</Attribute>
 		<Attribute Name="LogFile"></Attribute>
 		<Attribute Name="UpTime">2 minutes</Attribute>
