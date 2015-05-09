@@ -179,6 +179,10 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
 
     @Override
     public void activate() {
+        createTellstickPort();
+    }
+
+    void createTellstickPort() {
         try {
             tellstick = new TellstickPort(portName, new TellstickPort.Client() {
                 @Override
@@ -244,10 +248,18 @@ public class Tellstick extends HomeItemAdapter implements HomeItem, ProtocolDeco
     private void handleReceivedMessage(String message) {
         sendQueue.flush();
         TellstickEvent event = new TellstickEvent(message);
-        TellstickEventReceiver handler = eventReceivers.get(event.getEventType());
+        TellstickEventReceiver handler = getHandlerForEvent(event);
         if (handler != null) {
             handler.processEvent(event);
         }
+    }
+
+    private TellstickEventReceiver getHandlerForEvent(TellstickEvent event) {
+        TellstickEventReceiver tellstickEventReceiver = eventReceivers.get(event.getEventProtocolModel());
+        if (tellstickEventReceiver == null) {
+            tellstickEventReceiver = eventReceivers.get(event.getEventProtocol());
+        }
+        return tellstickEventReceiver;
     }
 
     private void handleAck(String message) {
