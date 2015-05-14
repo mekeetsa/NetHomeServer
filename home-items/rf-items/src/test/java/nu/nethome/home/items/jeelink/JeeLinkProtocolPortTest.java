@@ -12,12 +12,27 @@ public class JeeLinkProtocolPortTest {
     @Test
     public void testReadingVersion() throws Exception {
 
-        JeeLinkProtocolPort port = new JeeLinkProtocolPort(null);
-        port.setSerialPort("COM7");
-        port.open();
+        JeeLinkProtocolPort port = new JeeLinkProtocolPort("COM7", null);
 
-        // port.readArduinoVersion();
+        Thread.sleep(30000);
+
+        port.readArduinoVersion();
+
+        //port.getReportedVersion();
 
         port.close();
+
+        Thread.sleep(5000);
+    }
+
+    @Ignore
+    @Test
+    public void testReadingVersion2() throws Exception {
+
+        JeeLinkProtocolPort port = new JeeLinkProtocolPort("COM7", null);
+
+        port.readArduinoVersion();
+
+        Thread.sleep(5000);
     }
 }

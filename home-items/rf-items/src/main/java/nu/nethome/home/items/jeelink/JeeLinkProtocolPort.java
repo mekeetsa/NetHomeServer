@@ -19,17 +19,12 @@
 
 package nu.nethome.home.items.jeelink;
 
-import gnu.io.*;
+
+import jssc.*;
 import nu.nethome.util.ps.ProtocolDecoder;
-import nu.nethome.util.ps.impl.PulseProtocolPort;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.TooManyListenersException;
+import java.util.*;
 
 /**
  * The JeeLinkProtocolPort interfaces with an USB radio transceiver and sends and receives data
@@ -38,156 +33,81 @@ import java.util.TooManyListenersException;
  *
  * @author Stefan
  */
-public class JeeLinkProtocolPort implements SerialPortEventListener, Runnable, PulseProtocolPort {
-
-    private static final int READ_BUFFER_SIZE = 40;
-    protected int m_ReadBufferPointer = 0;
-    String m_ComPort = "COM4";
-    static Enumeration<CommPortIdentifier> portList;
-    protected InputStream inputStream;
-
-    protected OutputStream outStream;
-    protected SerialPort m_SerialPort;
-    protected CommPortIdentifier portId = null;
-    protected boolean m_IsOpen = false;
-    protected byte[] m_ReadBuffer = new byte[READ_BUFFER_SIZE];
-    private ProtocolDecoder m_Decoder;
-    private char m_LastCommand = 'x';
-    private double m_AddForward = 0;
-    private int m_Dupicates;
-    private double m_PulseLengthCompensation = 0;
-    private int m_Spikes = 0;
-    private int m_Mode = 0;
-    private boolean asynchronousRead = true;
+public class JeeLinkProtocolPort  {
+    String portName = "COM4";
+    protected SerialPort serialPort;
+    protected boolean isOpen = false;
+    private ProtocolDecoder decoder;
+    private double pulseLengthCompensation = 0;
     private String reportedVersion = "";
 
-    private int m_ModulationOnPeriod = 0;
-    private int m_ModulationOffPeriod = 0;
+    private int modulationOnPeriod = 0;
+    private int modulationOffPeriod = 0;
+    private List<String> portList;
 
-    public JeeLinkProtocolPort(ProtocolDecoder decoder) {
-        m_Decoder = decoder;
-        // In order for RxTx to recognize a serial port on Linux, we have
-        // to add this system property. We make it possible to override by checking if the
-        // property has already been set.
-        if ((System.getProperty("os.name").toUpperCase().indexOf("LINUX") != -1) &&
-                (System.getProperty("gnu.io.rxtx.SerialPorts") == null)) {
-            System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyS0:/dev/ttyS1:/dev/ttyS2:" + "" +
-                    "/dev/ttyUSB0:/dev/ttyUSB1:/dev/ttyUSB2:" +
-                    "/dev/ttyACM0:/dev/ttyACM1:/dev/ttyACM2");
-        }
+    public JeeLinkProtocolPort(String portName, ProtocolDecoder decoder) throws PortException {
+        this.decoder = decoder;
+        this.portName = portName;
+        serialPort = new SerialPort(this.portName);
+        open();
     }
 
-    public int open() {
-        portList = CommPortIdentifier.getPortIdentifiers();
-
-        boolean foundPort = false;
-        
-        /* Find the configured serial port */
-        while (portList.hasMoreElements()) {
-            portId = (CommPortIdentifier) portList.nextElement();
-            if (portId.getPortType() == CommPortIdentifier.PORT_SERIAL) {
-                if (portId.getName().equals(m_ComPort)) {
-                    // Ok, found
-                    foundPort = true;
-                    break;
-                }
+    private void open() throws PortException {
+        portList = Arrays.asList(SerialPortList.getPortNames());
+        if (!portList.contains(portName)) {
+            throw new PortException("Port " + portName + " not Found");
+        }
+        try {
+            serialPort.openPort();
+            if (!serialPort.setParams(SerialPort.BAUDRATE_9600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE)) {
+                throw new PortException("Could not set serial port parameters");
             }
+        } catch (SerialPortException e) {
+            throw new PortException("Could not open port " + portName, e);
         }
-        if (!foundPort) {
-            System.out.print("Failed to find serial Port: " + m_ComPort);
-            return 1;
-        }
-        
-        /* Try to open the serial port */
-        try {
-            m_SerialPort = (SerialPort) portId.open("SNAPPort", 2000);
-        } catch (PortInUseException e) {
-            System.out.print("COM Port " + m_ComPort + " is already in use");
-            return 2;
-        }
-        try {
-            inputStream = m_SerialPort.getInputStream();
-            outStream = m_SerialPort.getOutputStream();
-        } catch (IOException e) {
-            System.out.print("COM Port " + m_ComPort + " could not be read " + e);
-            return 3;
-        }
-        try {
-            m_SerialPort.addEventListener(this);
-        } catch (TooManyListenersException e) {
-            System.out.print("COM Port " + m_ComPort + " has too many listeners" + e);
-            return 4;
-        }
-        m_SerialPort.notifyOnDataAvailable(true);
-        m_IsOpen = true;
-        return 0;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                receiveLoop();
+            }
+        }, "Port receive thread").start();
+        isOpen = true;
     }
 
     public void close() {
-        m_IsOpen = false;
-        if (m_SerialPort != null) {
-            m_SerialPort.close();
-            m_SerialPort = null;
+        isOpen = false;
+        if (serialPort != null) {
+            try {
+                serialPort.closePort();
+            } catch (SerialPortException e) {
+                // Ignore
+            }
         }
     }
 
     public boolean isOpen() {
-        return m_IsOpen;
+        return isOpen;
     }
 
-
-    public void run() {
-        try {
-            Thread.sleep(20000);
-        } catch (InterruptedException e) {
-            return;
-        }
-    }
-
-    public synchronized void serialEvent(SerialPortEvent event) {
-        switch (event.getEventType()) {
-            case SerialPortEvent.BI:
-            case SerialPortEvent.OE:
-            case SerialPortEvent.FE:
-            case SerialPortEvent.PE:
-            case SerialPortEvent.CD:
-            case SerialPortEvent.CTS:
-            case SerialPortEvent.DSR:
-            case SerialPortEvent.RI:
-            case SerialPortEvent.OUTPUT_BUFFER_EMPTY:
-                break;
-            case SerialPortEvent.DATA_AVAILABLE:
-                if (asynchronousRead) {
-                    try {
-                        byte[] readBuffer = new byte[400];
-
-                        while (inputStream.available() > 0) {
-                            int numBytes = inputStream.read(readBuffer);
-                            for (int i = 0; i < numBytes; i++) {
-                                m_ReadBuffer[m_ReadBufferPointer++] = readBuffer[i];
-                                if ((readBuffer[i] == 0x0A) || (m_ReadBufferPointer == READ_BUFFER_SIZE - 1)) {
-                                    m_ReadBuffer[m_ReadBufferPointer] = 0;
-                                    String result = new String(m_ReadBuffer, 0, m_ReadBufferPointer - 2);
-                                    //System.out.println(result);
-                                    if (m_ReadBufferPointer == READ_BUFFER_SIZE - 1) {
-                                        System.out.println("Overflow!");
-                                    }
-                                    m_ReadBufferPointer = 0;
-                                    try {
-                                        analyzeReceivedCommand(result);
-                                    } catch (Exception o) {
-                                        // Problem down in the decoders!
-                                        o.printStackTrace();
-                                    }
-                                }
-                                // NYI - Process received bytes
-                            }
-                        }
-                    } catch (IOException e) {
-                        System.out.print("Error reading data from serial port " + e);
-                    }
-                    break;
+    private void receiveLoop() {
+        String result = "";
+        SerialPort localPort = serialPort;
+        while(localPort.isOpened() && isOpen) {
+            try {
+                String nextChar = localPort.readString(1, 10000);
+                result += nextChar;
+                if (nextChar.charAt(0) == 0x0A) {
+                    analyzeReceivedCommand(result);
+                    result = "";
                 }
+
+            } catch (SerialPortException e) {
+                // Probably port is closed, ignore and will exit the while
+            } catch (SerialPortTimeoutException e) {
+                // Ignore
+            } catch (Exception e) {
+                // Problem in the decoders.
+            }
         }
     }
 
@@ -212,44 +132,7 @@ public class JeeLinkProtocolPort implements SerialPortEventListener, Runnable, P
             return;
         }
 
-        // Check if this is valid pulse data
-        if (((command != 'm') && (command != 's')) || (commandString.length() != 5)) {
-            System.out.println("Error - unknown command: " + commandString);
-            sendQueryVersionCommand();
-            return;
-        }
-
-        double pulseLength = Integer.parseInt(commandString.substring(1), 16);
-        // System.out.println(Character.toString(command) + Double.toString(pulseLength) + " us");
-
-        // Temporary - currently device signals overflow with this specific pulse value
-        if (pulseLength == 32767) {
-            System.out.println("Error - overflow in device");
-            return;
-        }
-
-        // Detect two pulses of same type in a row. This is probably due to a very short "ringing" spike
-        // after a transition, so the duplicate vale is added to the next pulse instead.
-        if (command == m_LastCommand) {
-            m_Dupicates++;
-            System.out.println("Error - duplicate command " + Integer.toString(m_Dupicates));
-            m_AddForward = pulseLength;
-            return;
-        }
-
-        pulseLength += m_AddForward;
-        m_AddForward = 0.0;
-        if (pulseLength > 33000) {
-            System.out.println("Error - Too long pulse");
-        }
-
-        if (pulseLength < 100.0) {
-            m_Spikes++;
-            System.out.println("Error - Spike" + Double.toString(pulseLength) + "(" + Integer.toHexString(m_Spikes) + ")");
-        }
-
-        parsePulse(pulseLength, command == 'm');
-        m_LastCommand = command;
+        // Unknown command - ignore
     }
 
     /**
@@ -269,31 +152,18 @@ public class JeeLinkProtocolPort implements SerialPortEventListener, Runnable, P
      */
     private void parsePulse(double pulseLength, boolean isMark) {
 
-        pulseLength += isMark ? m_PulseLengthCompensation : -m_PulseLengthCompensation;
+        pulseLength += isMark ? pulseLengthCompensation : -pulseLengthCompensation;
 
         // Give the pulse to the decoder
-        m_Decoder.parse(pulseLength, isMark);
+        decoder.parse(pulseLength, isMark);
     }
 
-    public List<String> listAvailablePortNames() {
-        ArrayList<String> result = new ArrayList<String>();
-        /* Find the serial ports */
-        portList = CommPortIdentifier.getPortIdentifiers();
-        while (portList.hasMoreElements()) {
-            portId = (CommPortIdentifier) portList.nextElement();
-            if (portId.getPortType() == CommPortIdentifier.PORT_SERIAL) {
-                result.add(portId.getName());
-            }
-        }
-        return result;
+    public static List<String> listAvailablePortNames() {
+         return Arrays.asList(SerialPortList.getPortNames());
     }
 
     public String getSerialPort() {
-        return m_ComPort;
-    }
-
-    public void setSerialPort(String serialPort) {
-        m_ComPort = serialPort;
+        return portName;
     }
 
     /**
@@ -304,7 +174,7 @@ public class JeeLinkProtocolPort implements SerialPortEventListener, Runnable, P
      * @param repeatOffset Number pulses into the message the repeat sequence should begin
      * @return True if successful
      */
-    public boolean playMessage(int message[], int repeat, int repeatOffset) {
+    public boolean playMessage(int message[], int repeat, int repeatOffset) throws PortException {
 
         sendResetTransmitBufferCommand();
         // Loop through the flanks in the message
@@ -315,37 +185,35 @@ public class JeeLinkProtocolPort implements SerialPortEventListener, Runnable, P
             sendAddFlankCommand(mark, space);
         }
         // Transmit the message, check if it should be modulated
-        if ((m_ModulationOnPeriod > 0) || (repeatOffset > 0)) {
+        if ((modulationOnPeriod > 0) || (repeatOffset > 0)) {
             // Yes, also write modulation parameters
-            sendTransmitWithModulationCommand(repeat, repeatOffset, m_ModulationOnPeriod, m_ModulationOffPeriod);
+            sendTransmitWithModulationCommand(repeat, repeatOffset, modulationOnPeriod, modulationOffPeriod);
         } else {
             sendTransmitCommand(repeat);
 
         }
-
         // NYI - Wait for confirmation
-
         return true;
     }
 
-    private void sendTransmitWithModulationCommand(int repeat, int repeatOffset, int modulationOnPeriod, int modulationOffPeriod) {
+    private void sendTransmitWithModulationCommand(int repeat, int repeatOffset, int modulationOnPeriod, int modulationOffPeriod) throws PortException {
         writeLine(String.format("S%02X%02X%02X%02X", repeat, modulationOnPeriod, modulationOffPeriod, repeatOffset));
     }
 
-    private void sendTransmitCommand(int repeat) {
+    private void sendTransmitCommand(int repeat) throws PortException {
         writeLine(String.format("S%02X", repeat));
     }
 
-    private void sendAddFlankCommand(int mark, int space) {
+    private void sendAddFlankCommand(int mark, int space) throws PortException {
         String command = String.format("A%04X%04X", mark, space);
         writeLine(command);
     }
 
-    private void sendResetTransmitBufferCommand() {
+    private void sendResetTransmitBufferCommand() throws PortException {
         writeLine("E");
     }
 
-    private void sendQueryVersionCommand() {
+    private void sendQueryVersionCommand() throws PortException {
         writeLine("V");
     }
 
@@ -355,65 +223,123 @@ public class JeeLinkProtocolPort implements SerialPortEventListener, Runnable, P
      *
      * @param line Line to be written
      */
-    protected void writeLine(String line) {
+    protected void writeLine(String line) throws PortException {
         String totalLine = line + "\r\n";
         try {
-            outStream.write(totalLine.getBytes());
-        } catch (IOException e) {
+            if (!serialPort.writeBytes(totalLine.getBytes())) {
+                throw new PortException("Could not write to port");
+            }
+        } catch (SerialPortException e) {
             e.printStackTrace();
         }
     }
 
-    public void readArduinoVersion() throws IOException {
-        int data = inputStream.read();
-        while (inputStream.available() > 0) {
-            data = inputStream.read();
+    public void readArduinoVersion() throws IOException, PortException, SerialPortException, SerialPortTimeoutException {
+        serialPort = new SerialPort(portName);
+        try {
+            serialPort.openPort();
+            if (!serialPort.setParams(SerialPort.BAUDRATE_115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE)) {
+                throw new PortException("Could not set serial port parameters");
+            }
+        } catch (SerialPortException e) {
+            throw new PortException("Could not open port " + portName, e);
         }
+
 
         System.out.println("syncing");
         for (int i = 0; i < 5; i++) {
-            outStream.write(0x30);
-            outStream.write(0x20);
+            serialPort.writeByte((byte) 0x30);
+            serialPort.writeByte((byte) 0x20);
             try {Thread.sleep(50);} catch (InterruptedException e) {e.printStackTrace();}
         }
 
         System.out.println("waiting for response");
-        int insync = inputStream.read();
-        int ok = inputStream.read();
+        int insync = readByte();
+        int ok = readByte();
         if (insync == 0x14 && ok == 0x10) {
             System.out.println("insync");
         }
 
         System.out.println("reading major version");
-        outStream.write(0x41);
-        outStream.write(0x81);
-        outStream.write(0x20);
+        serialPort.writeByte((byte) 0x41);
+        serialPort.writeByte((byte) 0x81);
+        serialPort.writeByte((byte) 0x20);
         try {Thread.sleep(50);} catch (InterruptedException e) {e.printStackTrace();}
 
         System.out.println("waiting for response");
-        insync = inputStream.read();
-        int major = inputStream.read();
-        ok = inputStream.read();
+        insync = readByte();
+        int major = readByte();
+        ok = readByte();
         if (insync == 0x14 && ok == 0x10) {
             System.out.println("insync");
         }
 
         System.out.println("reading minor version");
-        outStream.write(0x41);
-        outStream.write(0x82);
-        outStream.write(0x20);
+        serialPort.writeByte((byte) 0x41);
+        serialPort.writeByte((byte) 0x82);
+        serialPort.writeByte((byte) 0x20);
         try {Thread.sleep(50);} catch (InterruptedException e) {e.printStackTrace();}
 
         System.out.println("waiting for response");
-        insync = inputStream.read();
-        int minor = inputStream.read();
-        ok = inputStream.read();
+        insync = readByte();
+        int minor = readByte();
+        ok = readByte();
         if (insync == 0x14 && ok == 0x10) {
             System.out.println("insync");
         }
 
         System.out.println("version: " + major + "." + minor);
 
+
+        System.out.println("version: " + major + "." + minor);
+
+        System.out.println("entering programming mode");
+        serialPort.writeByte((byte) 0x50);
+        serialPort.writeByte((byte) 0x20);
+        try {Thread.sleep(50);} catch (InterruptedException e) {e.printStackTrace();}
+
+        System.out.println("waiting for response");
+        insync = readByte();
+        ok = readByte();
+        if (insync == 0x14 && ok == 0x10) {
+            System.out.println("insync");
+        }
+
+        System.out.println("getting device signature");
+        serialPort.writeByte((byte) 0x75);
+        serialPort.writeByte((byte) 0x20);
+        try {Thread.sleep(50);} catch (InterruptedException e) {e.printStackTrace();}
+
+        System.out.println("waiting for response");
+        insync = readByte();
+        byte [] signature = new byte[3];
+        signature[0] = readByte();
+        signature[1] = readByte();
+        signature[2] = readByte();
+        ok = readByte();
+        if (insync == 0x14 && ok == 0x10) {
+            System.out.println("insync");
+        }
+
+        System.out.println("signature: " + signature[0] + "." + signature[1] + "." + signature[2]);
+
+        System.out.println("leaving programming mode");
+        serialPort.writeByte((byte) 0x51);
+        serialPort.writeByte((byte) 0x20);
+        try {Thread.sleep(50);} catch (InterruptedException e) {e.printStackTrace();}
+
+        System.out.println("receiving sync ack");
+        insync = readByte();
+        ok = readByte();
+
+        if (insync == 0x14 && ok == 0x10) {
+            System.out.println("insync");
+        }
+        serialPort.closePort();
+    }
+
+    private byte readByte() throws SerialPortException, SerialPortTimeoutException {
+        return serialPort.readBytes(1, 10000)[0];
     }
 
     /**
@@ -422,7 +348,7 @@ public class JeeLinkProtocolPort implements SerialPortEventListener, Runnable, P
      * @return ModulationOnPeriod
      */
     public int getModulationOnPeriod() {
-        return m_ModulationOnPeriod;
+        return modulationOnPeriod;
     }
 
     /**
@@ -435,7 +361,7 @@ public class JeeLinkProtocolPort implements SerialPortEventListener, Runnable, P
      * @param modulationOnPeriod 0 - 255.
      */
     public void setModulationOnPeriod(int modulationOnPeriod) {
-        m_ModulationOnPeriod = modulationOnPeriod;
+        this.modulationOnPeriod = modulationOnPeriod;
     }
 
     /**
@@ -444,7 +370,7 @@ public class JeeLinkProtocolPort implements SerialPortEventListener, Runnable, P
      * @return ModulationOffPeriod
      */
     public int getModulationOffPeriod() {
-        return m_ModulationOffPeriod;
+        return modulationOffPeriod;
     }
 
     /**
@@ -454,22 +380,7 @@ public class JeeLinkProtocolPort implements SerialPortEventListener, Runnable, P
      * @param modulationOffPeriod
      */
     public void setModulationOffPeriod(int modulationOffPeriod) {
-        m_ModulationOffPeriod = modulationOffPeriod;
-    }
-
-
-    public int getMode() {
-        return m_Mode;
-    }
-
-    /**
-     * Temporary fix. I have to have different settings in the CUL-stick depending on
-     * if I receive or transmit. 0 = Reception mode, 1 = transmission mode
-     *
-     * @param mode
-     */
-    public void setMode(int mode) {
-        m_Mode = mode;
+        this.modulationOffPeriod = modulationOffPeriod;
     }
 
     public String getReportedVersion() {

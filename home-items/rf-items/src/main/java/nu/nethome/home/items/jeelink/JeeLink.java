@@ -47,7 +47,7 @@ public class JeeLink extends HomeItemAdapter implements HomeItem, ProtocolDecode
 
     private final String MODEL1 = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"JeeLink\" Category=\"Hardware\" >"
-            + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getConnected\" Default=\"true\" />" );
+            + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getConnected\" Default=\"true\" />");
 
     private final String MODEL2 = ("  <Attribute Name=\"FirmwareVersion\" Type=\"String\" Get=\"getFirmwareVersion\"  />"
             + "  <Attribute Name=\"SendCount\" Type=\"String\" Get=\"getSendCount\"  />"
@@ -65,6 +65,8 @@ public class JeeLink extends HomeItemAdapter implements HomeItem, ProtocolDecode
     private long sendCount = 0;
     private float modulationFrequency = 0;
     private EncoderFactory factory;
+    private String portName = "COM2";
+    private String lastErrorMessage = "Not Connected";
 
 
     public JeeLink() {
@@ -73,26 +75,18 @@ public class JeeLink extends HomeItemAdapter implements HomeItem, ProtocolDecode
         for (Class<? extends ProtocolDecoder> decoder : allTypes) {
             try {
                 protocolDecoders.add(decoder.newInstance());
-            } catch (InstantiationException|IllegalAccessException e) {
+            } catch (InstantiationException | IllegalAccessException e) {
                 // Ignore
             }
         }
-
         for (ProtocolDecoder decoder : protocolDecoders.getAllDecoders()) {
             decoder.setTarget(this);
         }
-
-        // Create our CUL-Port and attach the decoders directly to it.
-        port = new JeeLinkProtocolPort(protocolDecoders);
-        port.setMode(1);
-
-        // TODO This is a temporary fix...
-        port.setSerialPort("COM12");
         factory = new EncoderFactory(Encoders.getAllTypes());
     }
 
     public boolean receiveEvent(Event event) {
-        if (!event.getAttribute("Direction").equals("Out") || !port.isOpen()) {
+        if (!event.getAttribute("Direction").equals("Out") || port == null) {
             return false;
         }
         ProtocolEncoder foundEncoder = factory.getEncoder(event);
@@ -108,6 +102,9 @@ public class JeeLink extends HomeItemAdapter implements HomeItem, ProtocolDecode
                 return true;
             } catch (BadMessageException e) {
                 logger.warning("Bad protocol message received: " + event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE));
+            } catch (PortException e) {
+                logger.warning("Failed to send to serial port");
+                closePort();
             }
         }
         return false;
@@ -138,9 +135,9 @@ public class JeeLink extends HomeItemAdapter implements HomeItem, ProtocolDecode
     private String getPortNameAttribute() {
         StringBuilder model = new StringBuilder();
         model.append("  <Attribute Name=\"SerialPort\" Type=\"StringList\" Get=\"getSerialPort\" Set=\"setSerialPort\" >");
-        List<String> ports = port.listAvailablePortNames();
+        List<String> ports = JeeLinkProtocolPort.listAvailablePortNames();
         model.append("<item>");
-        model.append(port.getSerialPort());
+        model.append(portName);
         model.append("</item>");
         for (String port : ports) {
             model.append("<item>");
@@ -152,30 +149,42 @@ public class JeeLink extends HomeItemAdapter implements HomeItem, ProtocolDecode
     }
 
 
-
     public void activate(HomeService server) {
         super.activate(server);
         factory.addEncoderTypes(server.getPluginProvider().getPluginsForInterface(ProtocolEncoder.class));
-        port.open();
+        openPort();
+    }
+
+    private void openPort() {
+        try {
+            port = new JeeLinkProtocolPort(portName, protocolDecoders);
+        } catch (PortException e) {
+            logger.warning("Could not open serial port " + portName + " in " + name);
+            lastErrorMessage = e.getMessage();
+        }
+    }
+
+    private void closePort() {
+        if (port != null) {
+            port.close();
+            port = null;
+        }
+        lastErrorMessage = "Not Connected";
     }
 
     /**
      * HomeItem method which stops all object activity for program termination
      */
     public void stop() {
-        if (port.isOpen()) {
-            port.close();
-        }
+        closePort();
     }
 
     /**
      * Reconnect the port
      */
     public void reconnect() {
-        if (port.isOpen()) {
-            port.close();
-        }
-        port.open();
+        closePort();
+        openPort();
     }
 
     /**
@@ -185,7 +194,13 @@ public class JeeLink extends HomeItemAdapter implements HomeItem, ProtocolDecode
         ShortBeepEncoder beep = new ShortBeepEncoder();
         beep.setFrequency(testBeepFrequency);
         beep.setDuration(0.05F);
-        port.playMessage(beep.encode(), 10, 0);
+        if (port != null) {
+            try {
+                port.playMessage(beep.encode(), 10, 0);
+            } catch (PortException e) {
+                // Failed to send - ignore
+            }
+        }
         sendCount++;
     }
 
@@ -193,36 +208,27 @@ public class JeeLink extends HomeItemAdapter implements HomeItem, ProtocolDecode
      * @return Returns the SerialPort.
      */
     public String getSerialPort() {
-        return port.getSerialPort();
+        return portName;
     }
 
-    /**
-     * @param SerialPort The SerialPort to set.
-     */
-    public void setSerialPort(String SerialPort) {
-        port.setSerialPort(SerialPort);
-        if (port.isOpen()) {
-            port.close();
-            port.open();
+    public void setSerialPort(String serialPort) {
+        portName = serialPort;
+        closePort();
+        if (isActivated()) {
+            openPort();
         }
     }
 
-    /**
-     * @return Returns the m_TestBeepFrequency.
-     */
     public String getTestBeepFrequency() {
         return Integer.toString(testBeepFrequency);
     }
 
-    /**
-     * @param TestBeepFrequency The m_TestBeepFrequency to set.
-     */
     public void setTestBeepFrequency(String TestBeepFrequency) {
         testBeepFrequency = Integer.parseInt(TestBeepFrequency);
     }
 
     public String getConnected() {
-        return port.isOpen() ? "Connected" : "Not Connected";
+        return port != null ? "Connected" : lastErrorMessage;
     }
 
     public void parsedMessage(ProtocolMessage message) {
@@ -270,6 +276,6 @@ public class JeeLink extends HomeItemAdapter implements HomeItem, ProtocolDecode
     }
 
     public String getFirmwareVersion() {
-        return port.getReportedVersion();
+        return port != null ? port.getReportedVersion() : "";
     }
 }
