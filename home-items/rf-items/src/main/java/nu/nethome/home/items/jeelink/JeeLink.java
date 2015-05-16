@@ -46,7 +46,7 @@ import java.util.logging.Logger;
 public class JeeLink extends HomeItemAdapter implements HomeItem, ProtocolDecoderSink {
 
     private final String MODEL1 = ("<?xml version = \"1.0\"?> \n"
-            + "<HomeItem Class=\"JeeLink\" Category=\"Hardware\" >"
+            + "<HomeItem Class=\"JeeLink\" Category=\"Hardware\" Morphing=\"true\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getConnected\" Default=\"true\" />");
 
     private final String MODEL2 = ("  <Attribute Name=\"FirmwareVersion\" Type=\"String\" Get=\"getFirmwareVersion\"  />"
@@ -204,18 +204,17 @@ public class JeeLink extends HomeItemAdapter implements HomeItem, ProtocolDecode
         sendCount++;
     }
 
-    /**
-     * @return Returns the SerialPort.
-     */
     public String getSerialPort() {
         return portName;
     }
 
     public void setSerialPort(String serialPort) {
-        portName = serialPort;
-        closePort();
-        if (isActivated()) {
-            openPort();
+        if (!portName.equals(serialPort)) {
+            portName = serialPort;
+            closePort();
+            if (isActivated()) {
+                openPort();
+            }
         }
     }
 
