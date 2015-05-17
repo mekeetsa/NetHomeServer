@@ -167,6 +167,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
 
             // web-items
             new HomeItemClassInfo("Room", nu.nethome.home.items.infra.Room.class),
+            new HomeItemClassInfo("Box", nu.nethome.home.items.infra.Box.class),
             new HomeItemClassInfo("Location", nu.nethome.home.items.infra.Location.class),
             new HomeItemClassInfo("Plan", nu.nethome.home.items.infra.Plan.class),
             new HomeItemClassInfo("HomeGUI", nu.nethome.home.items.web.servergui.HomeGUI.class),
