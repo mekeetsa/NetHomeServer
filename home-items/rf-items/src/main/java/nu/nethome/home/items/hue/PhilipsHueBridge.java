@@ -73,7 +73,7 @@ public class PhilipsHueBridge {
                 stateParameter.put("bri", state.getBrightness());
                 if (state.getColorTemperature() > 0) {
                     stateParameter.put("ct", state.getColorTemperature());
-                } else if (state.getHue() > 0 && state.getSaturation() > 0){
+                } else if (state.getSaturation() > 0){
                     stateParameter.put("hue", state.getHue());
                     stateParameter.put("sat", state.getSaturation());
                 }
