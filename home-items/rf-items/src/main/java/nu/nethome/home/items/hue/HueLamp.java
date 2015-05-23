@@ -195,8 +195,8 @@ public class HueLamp extends HomeItemAdapter implements HomeItem {
     public void setColor(String color) {
         String[] colourParts = color.split(",");
         if (colourParts.length == 2) {
-            hue = Integer.parseInt(colourParts[0]);
-            saturation = Integer.parseInt(colourParts[1]);
+            hue = Integer.parseInt(colourParts[0].trim());
+            saturation = Integer.parseInt(colourParts[1].trim());
             colorTemperature = 0;
         } else if (colourParts.length == 1 && !color.isEmpty()) {
             colorTemperature = Integer.parseInt(color);
@@ -252,15 +252,15 @@ public class HueLamp extends HomeItemAdapter implements HomeItem {
 
         String[] colourParts = dimAndColor.split(",");
         if (colourParts.length == 3) {
-            dimLevel = Integer.parseInt(colourParts[0]);
-            hue = Integer.parseInt(colourParts[1]);
-            saturation = Integer.parseInt(colourParts[2]);
+            dimLevel = Integer.parseInt(colourParts[0].trim());
+            hue = Integer.parseInt(colourParts[1].trim());
+            saturation = Integer.parseInt(colourParts[2].trim());
             colorTemperature = 0;
         } else if (colourParts.length == 2) {
-            dimLevel = Integer.parseInt(colourParts[0]);
-            colorTemperature = Integer.parseInt(colourParts[1]);
+            dimLevel = Integer.parseInt(colourParts[0].trim());
+            colorTemperature = Integer.parseInt(colourParts[1].trim());
         } else if (colourParts.length == 1  && !dimAndColor.isEmpty()) {
-            dimLevel = Integer.parseInt(colourParts[0]);
+            dimLevel = Integer.parseInt(colourParts[0].trim());
         } else  {
             dimLevel = 0;
         }
