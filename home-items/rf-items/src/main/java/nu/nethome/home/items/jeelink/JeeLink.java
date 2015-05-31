@@ -22,9 +22,11 @@ package nu.nethome.home.items.jeelink;
 import nu.nethome.coders.decoders.*;
 import nu.nethome.coders.encoders.Encoders;
 import nu.nethome.coders.encoders.ShortBeepEncoder;
+import nu.nethome.home.item.AutoCreationInfo;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
+import nu.nethome.home.items.UsbScanner;
 import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
 import nu.nethome.home.util.EncoderFactory;
@@ -42,8 +44,29 @@ import java.util.logging.Logger;
  * @author Stefan
  */
 @Plugin
-@HomeItemType("Hardware")
+@HomeItemType(value = "Hardware", creationInfo = JeeLink.JeeLinkCreationInfo.class)
 public class JeeLink extends HomeItemAdapter implements HomeItem, ProtocolDecoderSink {
+
+    public static final String VID = "0403";
+    public static final String PID = "6001";
+
+    public static class JeeLinkCreationInfo implements AutoCreationInfo {
+        static final String[] CREATION_EVENTS = {UsbScanner.USB_REPORT_TYPE};
+        @Override
+        public String[] getCreationEvents() {
+            return CREATION_EVENTS;
+        }
+
+        @Override
+        public boolean canBeCreatedBy(Event e) {
+            return isJeeLinkUsbEvent(e) && !e.getAttribute(UsbScanner.EVENT).equals("Removed");
+        }
+
+        @Override
+        public String getCreationIdentification(Event e) {
+            return String.format("JeeLink RF transmitter");
+        }
+    }
 
     private final String MODEL1 = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"JeeLink\" Category=\"Hardware\" Morphing=\"true\" >"
@@ -86,7 +109,12 @@ public class JeeLink extends HomeItemAdapter implements HomeItem, ProtocolDecode
     }
 
     public boolean receiveEvent(Event event) {
-        if (!event.getAttribute("Direction").equals("Out") || port == null) {
+        if (isJeeLinkUsbEvent(event)) {
+            if (!event.getAttribute(UsbScanner.EVENT).equals("Present") && isActivated()) {
+                reconnect();
+            }
+            return true;
+        } else if (!event.getAttribute("Direction").equals("Out") || port == null) {
             return false;
         }
         ProtocolEncoder foundEncoder = factory.getEncoder(event);
@@ -108,6 +136,11 @@ public class JeeLink extends HomeItemAdapter implements HomeItem, ProtocolDecode
             }
         }
         return false;
+    }
+
+    private static boolean isJeeLinkUsbEvent(Event e) {
+        return e.getAttribute(UsbScanner.VENDOR_ID).equals(VID) &&
+                e.getAttribute(UsbScanner.PRODUCT_ID).equals(PID);
     }
 
     private int calculateModulationFrequency(Event event, ProtocolEncoder encoder, Message message) {

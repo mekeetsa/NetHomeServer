@@ -21,6 +21,7 @@ package nu.nethome.home.impl;
 
 import nu.nethome.home.item.*;
 import nu.nethome.home.items.UPnPScanner;
+import nu.nethome.home.items.UsbScanner;
 import nu.nethome.home.system.*;
 import nu.nethome.util.plugin.PluginProvider;
 
@@ -485,14 +486,26 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
     }
 
     private void addSingletonItems(List<HomeItem> loadedItems) {
+        boolean hasUpnpScanner = false;
+        boolean hasUsbScanner = false;
         for (HomeItem loadedItem : loadedItems) {
             if (loadedItem instanceof UPnPScanner) {
-                return;
+                hasUpnpScanner = true;
+            }
+            if (loadedItem instanceof UsbScanner) {
+                hasUsbScanner = true;
             }
         }
-        UPnPScanner uPnPScanner = new UPnPScanner();
-        uPnPScanner.setName("UPnP_Scanner");
-        loadedItems.add(uPnPScanner);
+        if (!hasUpnpScanner) {
+            UPnPScanner uPnPScanner = new UPnPScanner();
+            uPnPScanner.setName("UPnP_Scanner");
+            loadedItems.add(uPnPScanner);
+        }
+        if (!hasUsbScanner) {
+            UsbScanner usbScanner = new UsbScanner();
+            usbScanner.setName("USB_Scanner");
+            loadedItems.add(usbScanner);
+        }
     }
 
     private void sortOnStartOrder(List<HomeItem> sortedItems) {
