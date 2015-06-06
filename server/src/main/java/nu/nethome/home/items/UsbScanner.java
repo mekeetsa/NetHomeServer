@@ -44,7 +44,12 @@ public class UsbScanner extends HomeItemAdapter {
     @Override
     public boolean receiveEvent(Event event) {
         if (event.isType("ReportItems")) {
-            scan();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    scan();
+                }
+            }).start();
             return true;
         }
         return false;
@@ -54,7 +59,7 @@ public class UsbScanner extends HomeItemAdapter {
 
     private void registerHotPlug() {
         if (!LibUsb.hasCapability(LibUsb.CAP_HAS_HOTPLUG)) {
-            logger.warning("libusb doesn't support hotplug on this system");
+            logger.fine("libusb doesn't support hotplug on this system");
             return;
         }
 
