@@ -59,9 +59,11 @@ public class JeeLinkProtocolPort  {
         }
         try {
             serialPort.openPort();
-            if (!serialPort.setParams(SerialPort.BAUDRATE_9600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE)) {
+            if (!serialPort.setParams(SerialPort.BAUDRATE_115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE)) {
                 throw new PortException("Could not set serial port parameters");
             }
+            sendQueryVersionCommand();
+            sendQueryVersionCommand();
         } catch (SerialPortException e) {
             throw new PortException("Could not open port " + portName, e);
         }
@@ -122,7 +124,7 @@ public class JeeLinkProtocolPort  {
 
         // Check if it is a version report
         if (command == 'V' && commandString.length() > 2) {
-            reportedVersion = commandString.substring(2);
+            reportedVersion = commandString.substring(1);
             return;
         }
 

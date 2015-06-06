@@ -260,7 +260,10 @@ public class JeeLink extends HomeItemAdapter implements HomeItem, ProtocolDecode
     }
 
     public String getConnected() {
-        return port != null ? "Connected" : lastErrorMessage;
+        if (port == null) {
+            return lastErrorMessage;
+        }
+        return port.getReportedVersion().isEmpty() ? "No firmware detected" : "Connected";
     }
 
     public void parsedMessage(ProtocolMessage message) {
