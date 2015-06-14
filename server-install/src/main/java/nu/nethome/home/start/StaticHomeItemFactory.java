@@ -164,6 +164,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("HueBridge", nu.nethome.home.items.hue.HueBridge.class),
             new HomeItemClassInfo("HueLamp", nu.nethome.home.items.hue.HueLamp.class),
             new HomeItemClassInfo("RollerTrolBlind", nu.nethome.home.items.rollertrol.RollerTrolBlind.class),
+            new HomeItemClassInfo("RollerTrolBlindSeriesG", nu.nethome.home.items.rollertrol.RollerTrolBlindSeriesG.class),
 
             // web-items
             new HomeItemClassInfo("Room", nu.nethome.home.items.infra.Room.class),

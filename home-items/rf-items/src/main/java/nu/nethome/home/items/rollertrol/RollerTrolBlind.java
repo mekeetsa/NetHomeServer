@@ -66,8 +66,8 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"RollerTrolBlind\" Category=\"Actuators\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
-            + "  <Attribute Name=\"RemoteId\" Type=\"String\" Get=\"getHouseCode\" 	Set=\"setHouseCode\" />"
-            + "  <Attribute Name=\"Channel\" Type=\"StringList\" Get=\"getDeviceCode\" Set=\"setDeviceCode\" >"
+            + "  <Attribute Name=\"RemoteId\" Type=\"String\" Get=\"getRemoteId\" 	Set=\"setRemoteId\" />"
+            + "  <Attribute Name=\"Channel\" Type=\"StringList\" Get=\"getChannel\" Set=\"setChannel\" >"
             + "     <item>1</item> <item>2</item> <item>3</item> <item>4</item> <item>5</item> <item>6</item> <item>7</item> <item>8</item> <item>All</item></Attribute>"
             + "  <Attribute Name=\"TravelTime\" Type=\"String\" Get=\"getTravelTime\" 	Set=\"setTravelTime\" />"
             + "  <Attribute Name=\"Position1\" Type=\"String\" Get=\"getPosition1\" 	Set=\"setPosition1\" />"
@@ -86,25 +86,25 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
     private static Logger logger = Logger.getLogger(RollerTrolBlind.class.getName());
 
     private Timer stopTimer = new Timer("RollerTrolBlind", true);
-    private int houseCode = 1;
-    private int deviceCode = 1;
+    private int remoteId = 1;
+    private int channel = 1;
     private BlindState state = new BlindState();
     private int position1;
     private int position2;
 
     public boolean receiveEvent(Event event) {
         // Check if this is an inward event directed to this instance
-        if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals("RollerTrol_Message") &&
+        if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(getProtocolName()) &&
                 event.getAttribute("Direction").equals("In") &&
-                (event.getAttributeInt(HOUSE_CODE_ATTRIBUTE) == houseCode) &&
-                event.getAttributeInt(DEVICE_CODE_ATTRIBUTE) == deviceCode) {
+                (event.getAttributeInt(getAddressAttributeName()) == remoteId) &&
+                event.getAttributeInt(getChannelAttributeName()) == channel) {
             // In that case, update our state accordingly
             int command = event.getAttributeInt(COMMAND_ATTRIBUTE);
-            if (command == UP) {
+            if (command == getUpCommandCode()) {
                 state.up();
-            } else if (command == DOWN) {
+            } else if (command == getDownCommandCode()) {
                 state.down();
-            } else if (command == STOP) {
+            } else if (command == getStopCopmmandCode()) {
                 state.stop();
             }
             return true;
@@ -113,10 +113,34 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
         }
     }
 
+    protected String getChannelAttributeName() {
+        return DEVICE_CODE_ATTRIBUTE;
+    }
+
+    protected String getAddressAttributeName() {
+        return HOUSE_CODE_ATTRIBUTE;
+    }
+
+    protected String getProtocolName() {
+        return "RollerTrol_Message";
+    }
+
+    protected int getStopCopmmandCode() {
+        return STOP;
+    }
+
+    protected int getDownCommandCode() {
+        return DOWN;
+    }
+
+    protected int getUpCommandCode() {
+        return UP;
+    }
+
     @Override
     protected boolean initAttributes(Event event) {
-        houseCode = event.getAttributeInt(HOUSE_CODE_ATTRIBUTE);
-        deviceCode = event.getAttributeInt(DEVICE_CODE_ATTRIBUTE);
+        remoteId = event.getAttributeInt(getAddressAttributeName());
+        channel = event.getAttributeInt(getChannelAttributeName());
         return true;
     }
 
@@ -135,31 +159,31 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
         stopTimer.cancel();
     }
 
-    public String getHouseCode() {
-        return Integer.toString(houseCode);
+    public String getRemoteId() {
+        return Integer.toString(remoteId);
     }
 
-    public void setHouseCode(String houseCode) {
-        this.houseCode = Integer.parseInt(houseCode);
+    public void setRemoteId(String remoteId) {
+        this.remoteId = Integer.parseInt(remoteId);
     }
 
-    public String getDeviceCode() {
-        return deviceCode == 15 ? "All" : Integer.toString(deviceCode);
+    public String getChannel() {
+        return channel == 15 ? "All" : Integer.toString(channel);
     }
 
-    public void setDeviceCode(String deviceCode) {
-        if (deviceCode.equalsIgnoreCase("all")) {
-            this.deviceCode = 15;
+    public void setChannel(String channel) {
+        if (channel.equalsIgnoreCase("all")) {
+            this.channel = 15;
         } else {
-            this.deviceCode = Integer.parseInt(deviceCode);
+            this.channel = Integer.parseInt(channel);
         }
     }
 
     public void sendCommand(int command) {
-        Event ev = server.createEvent("RollerTrol_Message", "");
+        Event ev = server.createEvent(getProtocolName(), "");
         ev.setAttribute("Direction", "Out");
-        ev.setAttribute(HOUSE_CODE_ATTRIBUTE, houseCode);
-        ev.setAttribute(DEVICE_CODE_ATTRIBUTE, deviceCode);
+        ev.setAttribute(getAddressAttributeName(), remoteId);
+        ev.setAttribute(getChannelAttributeName(), channel);
         ev.setAttribute(COMMAND_ATTRIBUTE, command);
         ev.setAttribute("Repeat", 15);
         server.send(ev);
@@ -171,17 +195,17 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
     }
 
     public void blindUp() {
-        sendCommand(UP);
+        sendCommand(getUpCommandCode());
         state.up();
     }
 
     public void blindStop() {
-        sendCommand(STOP);
+        sendCommand(getStopCopmmandCode());
         state.stop();
     }
 
     public void blindDown() {
-        sendCommand(DOWN);
+        sendCommand(getDownCommandCode());
         state.down();
     }
 
@@ -245,7 +269,6 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
         return "";
     }
 
-
     public String getPosition2() {
         return position2 > 0 ? Integer.toString(position2) : "";
     }
@@ -269,8 +292,6 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
     public String position2() {
         return goToPosition(position2);
     }
-
-
 
     private void activateStopTimer(long time) {
         stopTimer = new Timer("RollerTrolBlind", true);
