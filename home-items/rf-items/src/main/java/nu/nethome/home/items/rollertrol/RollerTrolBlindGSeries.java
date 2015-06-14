@@ -40,7 +40,6 @@ public class RollerTrolBlindGSeries extends RollerTrolBlind implements HomeItem 
     public static final String ADDRESS_ATTRIBUTE = ROLLER_TROL_G_PROTOCOL_NAME + "." + ADDRESS_NAME;
     public static final String CHANNEL_ATTRIBUTE = ROLLER_TROL_G_PROTOCOL_NAME + "." + CHANNEL_NAME;
     public static final String COMMAND_ATTRIBUTE = ROLLER_TROL_G_PROTOCOL_NAME + "." + RollerTrolG.COMMAND_NAME;
-    public static final int MINIMAL_MOVEMENT_TIME = 1000;
 
     public static class RollerTrolCreationInfo implements AutoCreationInfo {
         static final String[] CREATION_EVENTS = {"RollerTrolG_Message"};
@@ -71,13 +70,16 @@ public class RollerTrolBlindGSeries extends RollerTrolBlind implements HomeItem 
             + "  <Attribute Name=\"TravelTime\" Type=\"String\" Get=\"getTravelTime\" 	Set=\"setTravelTime\" />"
             + "  <Attribute Name=\"Position1\" Type=\"String\" Get=\"getPosition1\" 	Set=\"setPosition1\" />"
             + "  <Attribute Name=\"Position2\" Type=\"String\" Get=\"getPosition2\" 	Set=\"setPosition2\" />"
+            + "  <Attribute Name=\"TransmissionRepeats\" Type=\"String\" Get=\"getRepeats\" 	Set=\"setRepeats\" />"
             + "  <Action Name=\"up\" 	Method=\"blindUp\" />"
             + "  <Action Name=\"stop\" 	Method=\"blindStop\" />"
             + "  <Action Name=\"down\" 	Method=\"blindDown\" />"
             + "  <Action Name=\"toggle\" 	Method=\"blindToggle\" Default=\"true\" />"
             + "  <Action Name=\"Position1\" 	Method=\"position1\" />"
             + "  <Action Name=\"Position2\" 	Method=\"position2\" />"
-            + "  <Action Name=\"program\" 	Method=\"blindProgram\" />"
+            + "  <Action Name=\"bindToMotorCW\" 	Method=\"blindLearn\" />"
+            + "  <Action Name=\"travelLimitMode\" 	Method=\"blindTravelLimit\" />"
+            + "  <Action Name=\"p2\" 	Method=\"blindProgram\" />"
             + "</HomeItem> ");
 
     private static Logger logger = Logger.getLogger(RollerTrolBlindGSeries.class.getName());
@@ -117,6 +119,32 @@ public class RollerTrolBlindGSeries extends RollerTrolBlind implements HomeItem 
 
     public String blindProgram() {
         sendCommand(RollerTrolG.COMMAND_LEARN);
+        return "";
+    }
+
+    public String blindLearn() {
+        try {
+            sendCommand(RollerTrolG.COMMAND_LEARN);
+            Thread.sleep(3000);
+            sendCommand(RollerTrolG.COMMAND_LEARN);
+            Thread.sleep(3000);
+            sendCommand(RollerTrolG.COMMAND_UP);
+        } catch (InterruptedException e) {
+            // Ignore
+        }
+        return "";
+    }
+
+    public String blindTravelLimit() {
+        try {
+            sendCommand(RollerTrolG.COMMAND_LEARN);
+            Thread.sleep(3000);
+            sendCommand(RollerTrolG.COMMAND_UP);
+            Thread.sleep(3000);
+            sendCommand(RollerTrolG.COMMAND_LEARN);
+        } catch (InterruptedException e) {
+            // Ignore
+        }
         return "";
     }
 }

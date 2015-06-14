@@ -35,6 +35,7 @@ import static nu.nethome.coders.RollerTrol.*;
 /**
  * @author Stefan
  */
+@SuppressWarnings("UnusedDeclaration")
 @Plugin
 @HomeItemType(value = "Actuators", creationInfo = RollerTrolBlind.RollerTrolCreationInfo.class)
 public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
@@ -43,6 +44,7 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
     public static final String DEVICE_CODE_ATTRIBUTE = "RollerTrol.DeviceCode";
     public static final String COMMAND_ATTRIBUTE = "RollerTrol.Command";
     public static final int MINIMAL_MOVEMENT_TIME = 1000;
+    private int repeats = 15;
 
     public static class RollerTrolCreationInfo implements AutoCreationInfo {
         static final String[] CREATION_EVENTS = {"RollerTrol_Message"};
@@ -72,6 +74,7 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
             + "  <Attribute Name=\"TravelTime\" Type=\"String\" Get=\"getTravelTime\" 	Set=\"setTravelTime\" />"
             + "  <Attribute Name=\"Position1\" Type=\"String\" Get=\"getPosition1\" 	Set=\"setPosition1\" />"
             + "  <Attribute Name=\"Position2\" Type=\"String\" Get=\"getPosition2\" 	Set=\"setPosition2\" />"
+            + "  <Attribute Name=\"TransmissionRepeats\" Type=\"String\" Get=\"getRepeats\" 	Set=\"setRepeats\" />"
             + "  <Action Name=\"up\" 	Method=\"blindUp\" />"
             + "  <Action Name=\"stop\" 	Method=\"blindStop\" />"
             + "  <Action Name=\"down\" 	Method=\"blindDown\" />"
@@ -189,8 +192,9 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
         ev.setAttribute(getAddressAttributeName(), remoteId);
         ev.setAttribute(getChannelAttributeName(), channel);
         ev.setAttribute(getCommandAttributeName(), command);
-        ev.setAttribute("Repeat", 15);
-        server.send(ev);
+        if (repeats > 0) {
+            ev.setAttribute("Repeat", repeats);
+        }        server.send(ev);
         deactivateStopTimer();
     }
 
@@ -305,5 +309,23 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
                 blindStop();
             }
         }, time);
+    }
+
+    public String getRepeats() {
+        if (repeats == 0) {
+            return "";
+        }
+        return Integer.toString(repeats);
+    }
+
+    public void setRepeats(String repeats) {
+        if (repeats.length() == 0) {
+            this.repeats = 0;
+        } else {
+            int newRepeats = Integer.parseInt(repeats);
+            if ((newRepeats >= 0) && (newRepeats <= 50)) {
+                this.repeats = newRepeats;
+            }
+        }
     }
 }

@@ -1,4 +1,4 @@
-This is a small package for downloading the OpenNetHome firmware to a JeeLink Classic USB-Stick.
+This is a small package for uploading the OpenNetHome firmware to a JeeLink Classic USB-Stick.
 The firmware installation on the JeeLink has to be made from a Windows PC, but after that you can
 use the JeeLink as a transmitter form OpenNetHome on Windows, Linux and OSX.On Linux and OSX you 
 do not have to iinstall any serial drivers.
