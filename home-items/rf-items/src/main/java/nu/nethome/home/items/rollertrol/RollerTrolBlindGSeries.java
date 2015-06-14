@@ -22,13 +22,10 @@ package nu.nethome.home.items.rollertrol;
 import nu.nethome.coders.RollerTrolG;
 import nu.nethome.home.item.AutoCreationInfo;
 import nu.nethome.home.item.HomeItem;
-import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
 
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.logging.Logger;
 
 import static nu.nethome.coders.RollerTrolG.*;
@@ -37,8 +34,8 @@ import static nu.nethome.coders.RollerTrolG.*;
  * @author Stefan
  */
 @Plugin
-@HomeItemType(value = "Actuators", creationInfo = RollerTrolBlindSeriesG.RollerTrolCreationInfo.class)
-public class RollerTrolBlindSeriesG extends RollerTrolBlind implements HomeItem {
+@HomeItemType(value = "Actuators", creationInfo = RollerTrolBlindGSeries.RollerTrolCreationInfo.class)
+public class RollerTrolBlindGSeries extends RollerTrolBlind implements HomeItem {
 
     public static final String ADDRESS_ATTRIBUTE = ROLLER_TROL_G_PROTOCOL_NAME + "." + ADDRESS_NAME;
     public static final String CHANNEL_ATTRIBUTE = ROLLER_TROL_G_PROTOCOL_NAME + "." + CHANNEL_NAME;
@@ -65,7 +62,7 @@ public class RollerTrolBlindSeriesG extends RollerTrolBlind implements HomeItem 
     }
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
-            + "<HomeItem Class=\"RollerTrolBlindSeriesG\" Category=\"Actuators\" >"
+            + "<HomeItem Class=\"RollerTrolBlindGSeries\" Category=\"Actuators\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"RemoteId\" Type=\"String\" Get=\"getRemoteId\" 	Set=\"setRemoteId\" />"
             + "  <Attribute Name=\"Channel\" Type=\"StringList\" Get=\"getChannel\" Set=\"setChannel\" >"
@@ -83,7 +80,7 @@ public class RollerTrolBlindSeriesG extends RollerTrolBlind implements HomeItem 
             + "  <Action Name=\"program\" 	Method=\"blindProgram\" />"
             + "</HomeItem> ");
 
-    private static Logger logger = Logger.getLogger(RollerTrolBlindSeriesG.class.getName());
+    private static Logger logger = Logger.getLogger(RollerTrolBlindGSeries.class.getName());
 
     protected String getCommandAttributeName() {
         return COMMAND_ATTRIBUTE;

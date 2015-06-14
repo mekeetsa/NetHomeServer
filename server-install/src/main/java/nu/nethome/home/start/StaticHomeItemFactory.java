@@ -24,6 +24,7 @@ import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemInfo;
 import nu.nethome.home.items.UPnPScanner;
 import nu.nethome.home.items.net.ArpScanner;
+import nu.nethome.home.items.rollertrol.RollerTrolBlindGSeries;
 import nu.nethome.home.items.tellstick.Tellstick;
 
 import java.util.*;
@@ -164,7 +165,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("HueBridge", nu.nethome.home.items.hue.HueBridge.class),
             new HomeItemClassInfo("HueLamp", nu.nethome.home.items.hue.HueLamp.class),
             new HomeItemClassInfo("RollerTrolBlind", nu.nethome.home.items.rollertrol.RollerTrolBlind.class),
-            new HomeItemClassInfo("RollerTrolBlindSeriesG", nu.nethome.home.items.rollertrol.RollerTrolBlindSeriesG.class),
+            new HomeItemClassInfo("RollerTrolBlindGSeries", RollerTrolBlindGSeries.class),
 
             // web-items
             new HomeItemClassInfo("Room", nu.nethome.home.items.infra.Room.class),
