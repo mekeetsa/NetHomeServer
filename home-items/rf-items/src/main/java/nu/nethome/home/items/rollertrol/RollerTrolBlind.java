@@ -99,7 +99,7 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
                 (event.getAttributeInt(getAddressAttributeName()) == remoteId) &&
                 event.getAttributeInt(getChannelAttributeName()) == channel) {
             // In that case, update our state accordingly
-            int command = event.getAttributeInt(COMMAND_ATTRIBUTE);
+            int command = event.getAttributeInt(getCommandAttributeName());
             if (command == getUpCommandCode()) {
                 state.up();
             } else if (command == getDownCommandCode()) {
@@ -111,6 +111,10 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
         } else {
             return handleInit(event);
         }
+    }
+
+    protected String getCommandAttributeName() {
+        return COMMAND_ATTRIBUTE;
     }
 
     protected String getChannelAttributeName() {
@@ -184,7 +188,7 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
         ev.setAttribute("Direction", "Out");
         ev.setAttribute(getAddressAttributeName(), remoteId);
         ev.setAttribute(getChannelAttributeName(), channel);
-        ev.setAttribute(COMMAND_ATTRIBUTE, command);
+        ev.setAttribute(getCommandAttributeName(), command);
         ev.setAttribute("Repeat", 15);
         server.send(ev);
         deactivateStopTimer();

@@ -85,6 +85,10 @@ public class RollerTrolBlindSeriesG extends RollerTrolBlind implements HomeItem 
 
     private static Logger logger = Logger.getLogger(RollerTrolBlindSeriesG.class.getName());
 
+    protected String getCommandAttributeName() {
+        return COMMAND_ATTRIBUTE;
+    }
+
     protected String getChannelAttributeName() {
         return CHANNEL_ATTRIBUTE;
     }
