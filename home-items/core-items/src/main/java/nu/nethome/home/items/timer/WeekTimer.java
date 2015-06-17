@@ -139,6 +139,7 @@ public class WeekTimer extends HomeItemAdapter implements HomeItem {
 			int onHours[] = new int[1];
 			onMinutes[0] = Integer.parseInt(times[1]);
 			onHours[0] = Integer.parseInt(times[0]);
+            logger.fine(String.format("Adding on alarm entry: %d:%d", onHours, onMinutes));
 			AlarmEntry onEntry = alarmManager.addAlarm("On Alarm ", onMinutes, onHours, empty, empty, weekDays, -1, new AlarmListener() {
 				public void handleAlarm(AlarmEntry entry) {
 					 performCommand(m_OnCommand);
@@ -154,6 +155,7 @@ public class WeekTimer extends HomeItemAdapter implements HomeItem {
 			int offHours[] = new int[1];
 			offMinutes[0] = Integer.parseInt(times[1]);
 			offHours[0] = Integer.parseInt(times[0]);
+            logger.fine(String.format("Adding off alarm entry: %d:%d", offHours, offMinutes));
 			AlarmEntry offEntry = alarmManager.addAlarm("Off Alarm ", offMinutes, offHours, empty, empty, weekDays, -1, new AlarmListener() {
 				public void handleAlarm(AlarmEntry entry) {
 					 performCommand(m_OffCommand);
@@ -162,7 +164,7 @@ public class WeekTimer extends HomeItemAdapter implements HomeItem {
 			alarms.add(offEntry);
 		}
 		catch (PastDateException x) {
-			System.out.println("Bad date entered");
+			logger.warning("Bad date entered in WeekTimer");
 		}
 	}
 	
