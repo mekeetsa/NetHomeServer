@@ -27,6 +27,7 @@ import nu.nethome.home.impl.CommandLineExecutor;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
+import nu.nethome.home.item.IllegalValueException;
 import nu.nethome.home.system.HomeService;
 import nu.nethome.util.plugin.Plugin;
 
@@ -130,16 +131,16 @@ public class WeekTimer extends HomeItemAdapter implements HomeItem {
 		for (int i = 0; i < timePeriods.length; i++) try {
 			// Split start and end time
 			String period[] = timePeriods[i].split("-");
-			if (period.length != 2) return;
+			if (period.length != 2) throw new IllegalValueException("Bad date format", timePeriodsString);
 			// Start processing Start Time
 			// Split minute and hour
 			String times[] = period[0].split(":");
-			if (times.length != 2) return;
+			if (times.length != 2) throw new IllegalValueException("Bad date format", timePeriodsString);
 			int onMinutes[] = new int[1];
 			int onHours[] = new int[1];
 			onMinutes[0] = Integer.parseInt(times[1]);
 			onHours[0] = Integer.parseInt(times[0]);
-            logger.fine(String.format("Adding on alarm entry: %d:%d", onHours, onMinutes));
+            logger.fine(String.format("Adding on alarm entry: %d:%d", onHours[0], onMinutes[0]));
 			AlarmEntry onEntry = alarmManager.addAlarm("On Alarm ", onMinutes, onHours, empty, empty, weekDays, -1, new AlarmListener() {
 				public void handleAlarm(AlarmEntry entry) {
 					 performCommand(m_OnCommand);
@@ -150,12 +151,12 @@ public class WeekTimer extends HomeItemAdapter implements HomeItem {
 			// Start processing End Time
 			// Split minute and hour
 			times = period[1].split(":");
-			if (times.length != 2) return;
+			if (times.length != 2) throw new IllegalValueException("Bad date format", timePeriodsString);
 			int offMinutes[] = new int[1];
 			int offHours[] = new int[1];
 			offMinutes[0] = Integer.parseInt(times[1]);
 			offHours[0] = Integer.parseInt(times[0]);
-            logger.fine(String.format("Adding off alarm entry: %d:%d", offHours, offMinutes));
+            logger.fine(String.format("Adding off alarm entry: %d:%d", offHours[0], offMinutes[0]));
 			AlarmEntry offEntry = alarmManager.addAlarm("Off Alarm ", offMinutes, offHours, empty, empty, weekDays, -1, new AlarmListener() {
 				public void handleAlarm(AlarmEntry entry) {
 					 performCommand(m_OffCommand);
@@ -163,8 +164,8 @@ public class WeekTimer extends HomeItemAdapter implements HomeItem {
 			}); 
 			alarms.add(offEntry);
 		}
-		catch (PastDateException x) {
-			logger.warning("Bad date entered in WeekTimer");
+		catch (PastDateException|IllegalValueException e) {
+			logger.warning("Bad date entered in WeekTimer: " + timePeriodsString);
 		}
 	}
 	
