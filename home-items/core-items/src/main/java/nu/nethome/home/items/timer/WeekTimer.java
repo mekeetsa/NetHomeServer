@@ -126,6 +126,7 @@ public class WeekTimer extends HomeItemAdapter implements HomeItem {
 		while (alarms.size() > 0) {
 			alarmManager.removeAlarm(alarms.remove());
 		}
+        if (timePeriodsString.isEmpty()) return;
 		// Scan through the string and add all the on time alarms
 		String timePeriods[] = timePeriodsString.split(",");
 		for (int i = 0; i < timePeriods.length; i++) try {
