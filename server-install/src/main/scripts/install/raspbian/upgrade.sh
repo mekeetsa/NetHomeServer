@@ -40,7 +40,9 @@ chmod -w $INSTALLATION_ROOT/lib
 # Added upgrade tasks
 cp -f $SRCPATH/nethome /etc/init.d
 ln -f /etc/init.d/nethome /usr/sbin/nethome
-mv -f /home/nethome/upgrade_nethome_nightly.sh /home/nethome/upgrade_nethome_nightly_old.sh
+if [ -f /home/nethome/upgrade_nethome_nightly.sh ]; then
+  mv -f /home/nethome/upgrade_nethome_nightly.sh /home/nethome/upgrade_nethome_nightly_old.sh
+fi
 cp $SRCPATH/upgrade_nethome_nightly.sh /home/nethome/upgrade_nethome_nightly.sh
 chmod +x /home/nethome/upgrade_nethome_nightly.sh
 
