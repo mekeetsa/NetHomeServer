@@ -263,7 +263,7 @@ public class JeeLink extends HomeItemAdapter implements HomeItem, ProtocolDecode
         if (port == null) {
             return lastErrorMessage;
         }
-        return port.getReportedVersion().isEmpty() ? "No firmware detected" : "Connected";
+        return port.getReportedVersion().isEmpty() ? "Searching for firmware" : "Connected";
     }
 
     public void parsedMessage(ProtocolMessage message) {
