@@ -54,6 +54,10 @@ public class ZWavePort {
         this.serialPort = port;
     }
 
+    public static List<String> listAvailablePortNames() {
+        return Arrays.asList(SerialPortList.getPortNames());
+    }
+
     private void open() throws PortException {
         portList = Arrays.asList(SerialPortList.getPortNames());
         if (!portList.contains(portName)) {
