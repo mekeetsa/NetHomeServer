@@ -6,8 +6,11 @@ import jssc.SerialPortList;
 import jssc.SerialPortTimeoutException;
 import nu.nethome.home.items.jeelink.PortException;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -91,6 +94,37 @@ public class ZWavePort {
 
     public boolean isOpen() {
         return isOpen;
+    }
+
+    public void sendMessage(boolean isRequest, byte messageClass, byte[] messageData) throws SerialPortException {
+        ByteArrayOutputStream resultByteBuffer = new ByteArrayOutputStream();
+        byte[] result;
+        resultByteBuffer.write((byte) 0x01);
+        int messageLength = messageData.length + 3;
+
+        resultByteBuffer.write((byte) messageLength);
+        resultByteBuffer.write(isRequest ? 0 : 1);
+        resultByteBuffer.write(messageClass);
+
+        try {
+            resultByteBuffer.write(messageData);
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "", e);
+        }
+
+        resultByteBuffer.write((byte) 0x00);
+        result = resultByteBuffer.toByteArray();
+        result[result.length - 1] = 0x01;
+        result[result.length - 1] = calculateChecksum(result);
+        serialPort.writeBytes(result);
+    }
+
+    private static byte calculateChecksum(byte[] buffer) {
+        byte checkSum = (byte) 0xFF;
+        for (int i=1; i<buffer.length-1; i++) {
+            checkSum = (byte) (checkSum ^ buffer[i]);
+        }
+        return checkSum;
     }
 
     private void receiveLoop() {

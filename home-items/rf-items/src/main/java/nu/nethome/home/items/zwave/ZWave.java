@@ -1,5 +1,6 @@
 package nu.nethome.home.items.zwave;
 
+import jssc.SerialPortException;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
@@ -21,7 +22,7 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
             + "<HomeItem Class=\"ZWave\" Category=\"Hardware\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"PortName\" Type=\"String\" Get=\"getPortName\" Set=\"setPortName\" />"
-            + "  <Action Name=\"toggle\" 	Method=\"toggle\" Default=\"true\" />"
+            + "  <Action Name=\"requestIdentity\" 	Method=\"requestIdentity\" Default=\"true\" />"
             + "</HomeItem> ");
     public static final String ZWAVE_TYPE = "ZWave.Type";
     public static final String ZWAVE_MESSAGE_TYPE = "ZWave.MessageType";
@@ -57,9 +58,17 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
             });
             logger.info("Created port");
         } catch (PortException e) {
-            e.printStackTrace();
             logger.log(Level.WARNING, "Could not open ZWave port", e);
         }
+    }
+
+    public String requestIdentity()  {
+        try {
+            port.sendMessage(true, (byte)0x20, new byte[0]);
+        } catch (SerialPortException e) {
+            logger.log(Level.WARNING, "Could not send ZWave initial message", e);
+        }
+        return "";
     }
 
     private void closePort() {
