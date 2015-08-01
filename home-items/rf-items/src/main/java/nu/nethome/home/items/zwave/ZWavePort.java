@@ -129,7 +129,7 @@ public class ZWavePort {
                 logger.fine("Serial port exception");
                 // Probably port is closed, ignore and will exit the while
             } catch (Exception e) {
-                logger.fine("General exception");
+                logger.fine("General exception processing ZWave message");
             }
         }
     }
@@ -150,6 +150,7 @@ public class ZWavePort {
                 processMessage(frameByte);
                 break;
             default:
+                logger.warning(String.format("ZWave received unexpected frame byte %d, resynchronizing", frameByte & 0xFF));
                 synchronizeCommunication();
                 break;
         }

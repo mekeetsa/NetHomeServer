@@ -5,7 +5,7 @@ import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.items.jeelink.PortException;
-import nu.nethome.home.system.Event;
+import nu.nethome.home.items.zwave.messages.*;
 import nu.nethome.util.plugin.Plugin;
 
 import java.util.List;
@@ -28,6 +28,8 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
             + "  <Attribute Name=\"NodeId\" Type=\"String\" Get=\"getNodeId\" />"
             + "  <Action Name=\"requestIdentity\" 	Method=\"requestIdentity\" Default=\"true\" />"
             + "  <Action Name=\"Reconnect\"		Method=\"reconnect\" Default=\"true\" />"
+            + "  <Action Name=\"StartInclusion\"		Method=\"startInclusion\" />"
+            + "  <Action Name=\"EndInclusion\"		Method=\"endInclusion\" />"
             + "</HomeItem> ");
     public static final String ZWAVE_TYPE = "ZWave.Type";
     public static final String ZWAVE_MESSAGE_TYPE = "ZWave.MessageType";
@@ -39,7 +41,7 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
     private int homeId = 0;
     private int nodeId = 0;
 
-    public boolean receiveEvent(Event event) {
+    public boolean receiveEvent(nu.nethome.home.system.Event event) {
         return false;
     }
 
@@ -60,7 +62,6 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
         }
         return model.toString();
     }
-
 
 
     @Override
@@ -90,7 +91,7 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
         }
     }
 
-    public String requestIdentity()  {
+    public String requestIdentity() {
         try {
             port.sendMessage(new MemoryGetIdRequest().encode());
         } catch (SerialPortException e) {
@@ -117,6 +118,25 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
         openPort();
     }
 
+    public String startInclusion() {
+        return sendRequest(new AddNodeRequest(AddNodeRequest.InclusionMode.ADD_NODE_ANY));
+    }
+
+    public String endInclusion() {
+        return sendRequest(new AddNodeRequest(AddNodeRequest.InclusionMode.ADD_NODE_STOP));
+    }
+
+    private String sendRequest(Request request) {
+        try {
+            if (port != null && port.isOpen()) {
+                port.sendMessage(request.encode());
+            }
+        } catch (SerialPortException e) {
+            logger.log(Level.WARNING, "Could not send ZWave message", e);
+        }
+        return "";
+    }
+
     /**
      * HomeItem method which stops all object activity for program termination
      */
@@ -127,7 +147,7 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
     private void receiveFrameByte(byte frameByte) {
         String data = String.format("%02X", frameByte);
         logger.info(data);
-        Event event = server.createEvent("ZWave_Message", data);
+        nu.nethome.home.system.Event event = server.createEvent("ZWave_Message", data);
         event.setAttribute(ZWAVE_TYPE, "FrameByte");
         event.setAttribute("Direction", "In");
         server.send(event);
@@ -136,17 +156,25 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
     private void receiveMessage(byte[] message) {
         String data = Hex.asHexString(message);
         logger.info(data);
-        Event event = server.createEvent("ZWave_Message", data);
+        nu.nethome.home.system.Event event = server.createEvent("ZWave_Message", data);
         event.setAttribute(ZWAVE_TYPE, message[0] == 0 ? "Request" : "Response");
-        event.setAttribute(ZWAVE_MESSAGE_TYPE, ((int)message[1]) & 0xFF);
+        event.setAttribute(ZWAVE_MESSAGE_TYPE, ((int) message[1]) & 0xFF);
         event.setAttribute("Direction", "In");
         server.send(event);
-        if (Response.decodeRequestId(message) == MemoryGetIdRequest.MemoryGetId) {
+        if (Event.decodeRequestId(message) == MemoryGetIdRequest.MemoryGetId) {
             try {
                 MemoryGetIdResponse memoryGetIdResponse = new MemoryGetIdResponse(message);
                 homeId = memoryGetIdResponse.homeId;
                 nodeId = memoryGetIdResponse.nodeId;
-            } catch (Response.DecoderException e) {
+            } catch (Event.DecoderException e) {
+                logger.warning("Could not parse ZWave response:" + e.getMessage());
+            }
+        }
+        if (Event.decodeRequestId(message) == AddNodeRequest.REQUEST_ID) {
+            try {
+                AddNodeEvent addNodeResponse = new AddNodeEvent(message);
+                logger.info(addNodeResponse.toString());
+            } catch (Event.DecoderException e) {
                 logger.warning("Could not parse ZWave response:" + e.getMessage());
             }
         }

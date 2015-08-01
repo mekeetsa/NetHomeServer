@@ -1,4 +1,4 @@
-package nu.nethome.home.items.zwave;
+package nu.nethome.home.items.zwave.messages;
 
 /**
  *
