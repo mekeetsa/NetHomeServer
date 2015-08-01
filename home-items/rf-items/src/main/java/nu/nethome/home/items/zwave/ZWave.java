@@ -22,6 +22,8 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
             + "<HomeItem Class=\"ZWave\" Category=\"Hardware\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"PortName\" Type=\"String\" Get=\"getPortName\" Set=\"setPortName\" />"
+            + "  <Attribute Name=\"HomeId\" Type=\"String\" Get=\"getHomeId\" />"
+            + "  <Attribute Name=\"NodeId\" Type=\"String\" Get=\"getNodeId\" />"
             + "  <Action Name=\"requestIdentity\" 	Method=\"requestIdentity\" Default=\"true\" />"
             + "</HomeItem> ");
     public static final String ZWAVE_TYPE = "ZWave.Type";
@@ -31,6 +33,8 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
 
     private ZWavePort port;
     private String portName = "/dev/ttyAMA0";
+    private int homeId = 0;
+    private int nodeId = 0;
 
     public boolean receiveEvent(Event event) {
         return false;
@@ -46,17 +50,17 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
             port = new ZWavePort(portName, new ZWavePort.Receiver() {
                 @Override
                 public void receiveMessage(byte[] message) {
-                    logger.info("Receiving Message");
+                    logger.fine("Receiving Message");
                     ZWave.this.receiveMessage(message);
                 }
 
                 @Override
                 public void receiveFrameByte(byte frameByte) {
-                    logger.info("Receiving byte Message");
+                    logger.fine("Receiving byte Message");
                     ZWave.this.receiveFrameByte(frameByte);
                 }
             });
-            logger.info("Created port");
+            logger.fine("Created port");
         } catch (PortException e) {
             logger.log(Level.WARNING, "Could not open ZWave port", e);
         }
@@ -64,7 +68,7 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
 
     public String requestIdentity()  {
         try {
-            port.sendMessage(true, (byte)0x20, new byte[0]);
+            port.sendMessage(new MemoryGetIdRequest().encode());
         } catch (SerialPortException e) {
             logger.log(Level.WARNING, "Could not send ZWave initial message", e);
         }
@@ -72,7 +76,7 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
     }
 
     private void closePort() {
-        logger.info("Closing port");
+        logger.fine("Closing port");
         if (port != null) {
             port.close();
             port = null;
@@ -96,16 +100,22 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
     }
 
     private void receiveMessage(byte[] message) {
-        String data = new String();
-        for (byte b : message) {
-            data += String.format("%02X", b);
-        }
+        String data = Hex.asHexString(message);
         logger.info(data);
         Event event = server.createEvent("ZWave_Message", data);
         event.setAttribute(ZWAVE_TYPE, message[0] == 0 ? "Request" : "Response");
         event.setAttribute(ZWAVE_MESSAGE_TYPE, ((int)message[1]) & 0xFF);
         event.setAttribute("Direction", "In");
         server.send(event);
+        if (Response.decodeRequestId(message) == MemoryGetIdRequest.MemoryGetId) {
+            try {
+                MemoryGetIdResponse memoryGetIdResponse = new MemoryGetIdResponse(message);
+                homeId = memoryGetIdResponse.homeId;
+                nodeId = memoryGetIdResponse.nodeId;
+            } catch (Response.DecoderException e) {
+                logger.warning("Could not parse ZWave response:" + e.getMessage());
+            }
+        }
     }
 
     public String getPortName() {
@@ -118,5 +128,17 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
 
     public String getState() {
         return port != null ? "Connected" : "Disconnected";
+    }
+
+    public String getHomeId() {
+        return Integer.toString(homeId);
+    }
+
+    public String getNodeId() {
+        return Integer.toString(nodeId);
+    }
+
+    public void setNodeId(int nodeId) {
+        this.nodeId = nodeId;
     }
 }

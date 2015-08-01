@@ -6,11 +6,8 @@ import jssc.SerialPortList;
 import jssc.SerialPortTimeoutException;
 import nu.nethome.home.items.jeelink.PortException;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -23,13 +20,12 @@ public class ZWavePort {
         void receiveFrameByte(byte frameByte);
     }
 
-    static final int SOF = 0x01;
-    static final int ACK = 0x06;
-    static final int NAK = 0x15;
-    static final int CAN = 0x18;
+    static final byte SOF = 0x01;
+    static final byte ACK = 0x06;
+    static final byte NAK = 0x15;
+    static final byte CAN = 0x18;
 
     private static Logger logger = Logger.getLogger(ZWavePort.class.getName());
-
 
     String portName = "/dev/ttyAMA0";
     private Receiver receiver;
@@ -68,7 +64,6 @@ public class ZWavePort {
             if (!serialPort.setParams(SerialPort.BAUDRATE_115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE)) {
                 throw new PortException("Could not set serial port parameters");
             }
-            logger.info("Created port");
         } catch (SerialPortException e) {
             throw new PortException("Could not open port " + portName, e);
         }
@@ -96,70 +91,54 @@ public class ZWavePort {
         return isOpen;
     }
 
-    public void sendMessage(boolean isRequest, byte messageClass, byte[] messageData) throws SerialPortException {
-        ByteArrayOutputStream resultByteBuffer = new ByteArrayOutputStream();
-        byte[] result;
-        resultByteBuffer.write((byte) 0x01);
-        int messageLength = messageData.length + 3;
-
-        resultByteBuffer.write((byte) messageLength);
-        resultByteBuffer.write(isRequest ? 0 : 1);
-        resultByteBuffer.write(messageClass);
-
-        try {
-            resultByteBuffer.write(messageData);
-        } catch (IOException e) {
-            logger.log(Level.WARNING, "", e);
-        }
-
-        resultByteBuffer.write((byte) 0x00);
-        result = resultByteBuffer.toByteArray();
-        result[result.length - 1] = 0x01;
-        result[result.length - 1] = calculateChecksum(result);
-        serialPort.writeBytes(result);
+    public void sendMessage(byte[] message) throws SerialPortException {
+        serialPort.writeByte(SOF);
+        byte messageLength = (byte) (message.length + 1);
+        serialPort.writeByte(messageLength);
+        serialPort.writeBytes(message);
+        serialPort.writeByte(calculateChecksum(message, messageLength));
     }
 
-    private static byte calculateChecksum(byte[] buffer) {
-        byte checkSum = (byte) 0xFF;
-        for (int i=1; i<buffer.length-1; i++) {
-            checkSum = (byte) (checkSum ^ buffer[i]);
+    private static byte calculateChecksum(byte[] buffer, byte messageLength) {
+        byte checkSum = -1;
+        checkSum ^= messageLength;
+        for (byte messageByte : buffer) {
+            checkSum ^= messageByte;
         }
         return checkSum;
     }
 
     private void receiveLoop() {
-        String result = "";
         SerialPort localPort = serialPort;
         try {
             synchronizeCommunication();
         } catch (SerialPortException e) {
-            logger.warning("Failed to write to serial port - exiting");
+            logger.warning("ZWave port Failed to write to serial port - exiting");
             return;
         }
-        logger.info("Entering receive loop");
         while (localPort.isOpened() && isOpen) {
             try {
-                logger.info("Starting read message");
+                logger.fine("Starting read message");
                 readMessage(localPort);
-                logger.info("Have read message");
+                logger.fine("Have read message");
             } catch (SerialPortException e) {
-                logger.info("Serial port exception");
+                logger.fine("Serial port exception");
                 // Probably port is closed, ignore and will exit the while
             } catch (Exception e) {
-                logger.info("General exception");
-                // Problem in the decoders.
+                logger.fine("General exception");
             }
         }
     }
 
     void readMessage(SerialPort localPort) throws SerialPortException, SerialPortTimeoutException {
-        int frameByte = readByte(localPort);
+        int frameByte = readByte(localPort, 3000);
         switch (frameByte) {
             case SOF:
                 int messageLength;
-                messageLength = readByte(localPort);
-                byte[] message = localPort.readBytes(messageLength, 1000);
-                processMessage(message);
+                messageLength = readByte(localPort, 20);
+                byte[] message = localPort.readBytes(messageLength - 1, 1000);
+                int checksum = readByte(localPort, 20);
+                processMessage(message, checksum);
                 break;
             case ACK:
             case NAK:
@@ -172,7 +151,7 @@ public class ZWavePort {
         }
     }
 
-    private void processMessage(byte[] message) throws SerialPortException {
+    private void processMessage(byte[] message, int checksum) throws SerialPortException {
         // NYI Verify checksum
         sendResponse(ACK);
         receiver.receiveMessage(message);
@@ -186,8 +165,8 @@ public class ZWavePort {
         sendResponse(NAK);
     }
 
-    private int readByte(SerialPort localPort) throws SerialPortException {
-        byte[] data = localPort.readBytes(1);
+    private int readByte(SerialPort localPort, int timeout) throws SerialPortException, SerialPortTimeoutException {
+        byte[] data = localPort.readBytes(1, timeout);
         return (int) data[0];
     }
 
