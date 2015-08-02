@@ -6,6 +6,7 @@ import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.items.jeelink.PortException;
 import nu.nethome.home.items.zwave.messages.*;
+import nu.nethome.home.items.zwave.messages.commands.Association;
 import nu.nethome.util.plugin.Plugin;
 
 import java.util.List;
@@ -26,10 +27,14 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
             + "    %s </Attribute>"
             + "  <Attribute Name=\"HomeId\" Type=\"String\" Get=\"getHomeId\" />"
             + "  <Attribute Name=\"NodeId\" Type=\"String\" Get=\"getNodeId\" />"
+            + "  <Attribute Name=\"Node\" Type=\"String\" Get=\"getNode\" Set=\"setNode\" />"
+            + "  <Attribute Name=\"Association\" Type=\"String\" Get=\"getAssociation\" Set=\"setAssociation\" />"
             + "  <Action Name=\"requestIdentity\" 	Method=\"requestIdentity\" Default=\"true\" />"
             + "  <Action Name=\"Reconnect\"		Method=\"reconnect\" Default=\"true\" />"
             + "  <Action Name=\"StartInclusion\"		Method=\"startInclusion\" />"
             + "  <Action Name=\"EndInclusion\"		Method=\"endInclusion\" />"
+            + "  <Action Name=\"reportAssociations\"		Method=\"reportAssociations\" />"
+            + "  <Action Name=\"getAssociation\"		Method=\"fetchAssociation\" />"
             + "</HomeItem> ");
     public static final String ZWAVE_TYPE = "ZWave.Type";
     public static final String ZWAVE_MESSAGE_TYPE = "ZWave.MessageType";
@@ -40,6 +45,8 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
     private String portName = "/dev/ttyAMA0";
     private int homeId = 0;
     private int nodeId = 0;
+    private int node = 0;
+    private int association = 0;
 
     public boolean receiveEvent(nu.nethome.home.system.Event event) {
         return false;
@@ -126,6 +133,14 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
         return sendRequest(new AddNodeRequest(AddNodeRequest.InclusionMode.ADD_NODE_STOP));
     }
 
+    public String fetchAssociation() {
+        return sendRequest(new ApplicationCommandRequest((byte) node, Association.getAssociation(association)));
+    }
+
+    public String reportAssociations() {
+        return sendRequest(new ApplicationCommandRequest((byte) node, Association.reportAssociations()));
+    }
+
     private String sendRequest(Request request) {
         try {
             if (port != null && port.isOpen()) {
@@ -204,5 +219,21 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
 
     public String getNodeId() {
         return nodeId != 0 ? Integer.toString(nodeId) : "";
+    }
+
+    public String getNode() {
+        return Integer.toString(node);
+    }
+
+    public void setNode(String node) {
+        this.node = Integer.parseInt(node);
+    }
+
+    public String getAssociation() {
+        return Integer.toString(association);
+    }
+
+    public void setAssociation(String association) {
+        this.association = Integer.parseInt(association);
     }
 }

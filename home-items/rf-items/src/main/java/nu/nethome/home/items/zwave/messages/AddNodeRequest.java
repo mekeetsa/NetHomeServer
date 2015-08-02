@@ -1,6 +1,7 @@
 package nu.nethome.home.items.zwave.messages;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 /**
  *
@@ -35,7 +36,7 @@ public class AddNodeRequest extends Request {
     }
 
     @Override
-    protected void addRequestData(ByteArrayOutputStream result) {
+    protected void addRequestData(ByteArrayOutputStream result) throws IOException {
         super.addRequestData(result);
         result.write(inclusionMode.getValue());
         result.write(0xFF);
