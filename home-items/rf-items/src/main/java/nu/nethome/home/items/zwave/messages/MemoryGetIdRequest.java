@@ -1,7 +1,7 @@
 package nu.nethome.home.items.zwave.messages;
 
-/**
- *
+/*
+ * event,ZWave_Message,Direction,Out,Value,0020
  */
 public class MemoryGetIdRequest extends Request {
 

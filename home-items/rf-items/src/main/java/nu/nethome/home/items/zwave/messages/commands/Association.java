@@ -15,12 +15,12 @@ import java.io.ByteArrayOutputStream;
  */
 public class Association implements ApplicationCommand {
 
-    private static final int ASSOCIATIONCMD_SET = 0x01;
-    private static final int ASSOCIATIONCMD_GET = 0x02;
-    private static final int ASSOCIATIONCMD_REPORT = 0x03;
-    private static final int ASSOCIATIONCMD_REMOVE = 0x04;
-    private static final int ASSOCIATIONCMD_GROUPINGSGET = 0x05;
-    private static final int ASSOCIATIONCMD_GROUPINGSREPORT = 0x06;
+    private static final int SET_ASSOCIATION = 0x01;
+    private static final int GET_ASSOCIATION = 0x02;
+    private static final int REPORT_ASSOCIATION = 0x03;
+    private static final int REMOVE_ASSOCIATION = 0x04;
+    private static final int GET_GROUPINGS = 0x05;
+    private static final int REPORT_GROUPINGS = 0x06;
 
     public static final byte COMMAND_CLASS = (byte) 0x85;
 
@@ -33,12 +33,12 @@ public class Association implements ApplicationCommand {
     }
 
     public static Association getAssociation(int associationId) {
-        Association result = new Association(ASSOCIATIONCMD_GET, associationId);
+        Association result = new Association(GET_ASSOCIATION, associationId);
         return result;
     }
 
     public static Association reportAssociations() {
-        Association result = new Association(ASSOCIATIONCMD_REPORT, 0);
+        Association result = new Association(REPORT_ASSOCIATION, 0);
         return result;
     }
 
@@ -47,7 +47,7 @@ public class Association implements ApplicationCommand {
         ByteArrayOutputStream result = new ByteArrayOutputStream();
         result.write(COMMAND_CLASS);
         result.write(command);
-        if (command != ASSOCIATIONCMD_GROUPINGSREPORT) {
+        if (command != REPORT_GROUPINGS) {
             result.write(associationId);
         }
         return result.toByteArray();

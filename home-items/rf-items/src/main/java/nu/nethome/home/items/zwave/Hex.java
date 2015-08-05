@@ -14,7 +14,7 @@ public class Hex {
         return data;
     }
 
-    static String asHexString(byte[] message) {
+    public static String asHexString(byte[] message) {
         String data = new String();
         for (byte b : message) {
             data += String.format("%02X", b);

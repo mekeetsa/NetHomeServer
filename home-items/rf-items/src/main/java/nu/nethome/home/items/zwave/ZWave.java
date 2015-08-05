@@ -6,7 +6,9 @@ import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.items.jeelink.PortException;
 import nu.nethome.home.items.zwave.messages.*;
+import nu.nethome.home.items.zwave.messages.Event;
 import nu.nethome.home.items.zwave.messages.commands.Association;
+import nu.nethome.home.system.*;
 import nu.nethome.util.plugin.Plugin;
 
 import java.util.List;
@@ -38,6 +40,7 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
             + "</HomeItem> ");
     public static final String ZWAVE_TYPE = "ZWave.Type";
     public static final String ZWAVE_MESSAGE_TYPE = "ZWave.MessageType";
+    public static final String ZWAVE_EVENT_TYPE = "ZWave_Message";
 
     private static Logger logger = Logger.getLogger(ZWave.class.getName());
 
@@ -49,6 +52,18 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
     private int association = 0;
 
     public boolean receiveEvent(nu.nethome.home.system.Event event) {
+        if (event.isType(ZWAVE_EVENT_TYPE) &&
+                event.getAttribute("Direction").equals("Out") &&
+                event.getAttribute(nu.nethome.home.system.Event.EVENT_VALUE_ATTRIBUTE).length() > 0 &&
+                port != null && port.isOpen()) {
+            byte[] message = Hex.hexStringToByteArray(event.getAttribute(nu.nethome.home.system.Event.EVENT_VALUE_ATTRIBUTE));
+            try {
+                port.sendMessage(message);
+            } catch (SerialPortException e) {
+                logger.warning("Failed to send ZWave message: " + event.getAttribute(nu.nethome.home.system.Event.EVENT_VALUE_ATTRIBUTE));
+            }
+            return true;
+        }
         return false;
     }
 
@@ -159,10 +174,12 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
         closePort();
     }
 
+
+
     private void receiveFrameByte(byte frameByte) {
         String data = String.format("%02X", frameByte);
         logger.info(data);
-        nu.nethome.home.system.Event event = server.createEvent("ZWave_Message", data);
+        nu.nethome.home.system.Event event = server.createEvent(ZWAVE_EVENT_TYPE, data);
         event.setAttribute(ZWAVE_TYPE, "FrameByte");
         event.setAttribute("Direction", "In");
         server.send(event);
@@ -171,7 +188,7 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
     private void receiveMessage(byte[] message) {
         String data = Hex.asHexString(message);
         logger.info(data);
-        nu.nethome.home.system.Event event = server.createEvent("ZWave_Message", data);
+        nu.nethome.home.system.Event event = server.createEvent(ZWAVE_EVENT_TYPE, data);
         event.setAttribute(ZWAVE_TYPE, message[0] == 0 ? "Request" : "Response");
         event.setAttribute(ZWAVE_MESSAGE_TYPE, ((int) message[1]) & 0xFF);
         event.setAttribute("Direction", "In");
