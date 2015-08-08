@@ -1,6 +1,6 @@
 package nu.nethome.home.items.zwave;
 
-import nu.nethome.home.items.zwave.messages.Event;
+import nu.nethome.home.items.zwave.messages.DecoderException;
 import nu.nethome.home.items.zwave.messages.MemoryGetIdResponse;
 import org.junit.Test;
 
@@ -12,7 +12,7 @@ import static org.hamcrest.core.Is.is;
  */
 public class MemoryGetIdResponseTest {
     @Test
-    public void canDecodeKnownData() throws Exception, Event.DecoderException {
+    public void canDecodeKnownData() throws Exception, DecoderException {
 
         MemoryGetIdResponse response = new MemoryGetIdResponse(Hex.hexStringToByteArray("0120F9819C1C01"));
 

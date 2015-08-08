@@ -13,7 +13,7 @@ import java.io.ByteArrayOutputStream;
  * 00 04 0006 03: 80 0364
  * 00 04 0006 03: 80 0364
  */
-public class SwitchBinary implements ApplicationCommand {
+public class SwitchBinary implements CommandClass {
 
     private static final int SWITCH_BINARY_SET = 0x01;
     private static final int SWITCH_BINARY_GET = 0x02;

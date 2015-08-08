@@ -24,12 +24,6 @@ public class Event {
         return requestId;
     }
 
-    public static class DecoderException extends Throwable {
-        public DecoderException(String message) {
-            super(message);
-        }
-    }
-
     protected byte getPayloadByte(int number) {
         return message[number + 2];
     }

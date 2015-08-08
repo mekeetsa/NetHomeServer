@@ -12,7 +12,7 @@ import static org.hamcrest.Matchers.is;
 public class AddNodeEventTest {
 
     @Test
-    public void canDecodeStartedEvent() throws Exception, Event.DecoderException {
+    public void canDecodeStartedEvent() throws Exception, DecoderException {
         AddNodeEvent addNodeEvent = new AddNodeEvent(Hex.hexStringToByteArray("004AFF010000"));
         assertThat(addNodeEvent.status, is(AddNodeEvent.Status.LEARN_READY));
     }

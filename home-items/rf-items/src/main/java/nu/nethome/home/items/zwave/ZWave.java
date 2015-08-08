@@ -8,7 +8,6 @@ import nu.nethome.home.items.jeelink.PortException;
 import nu.nethome.home.items.zwave.messages.*;
 import nu.nethome.home.items.zwave.messages.Event;
 import nu.nethome.home.items.zwave.messages.commands.Association;
-import nu.nethome.home.system.*;
 import nu.nethome.util.plugin.Plugin;
 
 import java.util.List;
@@ -198,7 +197,7 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
                 MemoryGetIdResponse memoryGetIdResponse = new MemoryGetIdResponse(message);
                 homeId = memoryGetIdResponse.homeId;
                 nodeId = memoryGetIdResponse.nodeId;
-            } catch (Event.DecoderException e) {
+            } catch (DecoderException e) {
                 logger.warning("Could not parse ZWave response:" + e.getMessage());
             }
         }
@@ -206,7 +205,7 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
             try {
                 AddNodeEvent addNodeResponse = new AddNodeEvent(message);
                 logger.info(addNodeResponse.toString());
-            } catch (Event.DecoderException e) {
+            } catch (DecoderException e) {
                 logger.warning("Could not parse ZWave response:" + e.getMessage());
             }
         }

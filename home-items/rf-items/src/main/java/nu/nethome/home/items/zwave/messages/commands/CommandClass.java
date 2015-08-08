@@ -3,6 +3,6 @@ package nu.nethome.home.items.zwave.messages.commands;
 /**
  *
  */
-public interface ApplicationCommand {
+public interface CommandClass {
     byte[] encode();
 }
