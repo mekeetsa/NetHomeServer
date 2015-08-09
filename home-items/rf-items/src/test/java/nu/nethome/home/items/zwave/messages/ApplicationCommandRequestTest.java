@@ -11,10 +11,10 @@ public class ApplicationCommandRequestTest {
 
     @Test
     public void binarySwitch() throws Exception {
-        ApplicationCommandRequest request = new ApplicationCommandRequest((byte) 2, SwitchBinary.doSwitch(false));
+        ApplicationCommand.Request request = new ApplicationCommand.Request((byte) 2, new SwitchBinary.Set(false));
         String result = Hex.asHexString(request.encode());
         System.out.println("event,ZWave_Message,Direction,Out,Value," + result);
-        request = new ApplicationCommandRequest((byte) 2, SwitchBinary.report());
+        request = new ApplicationCommand.Request((byte) 2, new SwitchBinary.Get());
         result = Hex.asHexString(request.encode());
         System.out.println("event,ZWave_Message,Direction,Out,Value," + result);
     }

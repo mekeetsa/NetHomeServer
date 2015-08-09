@@ -6,10 +6,9 @@ import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.items.jeelink.PortException;
 import nu.nethome.home.items.zwave.messages.*;
-import nu.nethome.home.items.zwave.messages.Event;
-import nu.nethome.home.items.zwave.messages.commands.Association;
 import nu.nethome.util.plugin.Plugin;
 
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -114,7 +113,7 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
 
     public String requestIdentity() {
         try {
-            port.sendMessage(new MemoryGetIdRequest().encode());
+            port.sendMessage(new MemoryGetId.Request().encode());
         } catch (SerialPortException e) {
             logger.log(Level.WARNING, "Could not send ZWave initial message", e);
         }
@@ -140,22 +139,24 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
     }
 
     public String startInclusion() {
-        return sendRequest(new AddNodeRequest(AddNodeRequest.InclusionMode.ADD_NODE_ANY));
+        return sendRequest(new AddNode.Request(AddNode.Request.InclusionMode.ADD_NODE_ANY));
     }
 
     public String endInclusion() {
-        return sendRequest(new AddNodeRequest(AddNodeRequest.InclusionMode.ADD_NODE_STOP));
+        return sendRequest(new AddNode.Request(AddNode.Request.InclusionMode.ADD_NODE_STOP));
     }
 
     public String fetchAssociation() {
-        return sendRequest(new ApplicationCommandRequest((byte) node, Association.getAssociation(association)));
+        //return sendRequest(new ApplicationCommandRequest((byte) node, new Association.Get(association)));
+        return "";
     }
 
     public String reportAssociations() {
-        return sendRequest(new ApplicationCommandRequest((byte) node, Association.reportAssociations()));
+        // return sendRequest(new ApplicationCommandRequest((byte) node, new Association.Report()));
+        return "";
     }
 
-    private String sendRequest(Request request) {
+    private String sendRequest(Message request) {
         try {
             if (port != null && port.isOpen()) {
                 port.sendMessage(request.encode());
@@ -192,18 +193,18 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
         event.setAttribute(ZWAVE_MESSAGE_TYPE, ((int) message[1]) & 0xFF);
         event.setAttribute("Direction", "In");
         server.send(event);
-        if (Event.decodeRequestId(message) == MemoryGetIdRequest.MemoryGetId) {
+        if (Message.decodeMessageId(message) == MemoryGetId.MEMORY_GET_ID) {
             try {
-                MemoryGetIdResponse memoryGetIdResponse = new MemoryGetIdResponse(message);
+                MemoryGetId.Response memoryGetIdResponse = new MemoryGetId.Response(new ByteArrayInputStream(message));
                 homeId = memoryGetIdResponse.homeId;
                 nodeId = memoryGetIdResponse.nodeId;
             } catch (DecoderException e) {
                 logger.warning("Could not parse ZWave response:" + e.getMessage());
             }
         }
-        if (Event.decodeRequestId(message) == AddNodeRequest.REQUEST_ID) {
+        if (Message.decodeMessageId(message) == AddNode.REQUEST_ID) {
             try {
-                AddNodeEvent addNodeResponse = new AddNodeEvent(message);
+                AddNode.Event addNodeResponse = new AddNode.Event(new ByteArrayInputStream(message));
                 logger.info(addNodeResponse.toString());
             } catch (DecoderException e) {
                 logger.warning("Could not parse ZWave response:" + e.getMessage());

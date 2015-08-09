@@ -1,8 +1,9 @@
-package nu.nethome.home.items.zwave;
+package nu.nethome.home.items.zwave.messages;
 
-import nu.nethome.home.items.zwave.messages.DecoderException;
-import nu.nethome.home.items.zwave.messages.MemoryGetIdResponse;
+import nu.nethome.home.items.zwave.Hex;
 import org.junit.Test;
+
+import java.io.ByteArrayInputStream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -10,11 +11,12 @@ import static org.hamcrest.core.Is.is;
 /**
  *
  */
-public class MemoryGetIdResponseTest {
+public class MemoryGetIdTest {
+
     @Test
     public void canDecodeKnownData() throws Exception, DecoderException {
 
-        MemoryGetIdResponse response = new MemoryGetIdResponse(Hex.hexStringToByteArray("0120F9819C1C01"));
+        MemoryGetId.Response response = new MemoryGetId.Response(new ByteArrayInputStream(Hex.hexStringToByteArray("0120F9819C1C01")));
 
         assertThat(response.nodeId, is(1));
         assertThat(response.homeId, is(0xF9819C1C));

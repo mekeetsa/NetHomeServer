@@ -1,5 +1,8 @@
 package nu.nethome.home.items.zwave.messages.commands;
 
+import nu.nethome.home.items.zwave.messages.DecoderException;
+
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 /**
@@ -21,32 +24,40 @@ public class SwitchBinary implements CommandClass {
 
     public static final byte COMMAND_CLASS = (byte) 0x25;
 
-    public final boolean isOn;
-    public final int command;
+    public static class Set extends Command {
+        public final boolean isOn;
 
-    private SwitchBinary(int command, boolean on) {
-        this.command = command;
-        isOn = on;
-    }
+        public Set(boolean on) {
+            super(COMMAND_CLASS, SWITCH_BINARY_SET);
+            isOn = on;
+        }
 
-    public static SwitchBinary doSwitch(boolean on) {
-        SwitchBinary result = new SwitchBinary(SWITCH_BINARY_SET, on);
-        return result;
-    }
-
-    public static SwitchBinary report() {
-        SwitchBinary result = new SwitchBinary(SWITCH_BINARY_REPORT, false);
-        return result;
-    }
-
-    @Override
-    public byte[] encode() {
-        ByteArrayOutputStream result = new ByteArrayOutputStream();
-        result.write(COMMAND_CLASS);
-        result.write(command);
-        if (command == SWITCH_BINARY_SET) {
+        @Override
+        protected void addCommandData(ByteArrayOutputStream result) {
+            super.addCommandData(result);
             result.write(isOn ? 0xFF : 0);
         }
-        return result.toByteArray();
+    }
+
+    public static class Get extends Command {
+        public Get() {
+            super(COMMAND_CLASS, SWITCH_BINARY_GET);
+        }
+    }
+
+    public static class Report extends Command {
+        public final boolean isOn;
+
+        public Report(ByteArrayInputStream data) throws DecoderException {
+            super(COMMAND_CLASS, SWITCH_BINARY_REPORT);
+            super.decode(data);
+            isOn = (data.read() > 0);
+        }
+
+        @Override
+        protected void addCommandData(ByteArrayOutputStream result) {
+            super.addCommandData(result);
+            result.write(isOn ? 0xFF : 0);
+        }
     }
 }

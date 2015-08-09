@@ -27,66 +27,39 @@ public class Association implements CommandClass {
 
     public static final byte COMMAND_CLASS = (byte) 0x85;
 
-    public final int command;
-    public final int associationId;
-    public final int maxAssociations;
-    public final int reportsToFollow;
-    public final int[] nodes;
+    public static class Get extends Command{
+        public final int associationId;
 
-    private Association(int command, int associationId) {
-        this.command = command;
-        this.associationId = associationId;
-        maxAssociations = 0;
-        reportsToFollow = 0;
-        nodes = new int[0];
+        public Get(int associationId) {
+            super(COMMAND_CLASS, GET_ASSOCIATION);
+            this.associationId = associationId;
+        }
+
+        @Override
+        protected void addCommandData(ByteArrayOutputStream result) {
+            super.addCommandData(result);
+            result.write(associationId);
+        }
     }
 
-    public Association(int command, int associationId, int maxAssociations, int reportsToFollow, int[] nodes) {
-        this.command = command;
-        this.associationId = associationId;
-        this.maxAssociations = maxAssociations;
-        this.reportsToFollow = reportsToFollow;
-        this.nodes = nodes;
-    }
+    public static class Report extends Command{
+        public final int associationId;
+        public final int maxAssociations;
+        public final int reportsToFollow;
+        public final int[] nodes;
 
-    // 00 04 0006 06: 85 03 02 0A 00 02
-    public static Association decodeReport(ByteArrayInputStream data) throws DecoderException {
-        int length = data.read();
-        DecoderException.assertTrue(data.read() == COMMAND_CLASS, "Wrong command class in Association");
-        int command = data.read();
-        if (command == ASSOCIATION_REPORT) {
-            int associationId = data.read();
-            int maxAssociations = data.read();
-            int reportsToFollow = data.read();
+        public Report(ByteArrayInputStream data, int length) throws DecoderException {
+            super(COMMAND_CLASS, ASSOCIATION_REPORT);
+            super.decode(data);
+            associationId = data.read();
+            maxAssociations = data.read();
+            reportsToFollow = data.read();
             int numberOfNodes = length - 5;
-            int[] nodes = new int[numberOfNodes];
+            nodes = new int[numberOfNodes];
             for (int i = 0; i < numberOfNodes; i++) {
                 nodes[i] = data.read();
             }
-            return new Association(COMMAND_CLASS, associationId, maxAssociations, reportsToFollow, nodes);
-        } else {
-            throw new DecoderException("Unsupported Command");
         }
     }
-
-    public static Association getAssociation(int associationId) {
-        Association result = new Association(GET_ASSOCIATION, associationId);
-        return result;
-    }
-
-    public static Association reportAssociations() {
-        Association result = new Association(ASSOCIATION_REPORT, 0);
-        return result;
-    }
-
-    @Override
-    public byte[] encode() {
-        ByteArrayOutputStream result = new ByteArrayOutputStream();
-        result.write(COMMAND_CLASS);
-        result.write(command);
-        if (command != REPORT_GROUPINGS) {
-            result.write(associationId);
-        }
-        return result.toByteArray();
-    }
+    // 00 04 0006 06: 85 03 02 0A 00 02
 }

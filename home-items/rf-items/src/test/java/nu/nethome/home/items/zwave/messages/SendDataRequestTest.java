@@ -10,18 +10,18 @@ import org.junit.Test;
  */
 public class SendDataRequestTest {
 
-    public static final int TRANSMIT_OPTIONS = SendDataRequest.TRANSMIT_OPTION_ACK |
-            SendDataRequest.TRANSMIT_OPTION_AUTO_ROUTE | SendDataRequest.TRANSMIT_OPTION_EXPLORE;
+    public static final int TRANSMIT_OPTIONS = SendData.TRANSMIT_OPTION_ACK |
+            SendData.TRANSMIT_OPTION_AUTO_ROUTE | SendData.TRANSMIT_OPTION_EXPLORE;
 
     @Test
     public void binarySwitch() throws Exception {
-        SendDataRequest request = new SendDataRequest((byte) 2, SwitchBinary.doSwitch(true), TRANSMIT_OPTIONS);
+        SendData.Request request = new SendData.Request((byte) 2, new SwitchBinary.Set(true), TRANSMIT_OPTIONS);
         String result = Hex.asHexString(request.encode());
         System.out.println("event,ZWave_Message,Direction,Out,Value," + result);
-        request = new SendDataRequest((byte) 2, SwitchBinary.report(), TRANSMIT_OPTIONS);
-        result = Hex.asHexString(request.encode());
-        System.out.println("event,ZWave_Message,Direction,Out,Value," + result);
-        request = new SendDataRequest((byte) 6, Association.getAssociation(2), TRANSMIT_OPTIONS);
+//        request = new SendDataRequest((byte) 2, SwitchBinary.report(), TRANSMIT_OPTIONS);
+//        result = Hex.asHexString(request.encode());
+//        System.out.println("event,ZWave_Message,Direction,Out,Value," + result);
+        request = new SendData.Request((byte) 6, new Association.Get(2), TRANSMIT_OPTIONS);
         result = Hex.asHexString(request.encode());
         System.out.println("event,ZWave_Message,Direction,Out,Value," + result);
         //
