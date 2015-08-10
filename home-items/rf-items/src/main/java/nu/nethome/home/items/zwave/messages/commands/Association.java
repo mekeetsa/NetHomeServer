@@ -27,7 +27,7 @@ public class Association implements CommandClass {
 
     public static final byte COMMAND_CLASS = (byte) 0x85;
 
-    public static class Get extends Command{
+    public static class Get extends CommandAdaptor {
         public final int associationId;
 
         public Get(int associationId) {
@@ -42,22 +42,33 @@ public class Association implements CommandClass {
         }
     }
 
-    public static class Report extends Command{
+    public static class GetGroupings extends CommandAdaptor {
+
+        public GetGroupings() {
+            super(COMMAND_CLASS, GET_GROUPINGS);
+        }
+
+        @Override
+        protected void addCommandData(ByteArrayOutputStream result) {
+            super.addCommandData(result);
+        }
+    }
+
+    public static class Report extends CommandAdaptor {
         public final int associationId;
         public final int maxAssociations;
         public final int reportsToFollow;
         public final int[] nodes;
 
-        public Report(ByteArrayInputStream data, int length) throws DecoderException {
-            super(COMMAND_CLASS, ASSOCIATION_REPORT);
-            super.decode(data);
-            associationId = data.read();
-            maxAssociations = data.read();
-            reportsToFollow = data.read();
+        public Report(byte[] data, int length) throws DecoderException {
+            super(data, COMMAND_CLASS, ASSOCIATION_REPORT);
+            associationId = in.read();
+            maxAssociations = in.read();
+            reportsToFollow = in.read();
             int numberOfNodes = length - 5;
             nodes = new int[numberOfNodes];
             for (int i = 0; i < numberOfNodes; i++) {
-                nodes[i] = data.read();
+                nodes[i] = in.read();
             }
         }
     }

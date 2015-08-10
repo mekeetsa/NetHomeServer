@@ -9,20 +9,20 @@ public class MemoryGetId  {
 
     public static final byte MEMORY_GET_ID = (byte) 0x20;
 
-    public static class Request extends Message{
+    public static class Request extends MessageAdaptor {
         public Request() {
             super(MEMORY_GET_ID, Type.REQUEST);
         }
     }
 
-    public static class Response extends Message {
+    public static class Response extends MessageAdaptor {
 
         public static final int EXPECTED_LENGTH = 7;
         public final int homeId;
         public final int nodeId;
 
-        public Response(ByteArrayInputStream in) throws DecoderException {
-            super(in, MEMORY_GET_ID, Type.RESPONSE);
+        public Response(byte[] message) throws DecoderException {
+            super(message, MEMORY_GET_ID, Type.RESPONSE);
             homeId = (in.read() << 24) + (in.read() << 16) + (in.read() << 8) + in.read();
             nodeId = in.read();
         }

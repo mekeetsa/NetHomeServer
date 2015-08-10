@@ -156,7 +156,7 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
         return "";
     }
 
-    private String sendRequest(Message request) {
+    private String sendRequest(MessageAdaptor request) {
         try {
             if (port != null && port.isOpen()) {
                 port.sendMessage(request.encode());
@@ -193,18 +193,18 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
         event.setAttribute(ZWAVE_MESSAGE_TYPE, ((int) message[1]) & 0xFF);
         event.setAttribute("Direction", "In");
         server.send(event);
-        if (Message.decodeMessageId(message) == MemoryGetId.MEMORY_GET_ID) {
+        if (MessageAdaptor.decodeMessageId(message) == MemoryGetId.MEMORY_GET_ID) {
             try {
-                MemoryGetId.Response memoryGetIdResponse = new MemoryGetId.Response(new ByteArrayInputStream(message));
+                MemoryGetId.Response memoryGetIdResponse = new MemoryGetId.Response(message);
                 homeId = memoryGetIdResponse.homeId;
                 nodeId = memoryGetIdResponse.nodeId;
             } catch (DecoderException e) {
                 logger.warning("Could not parse ZWave response:" + e.getMessage());
             }
         }
-        if (Message.decodeMessageId(message) == AddNode.REQUEST_ID) {
+        if (MessageAdaptor.decodeMessageId(message) == AddNode.REQUEST_ID) {
             try {
-                AddNode.Event addNodeResponse = new AddNode.Event(new ByteArrayInputStream(message));
+                AddNode.Event addNodeResponse = new AddNode.Event(message);
                 logger.info(addNodeResponse.toString());
             } catch (DecoderException e) {
                 logger.warning("Could not parse ZWave response:" + e.getMessage());

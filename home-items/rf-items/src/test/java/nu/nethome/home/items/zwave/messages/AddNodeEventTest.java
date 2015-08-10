@@ -15,7 +15,7 @@ public class AddNodeEventTest {
 
     @Test
     public void canDecodeStartedEvent() throws Exception, DecoderException {
-        AddNode.Event addNodeEvent = new AddNode.Event(new ByteArrayInputStream(Hex.hexStringToByteArray("004AFF010000")));
+        AddNode.Event addNodeEvent = new AddNode.Event(Hex.hexStringToByteArray("004AFF010000"));
         assertThat(addNodeEvent.status, is(AddNode.Event.Status.LEARN_READY));
     }
 }

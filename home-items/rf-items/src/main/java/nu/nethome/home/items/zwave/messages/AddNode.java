@@ -4,14 +4,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-/**
- *
- */
 public class AddNode {
 
     public static final byte REQUEST_ID = (byte) 0x4a;
 
-    public static class Request extends Message {
+    public static class Request extends MessageAdaptor {
         private InclusionMode inclusionMode;
 
         public enum InclusionMode {
@@ -45,7 +42,7 @@ public class AddNode {
         }
     }
 
-    public static class Event extends Message {
+    public static class Event extends MessageAdaptor {
         public final Status status;
         public final int nodeId;
 
@@ -78,11 +75,11 @@ public class AddNode {
             }
         }
 
-        public Event(ByteArrayInputStream message) throws DecoderException {
+        public Event(byte[] message) throws DecoderException {
             super(message, REQUEST_ID, Type.REQUEST);
-            message.read(); // ??
-            status = Status.fromValue((byte) message.read());
-            nodeId = message.read();
+            in.read(); // ??
+            status = Status.fromValue((byte) in.read());
+            nodeId = in.read();
         }
 
         @Override

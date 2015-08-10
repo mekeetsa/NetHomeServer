@@ -24,7 +24,7 @@ public class SwitchBinary implements CommandClass {
 
     public static final byte COMMAND_CLASS = (byte) 0x25;
 
-    public static class Set extends Command {
+    public static class Set extends CommandAdaptor {
         public final boolean isOn;
 
         public Set(boolean on) {
@@ -39,25 +39,31 @@ public class SwitchBinary implements CommandClass {
         }
     }
 
-    public static class Get extends Command {
+    public static class Get extends CommandAdaptor {
         public Get() {
             super(COMMAND_CLASS, SWITCH_BINARY_GET);
         }
     }
 
-    public static class Report extends Command {
+    public static class Report extends CommandAdaptor {
         public final boolean isOn;
 
-        public Report(ByteArrayInputStream data) throws DecoderException {
-            super(COMMAND_CLASS, SWITCH_BINARY_REPORT);
-            super.decode(data);
-            isOn = (data.read() > 0);
+        public Report(byte[] data) throws DecoderException {
+            super(data, COMMAND_CLASS, SWITCH_BINARY_REPORT);
+            isOn = (in.read() > 0);
         }
 
         @Override
         protected void addCommandData(ByteArrayOutputStream result) {
             super.addCommandData(result);
             result.write(isOn ? 0xFF : 0);
+        }
+
+        public static class Processor extends SingleCommandProcessorAdapter<Report> {
+            @Override
+            public void process(byte[] command) throws DecoderException {
+                process(new Report(command));
+            }
         }
     }
 }

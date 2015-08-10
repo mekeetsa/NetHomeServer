@@ -16,7 +16,7 @@ public class MemoryGetIdTest {
     @Test
     public void canDecodeKnownData() throws Exception, DecoderException {
 
-        MemoryGetId.Response response = new MemoryGetId.Response(new ByteArrayInputStream(Hex.hexStringToByteArray("0120F9819C1C01")));
+        MemoryGetId.Response response = new MemoryGetId.Response(Hex.hexStringToByteArray("0120F9819C1C01"));
 
         assertThat(response.nodeId, is(1));
         assertThat(response.homeId, is(0xF9819C1C));
