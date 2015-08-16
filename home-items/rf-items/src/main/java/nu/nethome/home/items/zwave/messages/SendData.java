@@ -1,5 +1,6 @@
 package nu.nethome.home.items.zwave.messages;
 
+import nu.nethome.home.items.zwave.messages.commands.Command;
 import nu.nethome.home.items.zwave.messages.commands.CommandAdapter;
 
 import java.io.ByteArrayOutputStream;
@@ -19,11 +20,11 @@ public class SendData {
 
     public static class Request extends MessageAdaptor {
         public final byte node;
-        public final CommandAdapter command;
+        public final Command command;
         public final int transmitOptions;
         public final int callbackId;
 
-        public Request(byte node, CommandAdapter command, int transmitOptions) {
+        public Request(byte node, Command command, int transmitOptions) {
             super(REQUEST_ID, Type.REQUEST);
             this.node = node;
             this.command = command;

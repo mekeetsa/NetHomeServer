@@ -6,6 +6,7 @@ import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.items.zwave.messages.ApplicationCommand;
 import nu.nethome.home.items.zwave.messages.DecoderException;
 import nu.nethome.home.items.zwave.messages.MessageAdaptor;
+import nu.nethome.home.items.zwave.messages.SendData;
 import nu.nethome.home.items.zwave.messages.commands.*;
 import nu.nethome.util.plugin.Plugin;
 
@@ -29,6 +30,9 @@ public class ZWaveNodeExplorer extends HomeItemAdapter implements HomeItem {
     public static final String ZWAVE_TYPE = "ZWave.Type";
     public static final String ZWAVE_MESSAGE_TYPE = "ZWave.MessageType";
     public static final String ZWAVE_EVENT_TYPE = "ZWave_Message";
+
+    public static final int TRANSMIT_OPTIONS = SendData.TRANSMIT_OPTION_ACK |
+            SendData.TRANSMIT_OPTION_AUTO_ROUTE | SendData.TRANSMIT_OPTION_EXPLORE;
 
     private static Logger logger = Logger.getLogger(ZWaveNodeExplorer.class.getName());
 
@@ -71,7 +75,7 @@ public class ZWaveNodeExplorer extends HomeItemAdapter implements HomeItem {
             this.associations = "";
             String spacer = "";
             for (AssociatedNode aNode : command.nodes) {
-                associations += spacer + aNode.nodeId + "." + aNode.instance;
+                associations += spacer + aNode;
                 spacer = ", ";
             }
         }
@@ -83,7 +87,7 @@ public class ZWaveNodeExplorer extends HomeItemAdapter implements HomeItem {
 
     public String fetchAssociation() {
         associations = "";
-        sendRequest(new ApplicationCommand.Request((byte) node, new MultiInstanceAssociation.Get(association)).encode());
+        sendRequest(new SendData.Request((byte) node, new MultiInstanceAssociation.Get(association), TRANSMIT_OPTIONS).encode());
         return "";
     }
 

@@ -3,6 +3,7 @@ package nu.nethome.home.items.zwave.messages.commands;
 import nu.nethome.home.items.zwave.messages.DecoderException;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 
 public class MultiInstanceAssociation implements CommandClass {
 
@@ -39,13 +40,24 @@ public class MultiInstanceAssociation implements CommandClass {
             associationId = in.read();
             maxAssociations = in.read();
             reportsToFollow = in.read();
-            int numberOfNodes = (data.length - 5) / 2;
-            nodes = new AssociatedNode[numberOfNodes];
-            for (int i = 0; i < numberOfNodes; i++) {
+            int numberOfNodeBytes = (data.length - 5);
+            ArrayList<AssociatedNode> associatedNodes = new ArrayList<>();
+            int nextNode = in.read();
+            int readBytes = 1;
+            // First comes the nodes without instance as single bytes followed by a 0-byte
+            while (nextNode != 0 && readBytes < numberOfNodeBytes) {
+                associatedNodes.add(new AssociatedNode(nextNode));
+                nextNode = in.read();
+                readBytes++;
+            }
+            // Then comes the nodes with instance id:s
+            while (readBytes < numberOfNodeBytes) {
                 int nodeId = in.read();
                 int instanceId = in.read();
-                nodes[i] = new AssociatedNode(nodeId, instanceId);
+                associatedNodes.add(new AssociatedNode(nodeId, instanceId));
+                readBytes += 2;
             }
+            nodes = associatedNodes.toArray(new AssociatedNode[associatedNodes.size()]);
         }
     }
 }
