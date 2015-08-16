@@ -5,7 +5,7 @@ import nu.nethome.home.items.zwave.messages.DecoderException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
-public abstract class CommandAdaptor implements Command {
+public abstract class CommandAdapter implements Command {
     private final int commandClass;
     private final int command;
     protected ByteArrayInputStream in;
@@ -22,16 +22,21 @@ public abstract class CommandAdaptor implements Command {
         result.write(command);
     }
 
-    protected CommandAdaptor(int commandClass, int command) {
+    protected CommandAdapter(int commandClass, int command) {
         this.commandClass = commandClass;
         this.command = command;
     }
 
-    protected CommandAdaptor(byte[] commandData, int commandClass, int command) throws DecoderException {
-        this(commandClass, command);
+    protected CommandAdapter(byte[] commandData) throws DecoderException {
         in = new ByteArrayInputStream(commandData);
-        DecoderException.assertTrue(in.read() == commandClass, "Wrong command class in Association");
-        DecoderException.assertTrue(in.read() == command, "Wrong command class in Association");
+        commandClass = in.read();
+        command = in.read();
+    }
+
+    protected CommandAdapter(byte[] commandData, int commandClass, int command) throws DecoderException {
+        this(commandData);
+        DecoderException.assertTrue(this.commandClass == commandClass, "Wrong command class in Association");
+        DecoderException.assertTrue(this.command == command, "Wrong command class in Association");
     }
 
     @Override
@@ -42,5 +47,12 @@ public abstract class CommandAdaptor implements Command {
     @Override
     public int getCommand() {
         return command;
+    }
+
+    public static CommandCode decodeCommandCode(byte[] message) throws DecoderException {
+        if (message != null || message.length < 2){
+            throw new DecoderException("Invalid command buffer");
+        }
+        return new CommandCode(((int)(message[0])) & 0xFF, ((int)(message[1])) & 0xFF);
     }
 }

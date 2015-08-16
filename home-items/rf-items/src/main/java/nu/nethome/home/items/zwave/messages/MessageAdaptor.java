@@ -23,8 +23,8 @@ public class MessageAdaptor implements Message {
         DecoderException.assertTrue(in.read() == requestId, "Unexpected message type");
     }
 
-    public static byte decodeMessageId(byte[] message) {
-        return (message != null && message.length >= 2) ? message[1] : 0;
+    public static int decodeMessageId(byte[] message) {
+        return (message != null && message.length >= 2) ? ((int)(message[1])) & 0xFF : 0;
     }
 
     @Override

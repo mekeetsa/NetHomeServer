@@ -1,7 +1,7 @@
 package nu.nethome.home.items.zwave.messages;
 
 import nu.nethome.home.items.zwave.Hex;
-import nu.nethome.home.items.zwave.messages.commands.Association;
+import nu.nethome.home.items.zwave.messages.commands.MultiInstanceAssociation;
 import nu.nethome.home.items.zwave.messages.commands.SwitchBinary;
 import org.junit.Test;
 
@@ -21,10 +21,7 @@ public class SendDataRequestTest {
 //        request = new SendDataRequest((byte) 2, SwitchBinary.report(), TRANSMIT_OPTIONS);
 //        result = Hex.asHexString(request.encode());
 //        System.out.println("event,ZWave_Message,Direction,Out,Value," + result);
-        request = new SendData.Request((byte) 2, new Association.Get(2), TRANSMIT_OPTIONS);
-        result = Hex.asHexString(request.encode());
-        System.out.println("event,ZWave_Message,Direction,Out,Value," + result);
-        request = new SendData.Request((byte) 2, new Association.GetGroupings(), TRANSMIT_OPTIONS);
+        request = new SendData.Request((byte) 2, new MultiInstanceAssociation.Get(2), TRANSMIT_OPTIONS);
         result = Hex.asHexString(request.encode());
         System.out.println("event,ZWave_Message,Direction,Out,Value," + result);
         //

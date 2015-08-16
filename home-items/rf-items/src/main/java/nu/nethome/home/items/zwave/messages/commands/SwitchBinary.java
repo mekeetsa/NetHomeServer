@@ -2,7 +2,6 @@ package nu.nethome.home.items.zwave.messages.commands;
 
 import nu.nethome.home.items.zwave.messages.DecoderException;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 /**
@@ -24,7 +23,7 @@ public class SwitchBinary implements CommandClass {
 
     public static final byte COMMAND_CLASS = (byte) 0x25;
 
-    public static class Set extends CommandAdaptor {
+    public static class Set extends CommandAdapter {
         public final boolean isOn;
 
         public Set(boolean on) {
@@ -39,13 +38,13 @@ public class SwitchBinary implements CommandClass {
         }
     }
 
-    public static class Get extends CommandAdaptor {
+    public static class Get extends CommandAdapter {
         public Get() {
             super(COMMAND_CLASS, SWITCH_BINARY_GET);
         }
     }
 
-    public static class Report extends CommandAdaptor {
+    public static class Report extends CommandAdapter {
         public final boolean isOn;
 
         public Report(byte[] data) throws DecoderException {
@@ -59,10 +58,10 @@ public class SwitchBinary implements CommandClass {
             result.write(isOn ? 0xFF : 0);
         }
 
-        public static class Processor extends SingleCommandProcessorAdapter<Report> {
+        public static class Processor extends CommandProcessorAdapter<Report> {
             @Override
-            public void process(byte[] command) throws DecoderException {
-                process(new Report(command));
+            public Report process(byte[] command) throws DecoderException {
+                return process(new Report(command));
             }
         }
     }
