@@ -70,5 +70,12 @@ public class Association implements CommandClass {
                 nodes[i] = in.read();
             }
         }
+
+        public static class Processor extends CommandProcessorAdapter<Report> {
+            @Override
+            public Report process(byte[] command) throws DecoderException {
+                return process(new Report(command));
+            }
+        }
     }
 }
