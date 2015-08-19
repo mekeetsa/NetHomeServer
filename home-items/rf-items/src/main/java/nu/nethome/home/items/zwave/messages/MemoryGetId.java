@@ -29,7 +29,14 @@ public class MemoryGetId  {
 
         @Override
         public String toString() {
-            return String.format("%s: homeId=%d, nodeId = %d", MemoryGetId.Response.class.getSimpleName(), homeId, nodeId);
+            return String.format("MemoryGetId.Response(homeId=%X, nodeId = %d)", homeId, nodeId);
+        }
+
+        public static class Processor extends MessageProcessorAdaptor<Response> {
+            @Override
+            public Response process(byte[] command) throws DecoderException {
+                return process(new Response(command));
+            }
         }
     }
 }

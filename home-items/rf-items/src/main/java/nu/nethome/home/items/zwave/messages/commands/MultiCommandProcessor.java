@@ -7,7 +7,16 @@ import java.util.Map;
 
 public class MultiCommandProcessor implements CommandProcessor {
 
-    Map<CommandCode, CommandProcessor> processors = new HashMap<>();
+    private Map<CommandCode, CommandProcessor> processors = new HashMap<>();
+    private CommandProcessor defaultProcessor;
+
+    public MultiCommandProcessor() {
+        this.defaultProcessor = new UndecodedCommand.Processor();
+    }
+
+    public MultiCommandProcessor(CommandProcessor defaultProcessor) {
+        this.defaultProcessor = defaultProcessor;
+    }
 
     @Override
     public Command process(byte[] message) throws DecoderException {
@@ -15,10 +24,14 @@ public class MultiCommandProcessor implements CommandProcessor {
         if (processor != null) {
             return processor.process(message);
         }
-        return null;
+        return defaultProcessor.process(message);
     }
 
     public void addCommandProcessor(CommandCode command, CommandProcessor processor) {
         processors.put(command, processor);
+    }
+
+    public void setDefaultProcessor(CommandProcessor defaultProcessor) {
+        this.defaultProcessor = defaultProcessor;
     }
 }

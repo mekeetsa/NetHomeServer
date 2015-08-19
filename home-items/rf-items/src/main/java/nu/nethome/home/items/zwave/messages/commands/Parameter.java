@@ -58,4 +58,9 @@ public class Parameter {
         result = 31 * result + length;
         return result;
     }
+
+    @Override
+    public String toString() {
+        return String.format("%d(%d)", value, length);
+    }
 }

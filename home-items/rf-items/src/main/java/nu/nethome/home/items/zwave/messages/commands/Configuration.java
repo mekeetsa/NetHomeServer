@@ -64,5 +64,10 @@ public class Configuration implements CommandClass {
                 return process(new Report(command));
             }
         }
+
+        @Override
+        public String toString() {
+            return String.format("Parameter.Report{parameter:%d, value:%s", configurationId, parameter.toString());
+        }
     }
 }
