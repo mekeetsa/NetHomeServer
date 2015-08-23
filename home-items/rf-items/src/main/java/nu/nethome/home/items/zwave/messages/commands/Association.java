@@ -73,7 +73,7 @@ public class Association implements CommandClass {
 
         public static class Processor extends CommandProcessorAdapter<Report> {
             @Override
-            public Report process(byte[] command) throws DecoderException {
+            public Report process(byte[] command, int node) throws DecoderException {
                 return process(new Report(command));
             }
         }

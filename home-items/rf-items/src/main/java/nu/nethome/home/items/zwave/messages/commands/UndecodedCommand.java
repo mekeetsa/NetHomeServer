@@ -19,7 +19,7 @@ public class UndecodedCommand extends CommandAdapter {
 
     public static class Processor extends CommandProcessorAdapter<UndecodedCommand> {
         @Override
-        public UndecodedCommand process(byte[] command) throws DecoderException {
+        public UndecodedCommand process(byte[] command, int node) throws DecoderException {
             return process(new UndecodedCommand(command));
         }
     }

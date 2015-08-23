@@ -8,7 +8,6 @@ import nu.nethome.home.items.jeelink.PortException;
 import nu.nethome.home.items.zwave.messages.*;
 import nu.nethome.util.plugin.Plugin;
 
-import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -139,11 +138,11 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
     }
 
     public String startInclusion() {
-        return sendRequest(new AddNode.Request(AddNode.Request.InclusionMode.ADD_NODE_ANY));
+        return sendRequest(new AddNode.Request(AddNode.Request.InclusionMode.ANY));
     }
 
     public String endInclusion() {
-        return sendRequest(new AddNode.Request(AddNode.Request.InclusionMode.ADD_NODE_STOP));
+        return sendRequest(new AddNode.Request(AddNode.Request.InclusionMode.STOP));
     }
 
     public String fetchAssociation() {

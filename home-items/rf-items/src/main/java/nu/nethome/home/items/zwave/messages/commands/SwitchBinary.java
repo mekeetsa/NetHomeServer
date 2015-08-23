@@ -17,9 +17,9 @@ import java.io.ByteArrayOutputStream;
  */
 public class SwitchBinary implements CommandClass {
 
-    private static final int SWITCH_BINARY_SET = 0x01;
-    private static final int SWITCH_BINARY_GET = 0x02;
-    private static final int SWITCH_BINARY_REPORT = 0x03;
+    public static final int SWITCH_BINARY_SET = 0x01;
+    public static final int SWITCH_BINARY_GET = 0x02;
+    public static final int SWITCH_BINARY_REPORT = 0x03;
 
     public static final byte COMMAND_CLASS = (byte) 0x25;
 
@@ -60,9 +60,14 @@ public class SwitchBinary implements CommandClass {
 
         public static class Processor extends CommandProcessorAdapter<Report> {
             @Override
-            public Report process(byte[] command) throws DecoderException {
+            public Report process(byte[] command, int node) throws DecoderException {
                 return process(new Report(command));
             }
+        }
+
+        @Override
+        public String toString() {
+            return String.format("SwitchBinary.Report(value:%d)", isOn ? 1 : 0);
         }
     }
 }

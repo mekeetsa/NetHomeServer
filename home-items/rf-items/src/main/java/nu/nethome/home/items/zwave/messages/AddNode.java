@@ -4,7 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-public class AddNode {
+public class  AddNode {
 
     public static final byte REQUEST_ID = (byte) 0x4a;
 
@@ -12,16 +12,25 @@ public class AddNode {
         private InclusionMode inclusionMode;
 
         public enum InclusionMode {
-            ADD_NODE_ANY(0x01),
-            ADD_NODE_CONTROLLER(0x02),
-            ADD_NODE_SLAVE(0x03),
-            ADD_NODE_EXISTING(0x04),
-            ADD_NODE_STOP(0x05),
-            ADD_NODE_STOP_FAILED(0x06);
+            ANY(0x01),
+            CONTROLLER(0x02),
+            SLAVE(0x03),
+            EXISTING(0x04),
+            STOP(0x05),
+            STOP_FAILED(0x06);
 
             private byte value;
             InclusionMode(int value) {
                 this.value = (byte)value;
+            }
+
+            public static InclusionMode fromName(String name) throws DecoderException {
+                for (InclusionMode status : InclusionMode.values()) {
+                    if (status.name().equals(name)) {
+                        return status;
+                    }
+                }
+                throw new DecoderException("Unknown InclusionMode value");
             }
 
             public byte getValue() {
@@ -82,9 +91,16 @@ public class AddNode {
             nodeId = in.read();
         }
 
+        public static class Processor extends MessageProcessorAdaptor<Event> {
+            @Override
+            public Event process(byte[] command) throws DecoderException {
+                return process(new Event(command));
+            }
+        }
+
         @Override
         public String toString() {
-            return String.format("%s: status: %s, node: %d", Event.class.getSimpleName(), status.name(), nodeId);
+            return String.format("AddNode.Event: status: %s, node: %d", status.name(), nodeId);
         }
     }
 }

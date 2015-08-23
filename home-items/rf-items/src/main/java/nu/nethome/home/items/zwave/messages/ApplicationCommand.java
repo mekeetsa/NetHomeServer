@@ -2,6 +2,7 @@ package nu.nethome.home.items.zwave.messages;
 
 import nu.nethome.home.items.zwave.messages.commands.Command;
 import nu.nethome.home.items.zwave.messages.commands.CommandProcessor;
+import nu.nethome.home.items.zwave.messages.commands.MultiCommandProcessor;
 import nu.nethome.home.items.zwave.messages.commands.UndecodedCommand;
 
 import java.io.ByteArrayOutputStream;
@@ -37,7 +38,7 @@ public class ApplicationCommand {
         public Request(byte[] data) throws IOException, DecoderException {
             this(data, new CommandProcessor() {
                 @Override
-                public Command process(byte[] commandData) throws DecoderException {
+                public Command process(byte[] commandData, int node) throws DecoderException {
                     return new UndecodedCommand(commandData);
                 }
             });
@@ -50,13 +51,29 @@ public class ApplicationCommand {
             int commandLength = in.read();
             byte[] commandData = new byte[commandLength];
             in.read(commandData);
-            command = processor.process(commandData);
+            command = processor.process(commandData, node);
         }
 
-        public class Processor extends MessageProcessorAdaptor<Request> {
+        @Override
+        public String toString() {
+            return String.format("ApplicationCommand.Request(node:%d, command:{%s})", node, command.toString());
+        }
+
+        public static class Processor extends MessageProcessorAdaptor<Request> {
+
+            private CommandProcessor commandProcessor;
+
+            public Processor(CommandProcessor commandProcessor) {
+                this.commandProcessor = commandProcessor;
+            }
+
+            public Processor() {
+                this.commandProcessor = new MultiCommandProcessor();
+            }
+
             @Override
             public Message process(byte[] message) throws DecoderException, IOException {
-                return process(new Request(message));
+                return process(new Request(message, commandProcessor));
             }
         }
     }

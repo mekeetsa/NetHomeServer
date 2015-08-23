@@ -50,7 +50,7 @@ public abstract class CommandAdapter implements Command {
     }
 
     public static CommandCode decodeCommandCode(byte[] message) throws DecoderException {
-        if (message != null || message.length < 2){
+        if (message == null || message.length < 2){
             throw new DecoderException("Invalid command buffer");
         }
         return new CommandCode(((int)(message[0])) & 0xFF, ((int)(message[1])) & 0xFF);

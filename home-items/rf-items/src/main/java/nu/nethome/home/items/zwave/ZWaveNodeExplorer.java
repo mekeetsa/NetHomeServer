@@ -59,7 +59,7 @@ public class ZWaveNodeExplorer extends HomeItemAdapter implements HomeItem {
             try {
                 ApplicationCommand.Request command = new ApplicationCommand.Request(message, new CommandProcessor() {
                     @Override
-                    public Command process(byte[] commandData) throws DecoderException {
+                    public Command process(byte[] commandData, int node) throws DecoderException {
                         return new MultiInstanceAssociation.Report(commandData);
                     }
                 });

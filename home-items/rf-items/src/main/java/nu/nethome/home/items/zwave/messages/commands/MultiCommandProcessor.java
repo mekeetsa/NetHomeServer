@@ -19,12 +19,12 @@ public class MultiCommandProcessor implements CommandProcessor {
     }
 
     @Override
-    public Command process(byte[] message) throws DecoderException {
+    public Command process(byte[] message, int node) throws DecoderException {
         CommandProcessor processor = processors.get(CommandAdapter.decodeCommandCode(message));
         if (processor != null) {
-            return processor.process(message);
+            return processor.process(message, node);
         }
-        return defaultProcessor.process(message);
+        return defaultProcessor.process(message, node);
     }
 
     public void addCommandProcessor(CommandCode command, CommandProcessor processor) {

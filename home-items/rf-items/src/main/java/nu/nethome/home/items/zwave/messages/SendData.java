@@ -14,6 +14,8 @@ public class SendData {
     public static final int TRANSMIT_OPTION_ACK = 0x01;
     public static final int TRANSMIT_OPTION_AUTO_ROUTE = 0x04;
     public static final int TRANSMIT_OPTION_EXPLORE = 0x20;
+    public static final int TRANSMIT_OPTIONS_ALL = TRANSMIT_OPTION_ACK | TRANSMIT_OPTION_AUTO_ROUTE | TRANSMIT_OPTION_EXPLORE;
+
     public static final int REQUEST_ID = 0x13;
 
     private static int nextCallbackId = 0;

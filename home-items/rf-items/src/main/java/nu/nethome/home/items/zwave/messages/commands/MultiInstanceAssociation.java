@@ -12,10 +12,10 @@ import java.util.List;
  */
 public class MultiInstanceAssociation implements CommandClass {
 
-    private static final int SET_ASSOCIATION = 0x01;
-    private static final int GET_ASSOCIATION = 0x02;
-    private static final int ASSOCIATION_REPORT = 0x03;
-    private static final int REMOVE_ASSOCIATION = 0x04;
+    public static final int SET_ASSOCIATION = 0x01;
+    public static final int GET_ASSOCIATION = 0x02;
+    public static final int ASSOCIATION_REPORT = 0x03;
+    public static final int REMOVE_ASSOCIATION = 0x04;
 
     public static final int COMMAND_CLASS = 0x8E;
 
@@ -104,9 +104,20 @@ public class MultiInstanceAssociation implements CommandClass {
             nodes = associatedNodes.toArray(new AssociatedNode[associatedNodes.size()]);
         }
 
+        @Override
+        public String toString() {
+            String nodesString = "";
+            String separator = "";
+            for (AssociatedNode node : nodes) {
+                nodesString += separator + node;
+                separator = ", ";
+            }
+            return String.format("MultiInstanceAssociation.Report(group:%d, max:%d, following: %d, nodes: %s)", group, maxAssociations, reportsToFollow, nodesString);
+        }
+
         public static class Processor extends CommandProcessorAdapter<Report> {
             @Override
-            public Report process(byte[] command) throws DecoderException {
+            public Report process(byte[] command, int node) throws DecoderException {
                 return process(new Report(command));
             }
         }

@@ -9,9 +9,9 @@ import java.io.ByteArrayOutputStream;
  */
 public class Configuration implements CommandClass {
 
-    private static final int SET_CONFIGURATION = 0x04;
-    private static final int GET_CONFIGURATION = 0x05;
-    private static final int REPORT_CONFIGURATION = 0x06;
+    public static final int SET_CONFIGURATION = 0x04;
+    public static final int GET_CONFIGURATION = 0x05;
+    public static final int REPORT_CONFIGURATION = 0x06;
 
     public static final int COMMAND_CLASS = 0x70;
 
@@ -60,14 +60,14 @@ public class Configuration implements CommandClass {
 
         public static class Processor extends CommandProcessorAdapter<Report> {
             @Override
-            public Report process(byte[] command) throws DecoderException {
+            public Report process(byte[] command, int node) throws DecoderException {
                 return process(new Report(command));
             }
         }
 
         @Override
         public String toString() {
-            return String.format("Parameter.Report{parameter:%d, value:%s", configurationId, parameter.toString());
+            return String.format("Parameter.Report(parameter:%d, value:%s)", configurationId, parameter.toString());
         }
     }
 }
