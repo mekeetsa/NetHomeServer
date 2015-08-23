@@ -35,7 +35,7 @@ public class Configuration implements CommandClass {
         public final Parameter parameter;
 
         public Set(int configurationId, Parameter parameter) {
-            super(COMMAND_CLASS, GET_CONFIGURATION);
+            super(COMMAND_CLASS, SET_CONFIGURATION);
             this.configurationId = configurationId;
             this.parameter = parameter;
         }

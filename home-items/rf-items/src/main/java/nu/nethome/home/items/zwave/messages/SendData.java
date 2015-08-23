@@ -6,9 +6,6 @@ import nu.nethome.home.items.zwave.messages.commands.CommandAdapter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-/**
- *
- */
 public class SendData {
 
     public static final int TRANSMIT_OPTION_ACK = 0x01;
@@ -44,6 +41,34 @@ public class SendData {
             result.write(commandData);
             result.write(transmitOptions);
             result.write(callbackId);
+        }
+    }
+
+    public static class Response extends MessageAdaptor {
+
+        public final int callbackId;
+        public final Integer status;
+
+        public Response(byte[] message) throws DecoderException {
+            super(message, REQUEST_ID, Type.RESPONSE);
+            callbackId = in.read();
+            if (message.length > 3) {
+                status = in.read();
+            } else {
+                status = null;
+            }
+        }
+
+        @Override
+        public String toString() {
+            return String.format("SendData.Response(callbackId=%d, status=%d)", callbackId, status == null ? -1 : status);
+        }
+
+        public static class Processor extends MessageProcessorAdaptor<Response> {
+            @Override
+            public Response process(byte[] command) throws DecoderException {
+                return process(new Response(command));
+            }
         }
     }
 }

@@ -34,52 +34,52 @@ public abstract class ZWaveExecutor {
         commandProcessor.addCommandProcessor(new CommandCode(SwitchBinary.COMMAND_CLASS, SwitchBinary.SWITCH_BINARY_REPORT), new SwitchBinary.Report.Processor());
         messageProcessor = new MultiMessageProcessor();
         messageProcessor.addMessageProcessor(MemoryGetId.MEMORY_GET_ID, new MemoryGetId.Response.Processor());
+        messageProcessor.addMessageProcessor(SendData.REQUEST_ID, new SendData.Response.Processor());
         messageProcessor.addMessageProcessor(AddNode.REQUEST_ID, new AddNode.Event.Processor());
         messageProcessor.addMessageProcessor(ApplicationCommand.REQUEST_ID, new ApplicationCommand.Request.Processor(commandProcessor));
     }
 
     public String executeCommandLine(String commandLine) {
         try {
-        CommandLineParser parser = new CommandLineParser(commandLine);
-        String command = parser.getString();
-        if (command.equalsIgnoreCase("MemoryGetId")) {
-            sendRequest(new MemoryGetId.Request());
-        } else if (command.equalsIgnoreCase("MultiInstanceAssociation.Get") || command.equalsIgnoreCase("MIA.Get")) {
-            sendCommand(parser.getInt(1), new MultiInstanceAssociation.Get(parser.getInt(2)));
-        } else if (command.equalsIgnoreCase("MultiInstanceAssociation.Set") || command.equalsIgnoreCase("MIA.Set")) {
-            sendCommand(parser.getInt(1), new MultiInstanceAssociation.Set(parser.getInt(2), Collections.singletonList(parseAssociatedNode(parser.getString(3)))));
-        } else if (command.equalsIgnoreCase("MultiInstanceAssociation.Remove") || command.equalsIgnoreCase("MIA.Remove")) {
-            sendCommand(parser.getInt(1), new MultiInstanceAssociation.Remove(parser.getInt(2), Collections.singletonList(parseAssociatedNode(parser.getString(3)))));
-        } else if (command.equalsIgnoreCase("Configuration.Get") || command.equalsIgnoreCase("C.Get")) {
-            sendCommand(parser.getInt(1), new Configuration.Get(parser.getInt(2)));
-        } else if (command.equalsIgnoreCase("Configuration.Set") || command.equalsIgnoreCase("C.Set")) {
-            sendCommand(parser.getInt(1), new Configuration.Set(parser.getInt(2), new Parameter(parser.getInt(3), parser.getInt(4))));
-        } else if (command.equalsIgnoreCase("SwitchBinary.Set") || command.equalsIgnoreCase("SB.Set")) {
-            sendCommand(parser.getInt(1), new SwitchBinary.Set(parser.getInt(2) != 0));
-        } else if (command.equalsIgnoreCase("SwitchBinary.Get") || command.equalsIgnoreCase("SB.Get")) {
-            sendCommand(parser.getInt(1), new SwitchBinary.Get());
-        } else if (command.equalsIgnoreCase("AddNode")) {
-            sendRequest(new AddNode.Request(AddNode.Request.InclusionMode.fromName(parser.getString(1))));
-        } else if (command.equalsIgnoreCase("Help") || command.equalsIgnoreCase("h")) {
-            print("MemoryGetId");
-            print("AddNode [ANY CONTROLLER SLAVE EXISTING STOP STOP_FAILED]");
-            print("MultiInstanceAssociation.Get node association");
-            print("MultiInstanceAssociation.Set node association associatedNode");
-            print("MultiInstanceAssociation.Remove node association associatedNode");
-            print("Configuration.Get node parameter");
-            print("Configuration.Set node parameter value length");
-            print("SwitchBinary.Get node");
-            print("SwitchBinary.Set node [0 1]");
-        }
-        print("Ok.\n\r");
-        } catch (Exception|DecoderException e) {
+            CommandLineParser parameters = new CommandLineParser(commandLine);
+            String command = parameters.getString();
+            if (command.equalsIgnoreCase("MemoryGetId")) {
+                sendRequest(new MemoryGetId.Request());
+            } else if (command.equalsIgnoreCase("MultiInstanceAssociation.Get") || command.equalsIgnoreCase("MIA.Get")) {
+                sendCommand(parameters.getInt(1), new MultiInstanceAssociation.Get(parameters.getInt(2)));
+            } else if (command.equalsIgnoreCase("MultiInstanceAssociation.Set") || command.equalsIgnoreCase("MIA.Set")) {
+                sendCommand(parameters.getInt(1), new MultiInstanceAssociation.Set(parameters.getInt(2), Collections.singletonList(parseAssociatedNode(parameters.getString(3)))));
+            } else if (command.equalsIgnoreCase("MultiInstanceAssociation.Remove") || command.equalsIgnoreCase("MIA.Remove")) {
+                sendCommand(parameters.getInt(1), new MultiInstanceAssociation.Remove(parameters.getInt(2), Collections.singletonList(parseAssociatedNode(parameters.getString(3)))));
+            } else if (command.equalsIgnoreCase("Configuration.Get") || command.equalsIgnoreCase("C.Get")) {
+                sendCommand(parameters.getInt(1), new Configuration.Get(parameters.getInt(2)));
+            } else if (command.equalsIgnoreCase("Configuration.Set") || command.equalsIgnoreCase("C.Set")) {
+                sendCommand(parameters.getInt(1), new Configuration.Set(parameters.getInt(2), new Parameter(parameters.getInt(3), parameters.getInt(4))));
+            } else if (command.equalsIgnoreCase("SwitchBinary.Set") || command.equalsIgnoreCase("SB.Set")) {
+                sendCommand(parameters.getInt(1), new SwitchBinary.Set(parameters.getInt(2) != 0));
+            } else if (command.equalsIgnoreCase("SwitchBinary.Get") || command.equalsIgnoreCase("SB.Get")) {
+                sendCommand(parameters.getInt(1), new SwitchBinary.Get());
+            } else if (command.equalsIgnoreCase("AddNode")) {
+                sendRequest(new AddNode.Request(AddNode.Request.InclusionMode.fromName(parameters.getString(1))));
+            } else if (command.equalsIgnoreCase("Help") || command.equalsIgnoreCase("h")) {
+                print("MemoryGetId");
+                print("AddNode [ANY CONTROLLER SLAVE EXISTING STOP STOP_FAILED]");
+                print("MultiInstanceAssociation.Get node association");
+                print("MultiInstanceAssociation.Set node association associatedNode");
+                print("MultiInstanceAssociation.Remove node association associatedNode");
+                print("Configuration.Get node parameter");
+                print("Configuration.Set node parameter value length");
+                print("SwitchBinary.Get node");
+                print("SwitchBinary.Set node [0 1]");
+            }
+        } catch (Exception | DecoderException e) {
             print("Error: " + e.getMessage());
         }
         return "";
     }
 
     private void sendCommand(int node, Command command) {
-        sendRequest(new SendData.Request((byte)node, command, SendData.TRANSMIT_OPTIONS_ALL));
+        sendRequest(new SendData.Request((byte) node, command, SendData.TRANSMIT_OPTIONS_ALL));
     }
 
 
@@ -104,18 +104,34 @@ public abstract class ZWaveExecutor {
     }
 
     private void processZWaveMessage(byte[] message) {
-        try {
-            Message received = messageProcessor.process(message);
-            print(received.toString() + "\n\r");
-        } catch (DecoderException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        } catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        if (message.length == 1) {
+            if (message[0] == ZWavePort.ACK) {
+                print("ACK");
+            } else if (message[0] == ZWavePort.NAK) {
+                print("NAK");
+            } else if (message[0] == ZWavePort.CAN) {
+                print("CAN");
+            } else if (message[0] == ZWavePort.SOF) {
+                print("SOF");
+            }
+        } else {
+            try {
+                Message received = messageProcessor.process(message);
+                if (received != null) {
+                    print(received.toString() + "\n\r");
+                } else {
+                    print("Unknown message: " + Hex.asHexString(message));
+                }
+            } catch (DecoderException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } catch (IOException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
         }
     }
 
     private AssociatedNode parseAssociatedNode(String s) {
-        String[] parts = s.split(".");
+        String[] parts = s.split("\\.");
         if (parts.length == 2) {
             return new AssociatedNode(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
         }
