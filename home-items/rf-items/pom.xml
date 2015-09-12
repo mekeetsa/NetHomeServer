@@ -63,6 +63,11 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>nu.nethome.zwave</groupId>
+            <artifactId>zwave</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20131018</version>

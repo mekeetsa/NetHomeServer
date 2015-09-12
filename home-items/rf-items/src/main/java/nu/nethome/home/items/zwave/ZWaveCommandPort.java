@@ -19,20 +19,20 @@
 
 package nu.nethome.home.items.zwave;
 
-import nu.nethome.home.impl.CommandLineExecutor;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
 import nu.nethome.util.plugin.Plugin;
+import nu.nethome.zwave.Hex;
+import nu.nethome.zwave.ZWaveExecutor;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,6 +46,7 @@ import java.util.logging.Logger;
  *
  * @author Stefan
  */
+@SuppressWarnings("UnusedDeclaration")
 @Plugin
 @HomeItemType("Ports")
 public class ZWaveCommandPort extends HomeItemAdapter implements HomeItem, Runnable {
@@ -53,23 +54,34 @@ public class ZWaveCommandPort extends HomeItemAdapter implements HomeItem, Runna
     /**
      * Represents a session with a connected TCP-Client.
      */
-    class Session extends ZWaveExecutor implements Runnable {
+    class Session implements Runnable {
 
-        protected Socket socket;
+        protected final Socket socket;
         protected boolean sessionIsRunning = true;
         protected String remoteAddress;
+        protected ZWaveExecutor executor;
 
         /**
          * Creates a new session which immediately will start listening
          * for commands on the given socket. It starts its own listening thread
          * which ends when the connection is ended, or the stop-method is called.
          *
-         * @param server Broker to use for command execution
-         * @param socket A connected socket where the commands are read
+         * @param sessionSocket A connected socket where the commands are read
          */
-        public Session(HomeService server, Socket socket) throws IOException {
-            super(server, socket.getOutputStream());
-            this.socket = socket;
+        public Session(Socket sessionSocket) throws IOException {
+            executor = new ZWaveExecutor(new ZWaveExecutor.MessageSender() {
+                      @Override
+                      public void sendZWaveMessage(byte[] bytes) {
+                          sendZRequest(bytes);
+                      }
+                  }, new ZWaveExecutor.Printer() {
+                      @Override
+                      public void print(String s) {
+                          printMessage(s);
+                      }
+                  }
+            );
+            this.socket = sessionSocket;
             remoteAddress = this.socket.getInetAddress().getHostAddress();
             Thread me = new Thread(this, "TCPCommandThread");
             me.start();
@@ -95,7 +107,7 @@ public class ZWaveCommandPort extends HomeItemAdapter implements HomeItem, Runna
                 String inString;
                 while (sessionIsRunning && (inString = in.readLine()) != null) {
                     logger.finer("Received: " + inString + " from " + socket.getRemoteSocketAddress().toString());
-                    String result = executeCommandLine(inString);
+                    String result = executor.executeCommandLine(inString);
                     if (result == null) {
                         break;
                     }
@@ -122,15 +134,32 @@ public class ZWaveCommandPort extends HomeItemAdapter implements HomeItem, Runna
         }
 
         public int receiveEvent(Event event) {
-            if ((sessionIsRunning == true)) {
+            if ((sessionIsRunning)) {
                 processEvent(event);
             }
             return 0;
         }
 
-        public void print(String string) {
+        void processEvent(Event event) {
+            if (event.isType(ZWave.ZWAVE_EVENT_TYPE) &&
+                    event.getAttribute("Direction").equals("In") &&
+                    event.getAttribute(nu.nethome.home.system.Event.EVENT_VALUE_ATTRIBUTE).length() > 0) {
+                byte[] message = Hex.hexStringToByteArray(event.getAttribute(nu.nethome.home.system.Event.EVENT_VALUE_ATTRIBUTE));
+                executor.processZWaveMessage(message);
+            }
+        }
+
+        public void sendZRequest(byte[] message) {
+            nu.nethome.home.system.Event event = server.createEvent(ZWave.ZWAVE_EVENT_TYPE, Hex.asHexString(message));
+            event.setAttribute(ZWave.ZWAVE_TYPE, message[0] == 0 ? "Request" : "Response");
+            event.setAttribute(ZWave.ZWAVE_MESSAGE_TYPE, ((int) message[1]) & 0xFF);
+            event.setAttribute("Direction", "Out");
+            server.send(event);
+        }
+
+        public void printMessage(String string) {
             try {
-                if ((sessionIsRunning == true)) {
+                if ((sessionIsRunning)) {
                     socket.getOutputStream().write((string + "\n\r").getBytes());
                 }
             } catch (IOException io) {
@@ -149,7 +178,7 @@ public class ZWaveCommandPort extends HomeItemAdapter implements HomeItem, Runna
 
     private static final int MAX_QUEUE_SIZE = 20;
 
-    private final String m_Model = ("<?xml version = \"1.0\"?> \n"
+    private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"ZWaveCommandPort\" Category=\"Ports\" >"
             + "  <Attribute Name=\"ListenPort\" Type=\"String\" Get=\"getListenPort\" Init=\"setListenPort\" Default=\"true\" />"
             + "  <Attribute Name=\"MessageCount\" Type=\"String\" Get=\"getMessageCount\" />"
@@ -170,20 +199,18 @@ public class ZWaveCommandPort extends HomeItemAdapter implements HomeItem, Runna
     protected Thread listenThread;
     protected volatile boolean isRunning = false;
     protected ServerSocket serverSocket = null;
-    protected SimpleDateFormat formatter = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss;");
     protected List<Session> sessions = Collections.synchronizedList(new LinkedList<Session>());
     protected LinkedBlockingQueue<Event> eventQueue;
-    private Thread eventThread;
 
     public ZWaveCommandPort() {
-        eventQueue = new LinkedBlockingQueue<Event>(MAX_QUEUE_SIZE);
+        eventQueue = new LinkedBlockingQueue<>(MAX_QUEUE_SIZE);
     }
 
     /* (non-Javadoc)
      * @see ssg.home.HomeItem#getModel()
      */
     public String getModel() {
-        return m_Model;
+        return MODEL;
     }
 
     @Override
@@ -231,7 +258,7 @@ public class ZWaveCommandPort extends HomeItemAdapter implements HomeItem, Runna
         super.activate(service);
         listenThread = new Thread(this, "TCPListenThread");
         listenThread.start();
-        eventThread = new Thread("CommandPortEventDistributor") {
+        Thread eventThread = new Thread("CommandPortEventDistributor") {
             @Override
             public void run() {
                 eventDistributorTask();
@@ -258,7 +285,7 @@ public class ZWaveCommandPort extends HomeItemAdapter implements HomeItem, Runna
         eventQueue.offer(quitEvent);
 
         // Stop all open sessions
-        LinkedList<Session> temp = new LinkedList<Session>(sessions);
+        LinkedList<Session> temp = new LinkedList<>(sessions);
         for (Session s : temp) {
             s.stop();
         }
@@ -291,7 +318,7 @@ public class ZWaveCommandPort extends HomeItemAdapter implements HomeItem, Runna
 
                     // Got a new connection, create a new session and register it
                     logger.info("Connection from " + inSocket.getInetAddress().getHostAddress());
-                    Session newSession = new Session(server, inSocket);
+                    Session newSession = new Session(inSocket);
                     sessions.add(newSession);
                 } catch (Exception e) {
                     if (isRunning) {

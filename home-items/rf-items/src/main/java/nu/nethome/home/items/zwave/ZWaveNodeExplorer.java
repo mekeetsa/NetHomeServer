@@ -3,12 +3,16 @@ package nu.nethome.home.items.zwave;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
-import nu.nethome.home.items.zwave.messages.ApplicationCommand;
-import nu.nethome.home.items.zwave.messages.DecoderException;
-import nu.nethome.home.items.zwave.messages.MessageAdaptor;
-import nu.nethome.home.items.zwave.messages.SendData;
-import nu.nethome.home.items.zwave.messages.commands.*;
 import nu.nethome.util.plugin.Plugin;
+import nu.nethome.zwave.Hex;
+import nu.nethome.zwave.messages.ApplicationCommand;
+import nu.nethome.zwave.messages.SendData;
+import nu.nethome.zwave.messages.commandclasses.AssociatedNode;
+import nu.nethome.zwave.messages.commandclasses.MultiInstanceAssociationCommandClass;
+import nu.nethome.zwave.messages.commandclasses.framework.Command;
+import nu.nethome.zwave.messages.commandclasses.framework.CommandProcessor;
+import nu.nethome.zwave.messages.framework.DecoderException;
+import nu.nethome.zwave.messages.framework.MessageAdaptor;
 
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -16,6 +20,7 @@ import java.util.logging.Logger;
 /**
  *
  */
+@SuppressWarnings("UnusedDeclaration")
 @Plugin
 @HomeItemType(value = "Hardware")
 public class ZWaveNodeExplorer extends HomeItemAdapter implements HomeItem {
@@ -36,9 +41,6 @@ public class ZWaveNodeExplorer extends HomeItemAdapter implements HomeItem {
 
     private static Logger logger = Logger.getLogger(ZWaveNodeExplorer.class.getName());
 
-    private ZWavePort port;
-    private String portName = "/dev/ttyAMA0";
-    private int homeId = 0;
     private int node = 0;
     private int association = 0;
     private String associations = "";
@@ -60,17 +62,17 @@ public class ZWaveNodeExplorer extends HomeItemAdapter implements HomeItem {
                 ApplicationCommand.Request command = new ApplicationCommand.Request(message, new CommandProcessor() {
                     @Override
                     public Command process(byte[] commandData, int node) throws DecoderException {
-                        return new MultiInstanceAssociation.Report(commandData);
+                        return new MultiInstanceAssociationCommandClass.Report(commandData);
                     }
                 });
-                processAssociationReport(command.node, (MultiInstanceAssociation.Report)command.command);
+                processAssociationReport(command.node, (MultiInstanceAssociationCommandClass.Report)command.command);
             } catch (DecoderException|IOException e) {
                 logger.warning("Could not parse ZWave response:" + e.getMessage());
             }
         }
     }
 
-    private void processAssociationReport(int node, MultiInstanceAssociation.Report command) {
+    private void processAssociationReport(int node, MultiInstanceAssociationCommandClass.Report command) {
         if (node == this.node) {
             this.associations = "";
             String spacer = "";
@@ -87,7 +89,7 @@ public class ZWaveNodeExplorer extends HomeItemAdapter implements HomeItem {
 
     public String fetchAssociation() {
         associations = "";
-        sendRequest(new SendData.Request((byte) node, new MultiInstanceAssociation.Get(association), TRANSMIT_OPTIONS).encode());
+        sendRequest(new SendData.Request((byte) node, new MultiInstanceAssociationCommandClass.Get(association), TRANSMIT_OPTIONS).encode());
         return "";
     }
 

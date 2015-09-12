@@ -4,9 +4,14 @@ import jssc.SerialPortException;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
-import nu.nethome.home.items.jeelink.PortException;
-import nu.nethome.home.items.zwave.messages.*;
 import nu.nethome.util.plugin.Plugin;
+import nu.nethome.zwave.Hex;
+import nu.nethome.zwave.PortException;
+import nu.nethome.zwave.ZWavePort;
+import nu.nethome.zwave.messages.AddNode;
+import nu.nethome.zwave.messages.MemoryGetId;
+import nu.nethome.zwave.messages.framework.DecoderException;
+import nu.nethome.zwave.messages.framework.MessageAdaptor;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -15,6 +20,7 @@ import java.util.logging.Logger;
 /**
  *
  */
+@SuppressWarnings("UnusedDeclaration")
 @Plugin
 @HomeItemType(value = "Hardware")
 public class ZWave extends HomeItemAdapter implements HomeItem {
@@ -28,12 +34,12 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
             + "  <Attribute Name=\"NodeId\" Type=\"String\" Get=\"getNodeId\" />"
             + "  <Attribute Name=\"Node\" Type=\"String\" Get=\"getNode\" Set=\"setNode\" />"
             + "  <Attribute Name=\"Association\" Type=\"String\" Get=\"getAssociation\" Set=\"setAssociation\" />"
-            + "  <Action Name=\"requestIdentity\" 	Method=\"requestIdentity\" Default=\"true\" />"
+            + "  <Action Name=\"RequestIdentity\" 	Method=\"requestIdentity\" Default=\"true\" />"
             + "  <Action Name=\"Reconnect\"		Method=\"reconnect\" Default=\"true\" />"
             + "  <Action Name=\"StartInclusion\"		Method=\"startInclusion\" />"
             + "  <Action Name=\"EndInclusion\"		Method=\"endInclusion\" />"
-            + "  <Action Name=\"reportAssociations\"		Method=\"reportAssociations\" />"
-            + "  <Action Name=\"getAssociation\"		Method=\"fetchAssociation\" />"
+            + "  <Action Name=\"ReportAssociations\"		Method=\"reportAssociations\" />"
+            + "  <Action Name=\"GetAssociation\"		Method=\"fetchAssociation\" />"
             + "</HomeItem> ");
     public static final String ZWAVE_TYPE = "ZWave.Type";
     public static final String ZWAVE_MESSAGE_TYPE = "ZWave.MessageType";
