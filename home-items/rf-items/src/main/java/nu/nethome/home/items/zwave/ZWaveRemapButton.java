@@ -48,8 +48,8 @@ public class ZWaveRemapButton extends HomeItemAdapter implements HomeItem {
         // Check the event and see if they affect our current state. // 0004000607600D00052001FF41
         if (isEnabled && event.isType("ZWave_Message") &&
                 event.getAttribute("Direction").equals("In") &&
-                (event.getAttribute(ZWave.ZWAVE_TYPE).equals("Request")) &&
-                (event.getAttributeInt(ZWave.ZWAVE_MESSAGE_TYPE) == APPLICATION_COMMAND_HANDLER) &&
+                (event.getAttribute(ZWaveController.ZWAVE_TYPE).equals("Request")) &&
+                (event.getAttributeInt(ZWaveController.ZWAVE_MESSAGE_TYPE) == APPLICATION_COMMAND_HANDLER) &&
                 (getHexValueAt(event.getAttribute("Value"), 8) == instanceId)) {
             processEvent(event);
             return true;

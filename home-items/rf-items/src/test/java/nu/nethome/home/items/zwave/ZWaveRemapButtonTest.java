@@ -72,8 +72,8 @@ public class ZWaveRemapButtonTest {
     private Event createZWaveEvent(String s, int messageType) {
         Event event = new InternalEvent("ZWave_Message");
         event.setAttribute("Value", s);
-        event.setAttribute(ZWave.ZWAVE_TYPE, "Request");
-        event.setAttribute(ZWave.ZWAVE_MESSAGE_TYPE, messageType);
+        event.setAttribute(ZWaveController.ZWAVE_TYPE, "Request");
+        event.setAttribute(ZWaveController.ZWAVE_MESSAGE_TYPE, messageType);
         event.setAttribute("Direction", "In");
         return event;
     }

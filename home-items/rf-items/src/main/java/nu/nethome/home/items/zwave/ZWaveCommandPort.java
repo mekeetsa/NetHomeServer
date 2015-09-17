@@ -141,7 +141,7 @@ public class ZWaveCommandPort extends HomeItemAdapter implements HomeItem, Runna
         }
 
         void processEvent(Event event) {
-            if (event.isType(ZWave.ZWAVE_EVENT_TYPE) &&
+            if (event.isType(ZWaveController.ZWAVE_EVENT_TYPE) &&
                     event.getAttribute("Direction").equals("In") &&
                     event.getAttribute(nu.nethome.home.system.Event.EVENT_VALUE_ATTRIBUTE).length() > 0) {
                 byte[] message = Hex.hexStringToByteArray(event.getAttribute(nu.nethome.home.system.Event.EVENT_VALUE_ATTRIBUTE));
@@ -150,9 +150,9 @@ public class ZWaveCommandPort extends HomeItemAdapter implements HomeItem, Runna
         }
 
         public void sendZRequest(byte[] message) {
-            nu.nethome.home.system.Event event = server.createEvent(ZWave.ZWAVE_EVENT_TYPE, Hex.asHexString(message));
-            event.setAttribute(ZWave.ZWAVE_TYPE, message[0] == 0 ? "Request" : "Response");
-            event.setAttribute(ZWave.ZWAVE_MESSAGE_TYPE, ((int) message[1]) & 0xFF);
+            nu.nethome.home.system.Event event = server.createEvent(ZWaveController.ZWAVE_EVENT_TYPE, Hex.asHexString(message));
+            event.setAttribute(ZWaveController.ZWAVE_TYPE, message[0] == 0 ? "Request" : "Response");
+            event.setAttribute(ZWaveController.ZWAVE_MESSAGE_TYPE, ((int) message[1]) & 0xFF);
             event.setAttribute("Direction", "Out");
             server.send(event);
         }

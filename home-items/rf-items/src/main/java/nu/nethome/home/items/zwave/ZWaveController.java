@@ -23,36 +23,30 @@ import java.util.logging.Logger;
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
 @HomeItemType(value = "Hardware")
-public class ZWave extends HomeItemAdapter implements HomeItem {
+public class ZWaveController extends HomeItemAdapter implements HomeItem {
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
-            + "<HomeItem Class=\"ZWave\" Category=\"Hardware\" Morphing=\"true\" >"
+            + "<HomeItem Class=\"ZWaveController\" Category=\"Hardware\" Morphing=\"true\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"PortName\" Type=\"StringList\" Get=\"getPortName\" Set=\"setPortName\" >"
             + "    %s </Attribute>"
             + "  <Attribute Name=\"HomeId\" Type=\"String\" Get=\"getHomeId\" />"
             + "  <Attribute Name=\"NodeId\" Type=\"String\" Get=\"getNodeId\" />"
-            + "  <Attribute Name=\"Node\" Type=\"String\" Get=\"getNode\" Set=\"setNode\" />"
-            + "  <Attribute Name=\"Association\" Type=\"String\" Get=\"getAssociation\" Set=\"setAssociation\" />"
             + "  <Action Name=\"RequestIdentity\" 	Method=\"requestIdentity\" Default=\"true\" />"
             + "  <Action Name=\"Reconnect\"		Method=\"reconnect\" Default=\"true\" />"
             + "  <Action Name=\"StartInclusion\"		Method=\"startInclusion\" />"
             + "  <Action Name=\"EndInclusion\"		Method=\"endInclusion\" />"
-            + "  <Action Name=\"ReportAssociations\"		Method=\"reportAssociations\" />"
-            + "  <Action Name=\"GetAssociation\"		Method=\"fetchAssociation\" />"
             + "</HomeItem> ");
     public static final String ZWAVE_TYPE = "ZWave.Type";
     public static final String ZWAVE_MESSAGE_TYPE = "ZWave.MessageType";
     public static final String ZWAVE_EVENT_TYPE = "ZWave_Message";
 
-    private static Logger logger = Logger.getLogger(ZWave.class.getName());
+    private static Logger logger = Logger.getLogger(ZWaveController.class.getName());
 
     private ZWavePort port;
     private String portName = "/dev/ttyAMA0";
     private int homeId = 0;
     private int nodeId = 0;
-    private int node = 0;
-    private int association = 0;
 
     public boolean receiveEvent(nu.nethome.home.system.Event event) {
         if (event.isType(ZWAVE_EVENT_TYPE) &&
@@ -100,13 +94,13 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
                 @Override
                 public void receiveMessage(byte[] message) {
                     logger.fine("Receiving Message");
-                    ZWave.this.receiveMessage(message);
+                    ZWaveController.this.receiveMessage(message);
                 }
 
                 @Override
                 public void receiveFrameByte(byte frameByte) {
                     logger.fine("Receiving byte Message");
-                    ZWave.this.receiveFrameByte(frameByte);
+                    ZWaveController.this.receiveFrameByte(frameByte);
                 }
             });
             logger.fine("Created port");
@@ -151,16 +145,6 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
         return sendRequest(new AddNode.Request(AddNode.Request.InclusionMode.STOP));
     }
 
-    public String fetchAssociation() {
-        //return sendRequest(new ApplicationCommandRequest((byte) node, new Association.Get(association)));
-        return "";
-    }
-
-    public String reportAssociations() {
-        // return sendRequest(new ApplicationCommandRequest((byte) node, new Association.Report()));
-        return "";
-    }
-
     private String sendRequest(MessageAdaptor request) {
         try {
             if (port != null && port.isOpen()) {
@@ -178,7 +162,6 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
     public void stop() {
         closePort();
     }
-
 
 
     private void receiveFrameByte(byte frameByte) {
@@ -232,7 +215,13 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
     }
 
     public String getState() {
-        return port != null ? "Connected" : "Disconnected";
+        if (port == null) {
+            return "Disconnected";
+        } else if (homeId == 0) {
+            return "Connecting";
+        } else {
+            return "Connected";
+        }
     }
 
     public String getHomeId() {
@@ -240,22 +229,6 @@ public class ZWave extends HomeItemAdapter implements HomeItem {
     }
 
     public String getNodeId() {
-        return nodeId != 0 ? Integer.toString(nodeId) : "";
-    }
-
-    public String getNode() {
-        return Integer.toString(node);
-    }
-
-    public void setNode(String node) {
-        this.node = Integer.parseInt(node);
-    }
-
-    public String getAssociation() {
-        return Integer.toString(association);
-    }
-
-    public void setAssociation(String association) {
-        this.association = Integer.parseInt(association);
+        return homeId != 0 ? Integer.toString(nodeId) : "";
     }
 }
