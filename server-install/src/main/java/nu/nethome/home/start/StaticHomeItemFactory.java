@@ -26,7 +26,6 @@ import nu.nethome.home.items.UPnPScanner;
 import nu.nethome.home.items.net.ArpScanner;
 import nu.nethome.home.items.rollertrol.RollerTrolBlindGSeries;
 import nu.nethome.home.items.tellstick.Tellstick;
-import nu.nethome.home.items.zwave.ZWaveController;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -167,7 +166,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("HueLamp", nu.nethome.home.items.hue.HueLamp.class),
             new HomeItemClassInfo("RollerTrolBlind", nu.nethome.home.items.rollertrol.RollerTrolBlind.class),
             new HomeItemClassInfo("RollerTrolBlindGSeries", RollerTrolBlindGSeries.class),
-            new HomeItemClassInfo("ZWave", ZWaveController.class),
+            new HomeItemClassInfo("ZWaveController", nu.nethome.home.items.zwave.ZWaveController.class),
             new HomeItemClassInfo("ZWaveRemapButton", nu.nethome.home.items.zwave.ZWaveRemapButton.class),
             new HomeItemClassInfo("ZWaveNodeExplorer", nu.nethome.home.items.zwave.ZWaveNodeExplorer.class),
             new HomeItemClassInfo("ZWaveCommandPort", nu.nethome.home.items.zwave.ZWaveCommandPort.class),
