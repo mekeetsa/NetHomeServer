@@ -132,6 +132,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("UPMSoilMoisture", nu.nethome.home.items.upm.UPMSoilMoisture.class),
             new HomeItemClassInfo("OregonThermometer", nu.nethome.home.items.oregon.OregonThermometer.class),
             new HomeItemClassInfo("OregonHygrometer", nu.nethome.home.items.oregon.OregonHygrometer.class),
+            new HomeItemClassInfo("OregonWind", nu.nethome.home.items.oregon.OregonWind.class),
             new HomeItemClassInfo("FineOffsetThermometer", nu.nethome.home.items.fineoffset.FineOffsetThermometer.class),
             new HomeItemClassInfo("FineOffsetHygrometer", nu.nethome.home.items.fineoffset.FineOffsetHygrometer.class),
             new HomeItemClassInfo("FineOffsetRainGauge", nu.nethome.home.items.fineoffset.FineOffsetRainGauge.class),
