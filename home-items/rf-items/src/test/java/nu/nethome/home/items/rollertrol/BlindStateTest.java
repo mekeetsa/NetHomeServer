@@ -32,12 +32,15 @@ public class BlindStateTest {
     public void initiatesToUp() throws Exception {
         assertThat(blindState.getStateString(), is(UP_STRING));
         assertThat(timeState.getStateString(), is(UP_STRING));
+        assertThat(blindState.isTravelling(), is(false));
+        assertThat(timeState.isTravelling(), is(false));
     }
 
     @Test
     public void stateIsDownAfterDown() throws Exception {
         blindState.down();
         assertThat(blindState.getStateString(), is(DOWN_STRING));
+        assertThat(blindState.isTravelling(), is(false));
     }
 
     @Test
@@ -46,6 +49,8 @@ public class BlindStateTest {
         timeState.up();
         assertThat(blindState.getStateString(), is(UP_STRING));
         assertThat(timeState.getStateString(), is(UP_STRING));
+        assertThat(blindState.isTravelling(), is(false));
+        assertThat(timeState.isTravelling(), is(false));
     }
 
     @Test
@@ -67,6 +72,7 @@ public class BlindStateTest {
     public void timeStateIsDownLongTimeAfterDown() throws Exception {
         timeState.down();
         assertStateAfterTime(TRAVEL_TIME * 1000, DOWN_STRING);
+        assertThat(timeState.isTravelling(), is(false));
     }
 
     private void assertStateAfterTime(long timePassed, String expectedState) {
@@ -80,6 +86,7 @@ public class BlindStateTest {
         doReturn(TRAVEL_TIME * 1000L).when(timeState).timePassedSince(anyLong());
         timeState.up();
         assertStateAfterTime(TRAVEL_TIME * 1000, UP_STRING);
+        assertThat(timeState.isTravelling(), is(false));
     }
 
     @Test
@@ -92,6 +99,7 @@ public class BlindStateTest {
     public void timeStateIsDown50HalfTravelTimeAfterDown() throws Exception {
         timeState.down();
         assertStateAfterTime(TRAVEL_TIME / 2, DOWN_STRING + " 50%");
+        assertThat(timeState.isTravelling(), is(true));
     }
 
     @Test
@@ -127,6 +135,8 @@ public class BlindStateTest {
         timeState.stop();
         assertThat(blindState.getStateString(), is(DOWN_STRING));
         assertStateAfterTime(TRAVEL_TIME * 1000, DOWN_STRING);
+        assertThat(blindState.isTravelling(), is(false));
+        assertThat(timeState.isTravelling(), is(false));
     }
 
     @Test
@@ -135,6 +145,7 @@ public class BlindStateTest {
         doReturn(TRAVEL_TIME / 2L).when(timeState).timePassedSince(anyLong());
         timeState.stop();
         assertStateAfterTime(TRAVEL_TIME * 1000, DOWN_STRING + " 50%");
+        assertThat(timeState.isTravelling(), is(false));
     }
 
 

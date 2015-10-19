@@ -72,4 +72,8 @@ public class BlindState {
     public long timePassedSince(long time) {
         return System.currentTimeMillis() - time;
     }
+
+    public Boolean isTravelling() {
+        return !isInEndPosition() && (travelDirection != 0);
+    }
 }

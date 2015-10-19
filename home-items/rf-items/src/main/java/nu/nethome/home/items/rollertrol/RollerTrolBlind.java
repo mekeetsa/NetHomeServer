@@ -218,7 +218,9 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
     }
 
     public void blindToggle() {
-        if (state.getStateString().equals(BlindState.UP_STRING)) {
+        if (state.isTravelling()) {
+            blindStop();
+        } else if (state.getStateString().equals(BlindState.UP_STRING)) {
             blindDown();
         } else {
             blindUp();
