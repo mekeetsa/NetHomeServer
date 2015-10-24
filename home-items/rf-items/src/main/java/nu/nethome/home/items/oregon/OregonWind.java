@@ -59,7 +59,7 @@ public class OregonWind extends HomeItemAdapter implements HomeItem, ValueItem {
     protected Logger logger = Logger.getLogger(OregonWind.class.getName());
     private ExtendedLoggerComponent windLoggerComponent = new ExtendedLoggerComponent(this);
     private static final SimpleDateFormat dateFormatter = new SimpleDateFormat("HH:mm:ss yyyy.MM.dd ");
-    private static final String[] directions = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
+    private static final String[] directions = {"N", "NW", "W", "SW", "S", "SE", "E", "NE"};
 
     // Public attributes
     private double wind = 0;
