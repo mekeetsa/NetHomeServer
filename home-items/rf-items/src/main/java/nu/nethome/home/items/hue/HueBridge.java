@@ -157,6 +157,9 @@ public class HueBridge extends HomeItemAdapter {
                 reportKnownSensors();
             }
             return true;
+        }  else if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals("ReportHueLamp")) {
+            String lampId = event.getAttribute("Hue.Lamp");
+            reportLampState(lampId);
         } else if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(UPN_P_CREATION_MESSAGE) &&
                 isPhilipsHueUPnPEvent(event) &&
                 event.getAttribute("SerialNumber").equals(getBridgeIdentity())) {
@@ -207,6 +210,13 @@ public class HueBridge extends HomeItemAdapter {
             event.setAttribute("Hue.Model", light.getModelid());
             event.setAttribute("Hue.Type", light.getType());
             event.setAttribute("Hue.Version", light.getSwversion());
+            if (light.getState().hasHueSat()) {
+                event.setAttribute("Hue.Hue", light.getState().getHue());
+                event.setAttribute("Hue.Saturation", light.getState().getSaturation());
+            }
+            if (light.getState().hasColorTemperature()) {
+                event.setAttribute("Hue.Temperature", light.getState().getColorTemperature());
+            }
             server.send(event);
         } catch (IOException e) {
             this.state = "Disconnected";

@@ -43,6 +43,7 @@ public class HueLamp extends HomeItemAdapter implements HomeItem {
     private String dimLevel2 = "33";
     private String dimLevel3 = "66";
     private String dimLevel4 = "100";
+    private int learnPosition = 0;
 
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
@@ -68,6 +69,10 @@ public class HueLamp extends HomeItemAdapter implements HomeItem {
             + "  <Action Name=\"dim2\" 	Method=\"dim2\" />"
             + "  <Action Name=\"dim3\" 	Method=\"dim3\" />"
             + "  <Action Name=\"dim4\" 	Method=\"dim4\" />"
+            + "  <Action Name=\"LearnDim1\" 	Method=\"learnDim1\" />"
+            + "  <Action Name=\"LearnDim2\" 	Method=\"learnDim2\" />"
+            + "  <Action Name=\"LearnDim3\" 	Method=\"learnDim3\" />"
+            + "  <Action Name=\"LearnDim4\" 	Method=\"learnDim4\" />"
             + "</HomeItem> ");
 
     private String lampModel = "";
@@ -102,6 +107,35 @@ public class HueLamp extends HomeItemAdapter implements HomeItem {
         lampModel = event.getAttribute("Hue.Model");
         lampType = event.getAttribute("Hue.Type");
         lampVersion = event.getAttribute("Hue.Version");
+        if (learnPosition != 0) {
+            String color = getColorFromEvent(event);
+            switch (learnPosition) {
+                case 1:
+                    setDimLevel1(color);
+                    break;
+                case 2:
+                    setDimLevel2(color);
+                    break;
+                case 3:
+                    setDimLevel3(color);
+                    break;
+                case 4:
+                    setDimLevel4(color);
+                    break;
+            }
+            learnPosition = 0;
+        }
+    }
+
+    private String getColorFromEvent(Event event) {
+        int brightness = hueTopercent(event.getAttributeInt("Hue.Brightness"));
+        if (event.hasAttribute("Hue.Hue")) {
+        int hue = event.getAttributeInt("Hue.Hue");
+        int saturation = event.getAttributeInt("Hue.Saturation");
+        return String.format("%d,%d,%d", brightness, hue, saturation);
+        } else {
+            return Integer.toString(brightness);
+        }
     }
 
     @Override
@@ -128,6 +162,10 @@ public class HueLamp extends HomeItemAdapter implements HomeItem {
 
     private int percentToHue(int brightness) {
         return (brightness * 254) / 100;
+    }
+
+    private int hueTopercent(int brightness) {
+        return (brightness * 100) / 254;
     }
 
     protected void sendOffCommand() {
@@ -329,5 +367,31 @@ public class HueLamp extends HomeItemAdapter implements HomeItem {
 
     public String getCurrentBrightness() {
         return Integer.toString(currentBrightness);
+    }
+
+    public void learnDim1() {
+        learnPosition = 1;
+        requestLampStatusUpdate();
+    }
+
+    public void learnDim2() {
+        learnPosition = 2;
+        requestLampStatusUpdate();
+    }
+
+    public void learnDim3() {
+        learnPosition = 3;
+        requestLampStatusUpdate();
+    }
+
+    public void learnDim4() {
+        learnPosition = 4;
+        requestLampStatusUpdate();
+    }
+
+    private void requestLampStatusUpdate() {
+        Event event = server.createEvent("ReportHueLamp", "");
+        event.setAttribute("Hue.Lamp", lampId);
+        server.send(event);
     }
 }

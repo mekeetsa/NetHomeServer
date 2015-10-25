@@ -57,9 +57,9 @@ public class LightState {
         if (state.has("hue")) {
             hue = state.getInt("hue");
             saturation = state.getInt("sat");
-            if (state.has("colormode") && state.getString("colormode").equals("ct")) {
-                this.colorTemperature = state.getInt("ct");
-            }
+        }
+        if (state.has("colormode") && state.getString("colormode").equals("ct")) {
+            this.colorTemperature = state.getInt("ct");
         }
     }
 
@@ -81,5 +81,13 @@ public class LightState {
 
     public int getColorTemperature() {
         return colorTemperature;
+    }
+
+    public boolean hasColorTemperature() {
+        return colorTemperature > 0;
+    }
+
+    public Boolean hasHueSat() {
+        return saturation > 0;
     }
 }
