@@ -42,8 +42,8 @@ public class OregonWindTest {
         assertThat(proxy.getAttributeValue("SensorModel"), is("1994"));
         assertThat(proxy.getAttributeValue("BatteryLevel"), is("100"));
         assertThat(proxy.getAttributeValue("Direction"), is("S"));
-        assertThat(proxy.getAttributeValue("Wind"), is("3,6"));
-        assertThat(proxy.getAttributeValue("AverageWind"), is("3,0"));
+        assertThat(proxy.getAttributeValue("Wind"), is("36,0"));
+        assertThat(proxy.getAttributeValue("AverageWind"), is("29,8"));
     }
 
     @Test

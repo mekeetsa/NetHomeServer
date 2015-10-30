@@ -65,7 +65,7 @@ public class OregonWind extends HomeItemAdapter implements HomeItem, ValueItem {
     private double wind = 0;
     private double averageWind = 0;
     private int direction = 0;
-    protected double constantK = 0.01;
+    protected double constantK = 0.1;
     protected double constantM = 0;
     private String itemChannel = "";
     private String itemDeviceId = "";
