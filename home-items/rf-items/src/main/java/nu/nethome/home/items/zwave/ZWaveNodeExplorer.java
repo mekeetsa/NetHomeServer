@@ -8,6 +8,7 @@ import nu.nethome.zwave.Hex;
 import nu.nethome.zwave.messages.ApplicationCommand;
 import nu.nethome.zwave.messages.SendData;
 import nu.nethome.zwave.messages.commandclasses.AssociatedNode;
+import nu.nethome.zwave.messages.commandclasses.CommandArgument;
 import nu.nethome.zwave.messages.commandclasses.MultiInstanceAssociationCommandClass;
 import nu.nethome.zwave.messages.commandclasses.framework.Command;
 import nu.nethome.zwave.messages.commandclasses.framework.CommandProcessor;
@@ -57,11 +58,11 @@ public class ZWaveNodeExplorer extends HomeItemAdapter implements HomeItem {
     }
 
     private void processZWaveMessage(byte[] message){
-        if (MessageAdaptor.decodeMessageId(message) == ApplicationCommand.REQUEST_ID) {
+        if (MessageAdaptor.decodeMessageId(message).messageId == ApplicationCommand.REQUEST_ID) {
             try {
                 ApplicationCommand.Request command = new ApplicationCommand.Request(message, new CommandProcessor() {
                     @Override
-                    public Command process(byte[] commandData, int node) throws DecoderException {
+                    public Command process(byte[] commandData, CommandArgument argument) throws DecoderException {
                         return new MultiInstanceAssociationCommandClass.Report(commandData);
                     }
                 });

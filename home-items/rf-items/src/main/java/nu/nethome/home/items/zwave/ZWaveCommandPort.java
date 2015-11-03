@@ -70,16 +70,21 @@ public class ZWaveCommandPort extends HomeItemAdapter implements HomeItem, Runna
          */
         public Session(Socket sessionSocket) throws IOException {
             executor = new ZWaveExecutor(new ZWaveExecutor.MessageSender() {
-                      @Override
-                      public void sendZWaveMessage(byte[] bytes) {
-                          sendZRequest(bytes);
-                      }
-                  }, new ZWaveExecutor.Printer() {
-                      @Override
-                      public void print(String s) {
-                          printMessage(s);
-                      }
-                  }
+                @Override
+                public void sendZWaveMessage(byte[] bytes) {
+                    sendZRequest(bytes);
+                }
+            }, new ZWaveExecutor.Printer() {
+                @Override
+                public void println(String s) {
+                    printMessage(s, true);
+                }
+
+                @Override
+                public void print(String s) {
+                    printMessage(s, false);
+                }
+            }
             );
             this.socket = sessionSocket;
             remoteAddress = this.socket.getInetAddress().getHostAddress();
@@ -157,10 +162,10 @@ public class ZWaveCommandPort extends HomeItemAdapter implements HomeItem, Runna
             server.send(event);
         }
 
-        public void printMessage(String string) {
+        public void printMessage(String string, boolean addNewLine) {
             try {
                 if ((sessionIsRunning)) {
-                    socket.getOutputStream().write((string + "\n\r").getBytes());
+                    socket.getOutputStream().write((string + (addNewLine ? "\n\r" : "")).getBytes());
                 }
             } catch (IOException io) {
                 // Exception in write, close down
