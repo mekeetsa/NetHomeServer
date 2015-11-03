@@ -7,6 +7,7 @@ import nu.nethome.home.item.HomeItemType;
 import nu.nethome.util.plugin.Plugin;
 import nu.nethome.zwave.Hex;
 import nu.nethome.zwave.PortException;
+import nu.nethome.zwave.QueueingZWavePort;
 import nu.nethome.zwave.ZWavePort;
 import nu.nethome.zwave.messages.AddNode;
 import nu.nethome.zwave.messages.MemoryGetId;
@@ -43,7 +44,7 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
 
     private static Logger logger = Logger.getLogger(ZWaveController.class.getName());
 
-    private ZWavePort port;
+    private QueueingZWavePort port;
     private String portName = "/dev/ttyAMA0";
     private int homeId = 0;
     private int nodeId = 0;
@@ -90,7 +91,7 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
 
     private void openPort() {
         try {
-            port = new ZWavePort(portName, new ZWavePort.Receiver() {
+            port = new QueueingZWavePort(portName, new ZWavePort.Receiver() {
                 @Override
                 public void receiveMessage(byte[] message) {
                     logger.fine("Receiving Message");
@@ -181,7 +182,7 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
         event.setAttribute(ZWAVE_MESSAGE_TYPE, ((int) message[1]) & 0xFF);
         event.setAttribute("Direction", "In");
         server.send(event);
-        if (MessageAdaptor.decodeMessageId(message) == MemoryGetId.MEMORY_GET_ID) {
+        if (MessageAdaptor.decodeMessageId(message).messageId == MemoryGetId.MEMORY_GET_ID) {
             try {
                 MemoryGetId.Response memoryGetIdResponse = new MemoryGetId.Response(message);
                 homeId = memoryGetIdResponse.homeId;
@@ -190,7 +191,7 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
                 logger.warning("Could not parse ZWave response:" + e.getMessage());
             }
         }
-        if (MessageAdaptor.decodeMessageId(message) == AddNode.REQUEST_ID) {
+        if (MessageAdaptor.decodeMessageId(message).messageId == AddNode.REQUEST_ID) {
             try {
                 AddNode.Event addNodeResponse = new AddNode.Event(message);
                 logger.info(addNodeResponse.toString());
