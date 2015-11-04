@@ -171,19 +171,16 @@ public class PhilipsHueBridge {
      * Register a new user to the bridge. The button on the bridge must have been pressed within 30 seconds
      * for this operation to succeed.
      *
+     *
      * @param deviceType Name of device, should for example be app name
-     * @param user       Username to register. May be left blank
      * @return The name of the registered user
      * @throws IOException            If communication fails
      * @throws HueProcessingException If the command cannot be executed
      */
-    public String registerUser(String deviceType, String user) throws HueProcessingException, IOException {
+    public String registerUser(String deviceType) throws HueProcessingException, IOException {
         try {
             JSONObject parameter = new JSONObject();
             parameter.put("devicetype", deviceType);
-            if (user != null && user.length() > 0) {
-                parameter.put("username", user);
-            }
             JSONData result = client.post(url, "/api", parameter);
             checkForErrorResponse(result);
             JSONObject resultObject = result.getArray().getJSONObject(0);

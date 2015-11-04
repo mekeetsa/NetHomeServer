@@ -69,7 +69,7 @@ public class HueBridge extends HomeItemAdapter {
             + "  <Attribute Name=\"Identity\" Type=\"String\" Get=\"getBridgeIdentity\" Init=\"setBridgeIdentity\" />"
             + "  <Attribute Name=\"DeviceName\" Type=\"String\" Get=\"getDeviceName\"  />"
             + "  <Attribute Name=\"SWVersion\" Type=\"String\" Get=\"getSWVersion\"  />"
-            + "  <Attribute Name=\"UserName\" Type=\"String\" Get=\"getUserName\" Set=\"setUserName\" />"
+            + "  <Attribute Name=\"UserName\" Type=\"String\" Get=\"getUserName\" Init=\"setUserName\" />"
             + "  <Attribute Name=\"RefreshInterval\" Type=\"String\" Get=\"getRefreshInterval\" Set=\"setRefreshInterval\" />"
             + "  <Action Name=\"findBridge\" Method=\"findBridge\" />"
             + "  <Action Name=\"registerUser\" Method=\"registerUser\" />"
@@ -281,7 +281,7 @@ public class HueBridge extends HomeItemAdapter {
 
     public void registerUser() {
         try {
-            String result = hueBridge.registerUser("OpenNetHomeServer", userName);
+            String result = hueBridge.registerUser("OpenNetHomeServer");
             userName = result;
             checkConnection();
         } catch (IOException e) {

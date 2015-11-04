@@ -19,7 +19,6 @@
 
 package nu.nethome.home.items.hue;
 
-import org.hamcrest.CoreMatchers;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -263,7 +262,7 @@ public class PhilipsHueBridgeTest {
     @Test
     public void canRegisterUser() throws Exception {
         when(restClient.post(anyString(), anyString(), any(JSONObject.class))).thenReturn(new JSONData(REGISTER_USER_OK));
-        String result = api.registerUser("Test", "abcdefghijklmnop");
+        String result = api.registerUser("Test");
         verify(restClient, times(1)).post(eq("http://1.1.1.1"), eq("/api"), any(JSONObject.class));
         assertThat(result, is("1234567890"));
     }
