@@ -116,7 +116,7 @@ public class WeekTimer extends HomeItemAdapter implements HomeItem {
 	 */
 	public void setWeekDayTimes(String WeekDayTimes) {
 		// Set the string
-		weekDayTimes = WeekDayTimes;
+		weekDayTimes = WeekDayTimes.trim();
 		// Transform the string to alarm entries
 		calculateAlarmEntries(weekDayAlarms, WeekDayTimes, weekDays);
 	}
@@ -194,7 +194,7 @@ public class WeekTimer extends HomeItemAdapter implements HomeItem {
 	 */
 	public void setWeekEndTimes(String WeekEndTimes) {
 		// Set the string
-		m_WeekEndTimes = WeekEndTimes;
+		m_WeekEndTimes = WeekEndTimes.trim();
 		// Transform the string to alarm entries
 		calculateAlarmEntries(weekEndAlarms, WeekEndTimes, weekEndDays);
 	}	
