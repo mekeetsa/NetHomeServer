@@ -16,8 +16,7 @@ public class CommandLineParserTest {
     @Test
     public void parseEmptyLine() throws Exception {
         List<String> tokens = CommandLineParser.parseLine("");
-        assertThat(tokens.size(), is(1));
-        assertThat(tokens, hasItems(""));
+        assertThat(tokens.size(), is(0));
     }
 
     @Test

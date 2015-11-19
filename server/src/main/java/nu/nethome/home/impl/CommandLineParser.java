@@ -45,8 +45,10 @@ public class CommandLineParser {
 
     public static List<String> parseLine(String searchText) {
         List<String> result = new ArrayList<>();
-        for (String token : searchText.split(",")) {
-            result.add(unQuote(token));
+        if (!searchText.isEmpty()) {
+            for (String token : searchText.split(",")) {
+                result.add(unQuote(token));
+            }
         }
         if (searchText.endsWith(",")) {
             result.add("");
