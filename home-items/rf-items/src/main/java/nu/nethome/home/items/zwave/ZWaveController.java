@@ -6,14 +6,17 @@ import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.util.plugin.Plugin;
 import nu.nethome.zwave.Hex;
+import nu.nethome.zwave.MessageProcessor;
 import nu.nethome.zwave.PortException;
-import nu.nethome.zwave.QueueingZWavePort;
 import nu.nethome.zwave.ZWavePort;
 import nu.nethome.zwave.messages.AddNode;
+import nu.nethome.zwave.messages.ApplicationCommand;
 import nu.nethome.zwave.messages.MemoryGetId;
 import nu.nethome.zwave.messages.framework.DecoderException;
 import nu.nethome.zwave.messages.framework.MessageAdaptor;
+import nu.nethome.zwave.messages.framework.UndecodedMessage;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,10 +44,13 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
     public static final String ZWAVE_TYPE = "ZWave.Type";
     public static final String ZWAVE_MESSAGE_TYPE = "ZWave.MessageType";
     public static final String ZWAVE_EVENT_TYPE = "ZWave_Message";
+    public static final String ZWAVE_COMMAND_CLASS = "ZWave.CommandClass";
+    public static final String ZWAVE_COMMAND = "ZWave.Command";
+    public static final String ZWAVE_NODE = "ZWave.Node";
 
     private static Logger logger = Logger.getLogger(ZWaveController.class.getName());
 
-    private QueueingZWavePort port;
+    private ZWavePort port;
     private String portName = "/dev/ttyAMA0";
     private int homeId = 0;
     private int nodeId = 0;
@@ -91,17 +97,13 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
 
     private void openPort() {
         try {
-            port = new QueueingZWavePort(portName, new ZWavePort.Receiver() {
+            port = new ZWavePort(portName);
+            port.setReceiver(new MessageProcessor() {
                 @Override
-                public void receiveMessage(byte[] message) {
+                public UndecodedMessage.Message process(byte[] message) {
                     logger.fine("Receiving Message");
                     ZWaveController.this.receiveMessage(message);
-                }
-
-                @Override
-                public void receiveFrameByte(byte frameByte) {
-                    logger.fine("Receiving byte Message");
-                    ZWaveController.this.receiveFrameByte(frameByte);
+                    return null;
                 }
             });
             logger.fine("Created port");
@@ -181,23 +183,21 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
         event.setAttribute(ZWAVE_TYPE, message[0] == 0 ? "Request" : "Response");
         event.setAttribute(ZWAVE_MESSAGE_TYPE, ((int) message[1]) & 0xFF);
         event.setAttribute("Direction", "In");
-        server.send(event);
-        if (MessageAdaptor.decodeMessageId(message).messageId == MemoryGetId.MEMORY_GET_ID) {
-            try {
+        try {
+            if (MessageAdaptor.decodeMessageId(message).messageId == ApplicationCommand.REQUEST_ID) {
+                ApplicationCommand.Request command = new ApplicationCommand.Request(message);
+                event.setAttribute(ZWAVE_NODE, command.node);
+                event.setAttribute(ZWAVE_COMMAND_CLASS, command.command.getCommandClass());
+                event.setAttribute(ZWAVE_COMMAND, command.command.getCommand());
+            }
+            server.send(event);
+            if (MessageAdaptor.decodeMessageId(message).messageId == MemoryGetId.MEMORY_GET_ID) {
                 MemoryGetId.Response memoryGetIdResponse = new MemoryGetId.Response(message);
                 homeId = memoryGetIdResponse.homeId;
                 nodeId = memoryGetIdResponse.nodeId;
-            } catch (DecoderException e) {
-                logger.warning("Could not parse ZWave response:" + e.getMessage());
             }
-        }
-        if (MessageAdaptor.decodeMessageId(message).messageId == AddNode.REQUEST_ID) {
-            try {
-                AddNode.Event addNodeResponse = new AddNode.Event(message);
-                logger.info(addNodeResponse.toString());
-            } catch (DecoderException e) {
-                logger.warning("Could not parse ZWave response:" + e.getMessage());
-            }
+        } catch (DecoderException | IOException e) {
+            logger.warning("Could not parse ZWave response:" + e.getMessage());
         }
     }
 

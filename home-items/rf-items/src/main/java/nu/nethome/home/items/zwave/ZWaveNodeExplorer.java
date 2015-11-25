@@ -11,6 +11,7 @@ import nu.nethome.zwave.messages.commandclasses.AssociatedNode;
 import nu.nethome.zwave.messages.commandclasses.CommandArgument;
 import nu.nethome.zwave.messages.commandclasses.MultiInstanceAssociationCommandClass;
 import nu.nethome.zwave.messages.commandclasses.framework.Command;
+import nu.nethome.zwave.messages.commandclasses.framework.CommandCode;
 import nu.nethome.zwave.messages.commandclasses.framework.CommandProcessor;
 import nu.nethome.zwave.messages.framework.DecoderException;
 import nu.nethome.zwave.messages.framework.MessageAdaptor;
@@ -61,6 +62,11 @@ public class ZWaveNodeExplorer extends HomeItemAdapter implements HomeItem {
         if (MessageAdaptor.decodeMessageId(message).messageId == ApplicationCommand.REQUEST_ID) {
             try {
                 ApplicationCommand.Request command = new ApplicationCommand.Request(message, new CommandProcessor() {
+                    @Override
+                    public CommandCode getCommandCode() {
+                        return null;
+                    }
+
                     @Override
                     public Command process(byte[] commandData, CommandArgument argument) throws DecoderException {
                         return new MultiInstanceAssociationCommandClass.Report(commandData);
