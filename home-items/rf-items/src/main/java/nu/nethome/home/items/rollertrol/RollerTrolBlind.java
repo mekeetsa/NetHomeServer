@@ -19,6 +19,7 @@
 
 package nu.nethome.home.items.rollertrol;
 
+import nu.nethome.coders.RollerTrol;
 import nu.nethome.home.item.AutoCreationInfo;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
@@ -44,6 +45,8 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
     public static final String DEVICE_CODE_ATTRIBUTE = "RollerTrol.DeviceCode";
     public static final String COMMAND_ATTRIBUTE = "RollerTrol.Command";
     public static final int MINIMAL_MOVEMENT_TIME = 1000;
+    public static final int MAX_ID = (1 << RollerTrol.HOUSE_CODE.length) - 1;
+
     private int repeats = 15;
 
     public static class RollerTrolCreationInfo implements AutoCreationInfo {
@@ -94,6 +97,14 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
     private BlindState state = new BlindState();
     private int position1;
     private int position2;
+
+    public RollerTrolBlind(int remoteId) {
+        this.remoteId = remoteId;
+    }
+
+    public RollerTrolBlind() {
+        this((int)(Math.random() * MAX_ID));
+    }
 
     public boolean receiveEvent(Event event) {
         // Check if this is an inward event directed to this instance

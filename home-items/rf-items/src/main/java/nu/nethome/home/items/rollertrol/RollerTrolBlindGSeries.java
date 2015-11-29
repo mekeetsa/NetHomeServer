@@ -40,6 +40,7 @@ public class RollerTrolBlindGSeries extends RollerTrolBlind implements HomeItem 
     public static final String ADDRESS_ATTRIBUTE = ROLLER_TROL_G_PROTOCOL_NAME + "." + ADDRESS_NAME;
     public static final String CHANNEL_ATTRIBUTE = ROLLER_TROL_G_PROTOCOL_NAME + "." + CHANNEL_NAME;
     public static final String COMMAND_ATTRIBUTE = ROLLER_TROL_G_PROTOCOL_NAME + "." + RollerTrolG.COMMAND_NAME;
+    public static final int MAX_G_ID = ((1 << RollerTrolG.ADDRESS.length) - 1);
 
     public static class RollerTrolCreationInfo implements AutoCreationInfo {
         static final String[] CREATION_EVENTS = {"RollerTrolG_Message"};
@@ -83,6 +84,10 @@ public class RollerTrolBlindGSeries extends RollerTrolBlind implements HomeItem 
             + "</HomeItem> ");
 
     private static Logger logger = Logger.getLogger(RollerTrolBlindGSeries.class.getName());
+
+    public RollerTrolBlindGSeries() {
+        super((int)(Math.random() * MAX_G_ID));
+    }
 
     protected String getCommandAttributeName() {
         return COMMAND_ATTRIBUTE;

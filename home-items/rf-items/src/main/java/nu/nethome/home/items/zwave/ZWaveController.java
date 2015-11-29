@@ -12,6 +12,8 @@ import nu.nethome.zwave.ZWavePort;
 import nu.nethome.zwave.messages.AddNode;
 import nu.nethome.zwave.messages.ApplicationCommand;
 import nu.nethome.zwave.messages.MemoryGetId;
+import nu.nethome.zwave.messages.commandclasses.MultiInstanceCommandClass;
+import nu.nethome.zwave.messages.commandclasses.framework.Command;
 import nu.nethome.zwave.messages.framework.DecoderException;
 import nu.nethome.zwave.messages.framework.MessageAdaptor;
 import nu.nethome.zwave.messages.framework.UndecodedMessage;
@@ -185,10 +187,16 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
         event.setAttribute("Direction", "In");
         try {
             if (MessageAdaptor.decodeMessageId(message).messageId == ApplicationCommand.REQUEST_ID) {
-                ApplicationCommand.Request command = new ApplicationCommand.Request(message);
-                event.setAttribute(ZWAVE_NODE, command.node);
-                event.setAttribute(ZWAVE_COMMAND_CLASS, command.command.getCommandClass());
-                event.setAttribute(ZWAVE_COMMAND, command.command.getCommand());
+                ApplicationCommand.Request request = new ApplicationCommand.Request(message);
+                event.setAttribute(ZWAVE_NODE, request.node);
+                Command command = request.command;
+                if (command.getCommandClass() == MultiInstanceCommandClass.COMMAND_CLASS && command.getCommand() == MultiInstanceCommandClass.ENCAP_V2) {
+                    MultiInstanceCommandClass.EncapsulationV2 encap = new MultiInstanceCommandClass.EncapsulationV2(command.encode());
+                    event.setAttribute("ZWave.Endpoint", encap.instance);
+                    command = encap.command;
+                }
+                event.setAttribute(ZWAVE_COMMAND_CLASS, command.getCommandClass());
+                event.setAttribute(ZWAVE_COMMAND, command.getCommand());
             }
             server.send(event);
             if (MessageAdaptor.decodeMessageId(message).messageId == MemoryGetId.MEMORY_GET_ID) {
