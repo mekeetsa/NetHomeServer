@@ -1,7 +1,9 @@
 package nu.nethome.home.items.timer.SunTimer;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -12,12 +14,24 @@ public class TimeExpressionParser {
     public static final String TIME_SEPARATOR = ":";
 
     public List<SwitchTime> parseExpression(String expression) {
+        return parseExpression(expression, Collections.<String, String>emptyMap());
+    }
+
+    public List<SwitchTime> parseExpression(String expression, Map<String, String> variables) {
         ArrayList<SwitchTime> switchTimes = new ArrayList<>();
-        String[] switchTimeExpressions = expression.split(",");
+        String[] switchTimeExpressions = replaceVariables(expression, variables).split(",");
         for (String switchTimeExpression : switchTimeExpressions) {
             switchTimes.addAll(SwitchTime.parseSwitchTimes(switchTimeExpression));
         }
         return switchTimes;
+    }
+
+    private String replaceVariables(String expression, Map<String, String> variables) {
+        String result = expression;
+        for (String variable : variables.keySet()) {
+            result = result.replace(variable, variables.get(variable));
+        }
+        return result;
     }
 
     public static class SwitchTime {
