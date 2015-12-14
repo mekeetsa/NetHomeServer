@@ -14,9 +14,7 @@ import java.util.Calendar;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.*;
 
 /**
  *
@@ -60,5 +58,34 @@ public class SunTimerTest {
         HomeService server = mock(HomeService.class);
         sunTimer.activate(server);
         assertThat(proxy.getAttributeValue("Timer Today"), is("09:00->11:00,->13:00,15:00->"));
+    }
+
+    @Test
+    public void updateDayTimeExpressionDoesNotSetCurrentDayStringIfNotActivated() throws Exception {
+        doReturn(Calendar.TUESDAY).when(sunTimer).getToday();
+        proxy.setAttributeValue("Tuesdays", "10:00->11:00");
+        assertThat(proxy.getAttributeValue("Timer Today"), is(""));
+    }
+
+    @Test
+    public void updateDayTimeExpressionSetsCurrentDayStringIfActivated() throws Exception {
+        doReturn(Calendar.TUESDAY).when(sunTimer).getToday();
+        HomeService server = mock(HomeService.class);
+        sunTimer.activate(server);
+        assertThat(proxy.getAttributeValue("Timer Today"), is(""));
+        proxy.setAttributeValue("Tuesdays", "11:00->12:00");
+        assertThat(proxy.getAttributeValue("Timer Today"), is("11:00->12:00"));
+    }
+
+    @Test
+    public void updateDayTimeExpressionWithUnchangedValueDoesNotUpdateCurrentDayString() throws Exception {
+        doReturn(Calendar.TUESDAY).when(sunTimer).getToday();
+        proxy.setAttributeValue("Tuesdays", "11:00->12:00");
+        HomeService server = mock(HomeService.class);
+        sunTimer.activate(server);
+        proxy.setAttributeValue("Tuesdays", "11:00->12:00");
+        proxy.setAttributeValue("Tuesdays", "11:00->12:00");
+        proxy.setAttributeValue("Tuesdays", "11:00->12:00");
+        verify(sunTimer, times(1)).calculateSwitchTimesForToday();
     }
 }

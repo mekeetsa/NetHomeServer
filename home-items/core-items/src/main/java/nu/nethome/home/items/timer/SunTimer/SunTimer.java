@@ -13,9 +13,10 @@ import static nu.nethome.home.items.timer.SunTimer.TimeExpressionParser.TIME_PER
 /**
  *
  */
+@SuppressWarnings("UnusedDeclaration")
 public class SunTimer extends HomeItemAdapter {
 
-    private final String MODEL = ("<?xml version = \"1.0\"?> \n"
+    private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"SunTimer\" Category=\"Timers\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Init=\"setState\" Default=\"true\" />"
             + "  <Attribute Name=\"Location: Lat,Long\" Type=\"String\" Get=\"getLatLong\" 	Set=\"setLatLong\" />"
@@ -38,6 +39,12 @@ public class SunTimer extends HomeItemAdapter {
     private String[] weekDays = new String[7];
     private List<SwitchTime> switchTimesToday = Collections.emptyList();
 
+    public SunTimer() {
+        for (int i = 0; i < weekDays.length; i++) {
+            weekDays[i] = "";
+        }
+    }
+
     @Override
     public String getModel() {
         return MODEL;
@@ -48,7 +55,7 @@ public class SunTimer extends HomeItemAdapter {
         calculateSwitchTimesForToday();
     }
 
-    private void calculateSwitchTimesForToday() {
+    void calculateSwitchTimesForToday() {
         try {
             switchTimesToday = TimeExpressionParser.parseExpression(getTodaysTimeExpression());
         } catch (TimeExpressionParser.TimeExpressionException e) {
@@ -90,7 +97,15 @@ public class SunTimer extends HomeItemAdapter {
     }
 
     public void setMondays(String times) {
-        weekDays[1] = times;
+        setTimeExpressionForDay(1, times);
+    }
+
+    private void setTimeExpressionForDay(int day, String times) {
+        String oldValue = weekDays[day];
+        weekDays[day] = times;
+        if (isActivated() && !oldValue.equals(times)) {
+            calculateSwitchTimesForToday();
+        }
     }
 
     public String getTuesdays() {
@@ -98,7 +113,7 @@ public class SunTimer extends HomeItemAdapter {
     }
 
     public void setTuesdays(String times) {
-        weekDays[2] = times;
+        setTimeExpressionForDay(2, times);
     }
 
     public String getWednesdays() {
@@ -106,7 +121,7 @@ public class SunTimer extends HomeItemAdapter {
     }
 
     public void setWednesdays(String times) {
-        weekDays[3] = times;
+        setTimeExpressionForDay(3, times);
     }
 
     public String getThursdays() {
@@ -114,7 +129,7 @@ public class SunTimer extends HomeItemAdapter {
     }
 
     public void setThursdays(String times) {
-        weekDays[4] = times;
+        setTimeExpressionForDay(4, times);
     }
 
     public String getFridays() {
@@ -122,7 +137,7 @@ public class SunTimer extends HomeItemAdapter {
     }
 
     public void setFridays(String times) {
-        weekDays[5] = times;
+        setTimeExpressionForDay(5, times);
     }
 
     public String getSaturdays() {
@@ -130,7 +145,7 @@ public class SunTimer extends HomeItemAdapter {
     }
 
     public void setSaturdays(String times) {
-        weekDays[6] = times;
+        setTimeExpressionForDay(6, times);
     }
 
     public String getSundays() {
@@ -138,6 +153,6 @@ public class SunTimer extends HomeItemAdapter {
     }
 
     public void setSundays(String times) {
-        weekDays[0] = times;
+        setTimeExpressionForDay(0, times);
     }
 }
