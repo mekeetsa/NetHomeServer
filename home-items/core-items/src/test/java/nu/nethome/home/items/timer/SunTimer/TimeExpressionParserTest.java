@@ -32,6 +32,7 @@ public class TimeExpressionParserTest {
         assertThat(switchTimes.size(), is(1));
         assertThat(switchTimes.get(0).isOn(), is(true));
         assertThat(switchTimes.get(0).value(), is(MINUTE * 2 + HOUR));
+        assertThat(switchTimes.get(0).valueAsTimeString(), is("01:02"));
     }
 
     @Test

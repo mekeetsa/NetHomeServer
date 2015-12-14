@@ -10,18 +10,18 @@ import java.util.Map;
  */
 public class TimeExpressionParser {
 
-    private static final String TIME_EXPRESSION_SEPARATOR = ",";
+    public static final String TIME_EXPRESSION_SEPARATOR = ",";
     public static final String TIME_PERIOD_SEPARATOR = "->";
     public static final String TIME_SEPARATOR = ":";
     private static final String SUM_SEPARATOR_INCLUDING_SEPARATOR = "(?=\\+|\\-)";
-    private static final String FIRST_TIME_ALTERNATIVE_SEPARATOR = "/";
-    private static final String LAST_TIME_ALTERNATIVE_SEPARATOR = "\\\\";
+    public static final String FIRST_TIME_ALTERNATIVE_SEPARATOR = "/";
+    public static final String LAST_TIME_ALTERNATIVE_SEPARATOR = "\\\\";
 
-    public List<SwitchTime> parseExpression(String expression) throws TimeExpressionException {
+    public static List<SwitchTime> parseExpression(String expression) throws TimeExpressionException {
         return parseExpression(expression, Collections.<String, String>emptyMap());
     }
 
-    public List<SwitchTime> parseExpression(String expression, Map<String, String> variables) throws TimeExpressionException {
+    public static List<SwitchTime> parseExpression(String expression, Map<String, String> variables) throws TimeExpressionException {
         ArrayList<SwitchTime> switchTimes = new ArrayList<>();
         String[] switchTimeExpressions = replaceVariables(expression, variables).split(TIME_EXPRESSION_SEPARATOR);
         for (String switchTimeExpression : switchTimeExpressions) {
@@ -30,7 +30,7 @@ public class TimeExpressionParser {
         return switchTimes;
     }
 
-    private String replaceVariables(String expression, Map<String, String> variables) {
+    private static String replaceVariables(String expression, Map<String, String> variables) {
         String result = expression;
         for (String variable : variables.keySet()) {
             result = result.replace(variable, variables.get(variable));
@@ -126,6 +126,10 @@ public class TimeExpressionParser {
 
         public boolean isOn() {
             return on;
+        }
+
+        public String valueAsTimeString() {
+            return String.format("%02d:%02d", value / (60 * 60), (value % (60 * 60)) / 60);
         }
     }
 }
