@@ -56,6 +56,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
                 + "  <Attribute Name=\"FileName\" Type=\"String\" Get=\"getFileName\" Set=\"setFileName\" />"
                 + "  <Attribute Name=\"UpgradeCommand\" Type=\"String\" Get=\"getUpgradeCommand\" Set=\"setUpgradeCommand\" />"
                 + "  <Attribute Name=\"LogFile\" Type=\"String\" Get=\"getLogFile\" 	Set=\"setLogFile\" />"
+                + "  <Attribute Name=\"PythonScriptFile\" Type=\"String\" Get=\"getPythonFile\" 	Set=\"setPythonFile\" />"
                 + "  <Attribute Name=\"UpTime\" Type=\"String\" Get=\"getUpTime\" />"
                 + "  <Attribute Name=\"MaxDistributionTime\" Type=\"String\" Get=\"getMaxDistributionTime\" Unit=\"ms\" />"
                 + "  <Attribute Name=\"AverageDistributionTime\" Type=\"String\" Get=\"getAverageDistributionTime\"  Unit=\"ms\" />"
@@ -110,12 +111,14 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
     private int minuteCounter;
     private int minutesBetweenItemSave = 60;
     private String logDirectory = "";
+    private Python python;
 
     public HomeServer() {
         eventQueue = new LinkedBlockingQueue<Event>(MAX_QUEUE_SIZE);
         logRecords = new LinkedBlockingDeque<LogRecord>(LOG_RECORD_CAPACITY);
         setupLogger();
         eventCountlogger.activate(this);
+        python = new Python(this);
     }
 
     private void setupLogger() {
@@ -329,6 +332,23 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
         } else {
             sentEventCount++;
             eventsCount++;
+        }
+    }
+
+    public boolean callFunction(String functionName) {
+        try {
+            if (python.callFunction(functionName))
+            {
+                return true;
+            }
+            else
+            {
+                logger.severe("Python function not found:"+functionName);
+                return false;
+            }
+        } catch (IOException ex) {
+            logger.severe("Error when calling script function:"+ex.toString());
+            return false;
         }
     }
 
@@ -746,5 +766,13 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
         if (!this.logDirectory.isEmpty() && !this.logDirectory.endsWith(File.pathSeparator)) {
             this.logDirectory += File.pathSeparator;
         }
+    }
+    
+    public String getPythonFile() {
+        return python.getScriptSourceFileName();
+    }
+
+    public void setPythonFile(String scriptFile) {
+        python.setScriptSourceFileName(scriptFile);
     }
 }

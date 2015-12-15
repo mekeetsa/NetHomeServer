@@ -38,7 +38,12 @@ public class MockServiceConnection implements HomeService {
 
     protected Map<String, MockHomeItemProxy> m_Instances = new HashMap<String, MockHomeItemProxy>();
     public List<HomeItem> m_Items = new LinkedList<HomeItem>();
-
+    
+    @Override
+    public boolean callFunction(String functionName) {
+        return true;
+    }
+    
     public static class MockEvent implements Event {
 
         private Map<String, String> attributes = new TreeMap<String, String>();
