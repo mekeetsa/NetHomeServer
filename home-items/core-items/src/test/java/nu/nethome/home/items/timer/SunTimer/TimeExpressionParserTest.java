@@ -72,16 +72,17 @@ public class TimeExpressionParserTest {
         HashMap<String, String> variables = new HashMap<>();
         variables.put("A", "01:02");
         variables.put("B", "03:04");
-        List<TimeExpressionParser.SwitchTime> switchTimes = timeExpressionParser.parseExpression("A->B,01:00->A", variables);
+        variables.put("C", "05:02");
+        List<TimeExpressionParser.SwitchTime> switchTimes = timeExpressionParser.parseExpression("A->B,04:00->C", variables);
         assertThat(switchTimes.size(), is(4));
         assertThat(switchTimes.get(0).isOn(), is(true));
         assertThat(switchTimes.get(0).value(), is(HOUR + MINUTE * 2));
         assertThat(switchTimes.get(1).isOn(), is(false));
         assertThat(switchTimes.get(1).value(), is(HOUR * 3 + MINUTE * 4));
         assertThat(switchTimes.get(2).isOn(), is(true));
-        assertThat(switchTimes.get(2).value(), is(HOUR));
+        assertThat(switchTimes.get(2).value(), is(HOUR * 4));
         assertThat(switchTimes.get(3).isOn(), is(false));
-        assertThat(switchTimes.get(3).value(), is(HOUR + MINUTE * 2));
+        assertThat(switchTimes.get(3).value(), is(HOUR * 5+ MINUTE * 2));
     }
 
     @Test
@@ -187,4 +188,19 @@ public class TimeExpressionParserTest {
             assertThat(e.badExpression, is("19;00"));
         }
     }
+
+    @Test
+    public void sortsResultOnTime() throws Exception {
+        List<TimeExpressionParser.SwitchTime> switchTimes = timeExpressionParser.parseExpression("04:00->05:00,03:00->03:30");
+        assertThat(switchTimes.size(), is(4));
+        assertThat(switchTimes.get(0).isOn(), is(true));
+        assertThat(switchTimes.get(0).valueAsTimeString(), is("03:00"));
+        assertThat(switchTimes.get(1).isOn(), is(false));
+        assertThat(switchTimes.get(1).valueAsTimeString(), is("03:30"));
+        assertThat(switchTimes.get(2).isOn(), is(true));
+        assertThat(switchTimes.get(2).valueAsTimeString(), is("04:00"));
+        assertThat(switchTimes.get(3).isOn(), is(false));
+        assertThat(switchTimes.get(3).valueAsTimeString(), is("05:00"));
+    }
+
 }

@@ -27,6 +27,7 @@ public class TimeExpressionParser {
         for (String switchTimeExpression : switchTimeExpressions) {
             switchTimes.addAll(SwitchTime.parseSwitchTimes(switchTimeExpression));
         }
+        Collections.sort(switchTimes);
         return switchTimes;
     }
 
@@ -50,7 +51,7 @@ public class TimeExpressionParser {
         }
     }
 
-    public static class SwitchTime {
+    public static class SwitchTime implements Comparable<SwitchTime> {
         private boolean on;
         private int value = 0;
 
@@ -130,6 +131,20 @@ public class TimeExpressionParser {
 
         public String valueAsTimeString() {
             return String.format("%02d:%02d", value / (60 * 60), (value % (60 * 60)) / 60);
+        }
+
+        @Override
+        public int compareTo(SwitchTime time) {
+            final int BEFORE = -1;
+            final int EQUAL = 0;
+            final int AFTER = 1;
+
+            if (this == time) return EQUAL;
+            if (this.value < time.value) return BEFORE;
+            if (this.value > time.value) return AFTER;
+            if (!this.on && time.on) return BEFORE;
+            if (this.on && !time.on) return AFTER;
+            return EQUAL;
         }
     }
 }
