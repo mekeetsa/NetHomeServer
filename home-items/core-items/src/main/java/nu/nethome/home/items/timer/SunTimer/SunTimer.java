@@ -1,10 +1,10 @@
 package nu.nethome.home.items.timer.SunTimer;
 
+import nu.nethome.home.impl.CommandLineExecutor;
 import nu.nethome.home.item.HomeItemAdapter;
+import nu.nethome.home.system.HomeService;
 
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static nu.nethome.home.items.timer.SunTimer.TimeExpressionParser.SwitchTime;
 import static nu.nethome.home.items.timer.SunTimer.TimeExpressionParser.TIME_EXPRESSION_SEPARATOR;
@@ -38,6 +38,10 @@ public class SunTimer extends HomeItemAdapter {
 
     private String[] weekDays = new String[7];
     private List<SwitchTime> switchTimesToday = Collections.emptyList();
+    private Timer timer;
+    protected CommandLineExecutor executor;
+    private String onCommand = "";
+    private String offCommand = "";
 
     public SunTimer() {
         for (int i = 0; i < weekDays.length; i++) {
@@ -51,7 +55,9 @@ public class SunTimer extends HomeItemAdapter {
     }
 
     @Override
-    public void activate() {
+    public void activate(HomeService server) {
+        super.activate(server);
+        executor = new CommandLineExecutor(server, true);
         calculateSwitchTimesForToday();
     }
 
@@ -60,6 +66,20 @@ public class SunTimer extends HomeItemAdapter {
             switchTimesToday = TimeExpressionParser.parseExpression(getTodaysTimeExpression());
         } catch (TimeExpressionParser.TimeExpressionException e) {
             switchTimesToday = Collections.emptyList();
+        }
+        timer = createTimer();
+        Calendar time = getTime();
+        long nowTime = time.getTimeInMillis();
+        time.set(Calendar.HOUR_OF_DAY, 0);
+        time.set(Calendar.MINUTE, 0);
+        time.set(Calendar.SECOND, 0);
+        long baseTime = time.getTimeInMillis();
+
+        for (SwitchTime switchTime : switchTimesToday) {
+            long currentSwitchTime = switchTime.value() * 1000 + baseTime;
+            if (currentSwitchTime > nowTime) {
+                timer.schedule(new SunTimerTask(switchTime.isOn()), new Date(currentSwitchTime));
+            }
         }
     }
 
@@ -154,5 +174,43 @@ public class SunTimer extends HomeItemAdapter {
 
     public void setSundays(String times) {
         setTimeExpressionForDay(0, times);
+    }
+
+    public String getOnCommand() {
+        return onCommand;
+    }
+
+    public void setOnCommand(String onCommand) {
+        this.onCommand = onCommand;
+    }
+
+    public String getOffCommand() {
+        return offCommand;
+    }
+
+    public void setOffCommand(String offCommand) {
+        this.offCommand = offCommand;
+    }
+
+    Timer createTimer() {
+        return new Timer("SunTimer", true);
+    }
+
+    Calendar getTime() {
+        return Calendar.getInstance();
+    }
+
+    class SunTimerTask extends TimerTask {
+
+        private final boolean on;
+
+        SunTimerTask(boolean on) {
+            this.on = on;
+        }
+
+        @Override
+        public void run() {
+            executor.executeCommandLine(on ? onCommand : offCommand);
+        }
     }
 }

@@ -105,7 +105,7 @@ public class TimeExpressionParser {
             return value;
         }
 
-        private int parseTime(String switchTimeExpression) throws TimeExpressionException {
+        public int parseTime(String switchTimeExpression) throws TimeExpressionException {
             try {
                 int value = 0;
                 String[] strings = switchTimeExpression.split(TIME_SEPARATOR);
