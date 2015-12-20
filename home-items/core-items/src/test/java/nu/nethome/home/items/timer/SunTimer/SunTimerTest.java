@@ -100,7 +100,7 @@ public class SunTimerTest {
         proxy.setAttributeValue("Tuesdays", "11:00->12:00");
         proxy.setAttributeValue("Tuesdays", "11:00->12:00");
         proxy.setAttributeValue("Tuesdays", "11:00->12:00");
-        verify(sunTimer, times(1)).calculateSwitchTimesForToday();
+        verify(sunTimer, times(1)).applySwitchTimesForToday();
     }
 
     @Test
@@ -155,5 +155,53 @@ public class SunTimerTest {
         verify(timer).schedule(taskCaptor.capture(), any(Date.class));
         taskCaptor.getValue().run();
         verify(server,times(1)).openInstance("foo"); // Verify that the executor tries to open foo
+    }
+
+    @Test
+    public void executesMostRecentOnCommandInThePastWhenActivated() throws Exception {
+        // Note, time now is 12:00
+        proxy.setAttributeValue("Tuesdays", "10:00->11:00,11:30->12:30");
+        proxy.setAttributeValue("OnCommand", "call,foo,fie");
+
+        sunTimer.activate(server);
+
+        verify(server,times(1)).openInstance("foo"); // Verify that the executor tries to open foo
+    }
+
+    @Test
+    public void executesMostRecentOffCommandInThePastWhenActivated() throws Exception {
+        // Note, time now is 12:00
+        proxy.setAttributeValue("Tuesdays", "10:00->11:00,11:30->11:40");
+        proxy.setAttributeValue("OffCommand", "call,foo,fie");
+
+        sunTimer.activate(server);
+
+        verify(server,times(1)).openInstance("foo"); // Verify that the executor tries to open foo
+    }
+
+    @Test
+    public void stopsTimerWhenItemIsStopped() throws Exception {
+        sunTimer.activate(server);
+
+        sunTimer.stop();
+
+        verify(timer).cancel();
+    }
+
+    @Test
+    public void updateDayTimeExpressionCreatesTimerTasksAndCancelsExistingTimer() throws Exception {
+        sunTimer.activate(server);
+
+        proxy.setAttributeValue("Tuesdays", "13:00->14:00");
+
+        verify(timer).cancel();
+        ArgumentCaptor<TimerTask> taskCaptor = ArgumentCaptor.forClass(TimerTask.class);
+        ArgumentCaptor<Date> dateCaptor = ArgumentCaptor.forClass(Date.class);
+        verify(timer, times(2)).schedule(taskCaptor.capture(), dateCaptor.capture());
+        assertThat(taskCaptor.getAllValues().size(), is(2));
+        assertThat(dateFormat.format(dateCaptor.getAllValues().get(0)), is("13:00"));
+        assertThat(dateFormat.format(dateCaptor.getAllValues().get(1)), is("14:00"));
+        assertThat(taskCaptor.getAllValues().get(0), instanceOf(SunTimer.SunTimerTask.class));
+        assertThat(taskCaptor.getAllValues().get(1), instanceOf(SunTimer.SunTimerTask.class));
     }
 }

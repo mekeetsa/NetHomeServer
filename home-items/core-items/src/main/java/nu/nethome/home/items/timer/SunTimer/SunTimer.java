@@ -58,28 +58,51 @@ public class SunTimer extends HomeItemAdapter {
     public void activate(HomeService server) {
         super.activate(server);
         executor = new CommandLineExecutor(server, true);
-        calculateSwitchTimesForToday();
+        applySwitchTimesForToday();
     }
 
-    void calculateSwitchTimesForToday() {
+    @Override
+    public void stop() {
+        stopCurrentTimer();
+        super.stop();
+    }
+
+    private void stopCurrentTimer() {
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
+    }
+
+    void applySwitchTimesForToday() {
         try {
             switchTimesToday = TimeExpressionParser.parseExpression(getTodaysTimeExpression());
         } catch (TimeExpressionParser.TimeExpressionException e) {
             switchTimesToday = Collections.emptyList();
         }
+        stopCurrentTimer();
         timer = createTimer();
+        createTimerTasksForSwitchTimes();
+    }
+
+    private void createTimerTasksForSwitchTimes() {
         Calendar time = getTime();
         long nowTime = time.getTimeInMillis();
         time.set(Calendar.HOUR_OF_DAY, 0);
         time.set(Calendar.MINUTE, 0);
         time.set(Calendar.SECOND, 0);
         long baseTime = time.getTimeInMillis();
-
+        SwitchTime mostRecentSwitchTime = null;
         for (SwitchTime switchTime : switchTimesToday) {
             long currentSwitchTime = switchTime.value() * 1000 + baseTime;
             if (currentSwitchTime > nowTime) {
                 timer.schedule(new SunTimerTask(switchTime.isOn()), new Date(currentSwitchTime));
+            } else {
+                mostRecentSwitchTime = switchTime;
             }
+        }
+        if (mostRecentSwitchTime != null) {
+            executor.executeCommandLine(mostRecentSwitchTime.isOn() ? onCommand : offCommand);
         }
     }
 
@@ -124,7 +147,7 @@ public class SunTimer extends HomeItemAdapter {
         String oldValue = weekDays[day];
         weekDays[day] = times;
         if (isActivated() && !oldValue.equals(times)) {
-            calculateSwitchTimesForToday();
+            applySwitchTimesForToday();
         }
     }
 
