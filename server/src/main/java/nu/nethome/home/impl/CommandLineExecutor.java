@@ -237,7 +237,7 @@ public class CommandLineExecutor {
     
     String performPythonFunction(Iterator<String> it) {
         if (!it.hasNext()) {
-            return "error,,Missing function name";
+            return "error,16,Missing function name";
         }
         
         String commandLine = it.next();
@@ -250,7 +250,7 @@ public class CommandLineExecutor {
         {
             return "ok";
         }
-        return "error,,Could not execute function: " + commandLine;
+        return "error,17,Could not execute function: " + commandLine;
     }
 
     String performCreate(Iterator<String> it) {

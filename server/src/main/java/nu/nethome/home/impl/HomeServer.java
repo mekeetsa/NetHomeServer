@@ -337,17 +337,14 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 
     public boolean callFunction(String functionName) {
         try {
-            if (python.callFunction(functionName))
-            {
+            if (python.callFunction(functionName)) {
                 return true;
-            }
-            else
-            {
-                logger.severe("Python function not found:"+functionName);
+            } else {
+                logger.warning("Python function not found:" + functionName);
                 return false;
             }
         } catch (IOException ex) {
-            logger.severe("Error when calling script function:"+ex.toString());
+            logger.warning("Error when calling script function:" + ex.toString());
             return false;
         }
     }
@@ -767,7 +764,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
             this.logDirectory += File.pathSeparator;
         }
     }
-    
+
     public String getPythonFile() {
         return python.getScriptSourceFileName();
     }
