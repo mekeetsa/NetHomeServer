@@ -204,4 +204,19 @@ public class SunTimerTest {
         assertThat(taskCaptor.getAllValues().get(0), instanceOf(SunTimer.SunTimerTask.class));
         assertThat(taskCaptor.getAllValues().get(1), instanceOf(SunTimer.SunTimerTask.class));
     }
+
+    @Test
+    public void variableValuesAreInsertedInTimeExpressions() throws Exception {
+        proxy.setAttributeValue("Tuesdays", "A->B,C->13:00");
+        proxy.setAttributeValue("Variable A", "10:00");
+        proxy.setAttributeValue("Variable B", "11:00");
+        proxy.setAttributeValue("Variable C", "12:00");
+
+        sunTimer.activate(server);
+
+        assertThat(proxy.getAttributeValue("Variable A"), is("10:00"));
+        assertThat(proxy.getAttributeValue("Variable B"), is("11:00"));
+        assertThat(proxy.getAttributeValue("Variable C"), is("12:00"));
+        assertThat(proxy.getAttributeValue("Timer Today"), is("10:00->11:00,12:00->13:00"));
+    }
 }

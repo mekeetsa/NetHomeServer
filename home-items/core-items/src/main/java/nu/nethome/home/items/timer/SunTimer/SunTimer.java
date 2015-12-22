@@ -21,8 +21,11 @@ public class SunTimer extends HomeItemAdapter {
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Init=\"setState\" Default=\"true\" />"
             + "  <Attribute Name=\"Location: Lat,Long\" Type=\"String\" Get=\"getLatLong\" 	Set=\"setLatLong\" />"
             + "  <Attribute Name=\"Timer Today\" Type=\"String\" Get=\"getTodayStartEnd\" />"
-            + "  <Attribute Name=\"Sunrise (R)\" Type=\"String\" Get=\"getSunriseToday\" />"
-            + "  <Attribute Name=\"Sunset (S)\" Type=\"String\" Get=\"getSunsetToday\" />"
+            + "  <Attribute Name=\"Sunrise(R)\" Type=\"String\" Get=\"getSunriseToday\" />"
+            + "  <Attribute Name=\"Sunset(S)\" Type=\"String\" Get=\"getSunsetToday\" />"
+            + "  <Attribute Name=\"Variable A\" Type=\"String\" Get=\"getVariableA\" Set=\"setVariableA\" />"
+            + "  <Attribute Name=\"Variable B\" Type=\"String\" Get=\"getVariableB\" Set=\"setVariableB\" />"
+            + "  <Attribute Name=\"Variable C\" Type=\"String\" Get=\"getVariableC\" Set=\"setVariableC\" />"
             + "  <Attribute Name=\"Mondays\" Type=\"String\" Get=\"getMondays\" 	Set=\"setMondays\" />"
             + "  <Attribute Name=\"Tuesdays\" Type=\"String\" Get=\"getTuesdays\" 	Set=\"setTuesdays\" />"
             + "  <Attribute Name=\"Wednesdays\" Type=\"String\" Get=\"getWednesdays\" 	Set=\"setWednesdays\" />"
@@ -38,10 +41,11 @@ public class SunTimer extends HomeItemAdapter {
 
     private String[] weekDays = new String[7];
     private List<SwitchTime> switchTimesToday = Collections.emptyList();
-    private Timer timer;
-    protected CommandLineExecutor executor;
     private String onCommand = "";
     private String offCommand = "";
+    private Map<String,String> variables = new HashMap<>();
+    private CommandLineExecutor executor;
+    private Timer timer;
 
     public SunTimer() {
         for (int i = 0; i < weekDays.length; i++) {
@@ -76,7 +80,7 @@ public class SunTimer extends HomeItemAdapter {
 
     void applySwitchTimesForToday() {
         try {
-            switchTimesToday = TimeExpressionParser.parseExpression(getTodaysTimeExpression());
+            switchTimesToday = TimeExpressionParser.parseExpression(getTodaysTimeExpression(), variables);
         } catch (TimeExpressionParser.TimeExpressionException e) {
             switchTimesToday = Collections.emptyList();
         }
@@ -213,6 +217,33 @@ public class SunTimer extends HomeItemAdapter {
 
     public void setOffCommand(String offCommand) {
         this.offCommand = offCommand;
+    }
+
+    public String getVariableA() {
+        String v = variables.get("A");
+        return v != null ? v : "";
+    }
+
+    public void setVariableA(String value) {
+        variables.put("A", value);
+    }
+
+    public String getVariableB() {
+        String v = variables.get("B");
+        return v != null ? v : "";
+    }
+
+    public void setVariableB(String value) {
+        variables.put("B", value);
+    }
+
+    public String getVariableC() {
+        String v = variables.get("C");
+        return v != null ? v : "";
+    }
+
+    public void setVariableC(String value) {
+        variables.put("C", value);
     }
 
     Timer createTimer() {
