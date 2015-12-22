@@ -26,6 +26,7 @@ package nu.nethome.home.impl;
 
 import org.python.core.PyObject;
 import org.python.core.PyString;
+import org.python.core.PySyntaxError;
 import org.python.util.PythonInterpreter;
 
 import java.io.File;
@@ -51,28 +52,15 @@ public class Python {
     }
 
     public synchronized boolean callFunction(String functionCall) throws FileNotFoundException {
-        reinterpretIfNeeded();
-        String arguments = null;
-        String functionName;
-        int startIndex = functionCall.indexOf('(');
-        if (startIndex >= 0) {
-            functionName = functionCall.substring(0, startIndex);
-            int endIndex = functionCall.lastIndexOf(')');
-            if (endIndex > 0) {
-                arguments = functionCall.substring(startIndex + 1, endIndex);
-            }
-        } else {
-            functionName = functionCall;
-        }
-        PyObject func = interp.get(functionName);
-        if (func != null) {
-            if (arguments != null) {
-                func.__call__(new PyString(arguments));
-            } else {
-                func.__call__();
-            }
+        try {
+            reinterpretIfNeeded();
+            interp.exec(functionCall);
             return true;
-        } else {
+        } catch (PySyntaxError e) {
+            logger.warning("Failed executing python: " + e.toString().trim());
+            return false;
+        } catch (Exception e) {
+            logger.warning("Failed executing python: " + e.getMessage());
             return false;
         }
     }
