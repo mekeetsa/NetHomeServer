@@ -46,6 +46,9 @@ public class SunTimerTest {
         calendar.set(Calendar.HOUR_OF_DAY, 12);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.YEAR, 2015);
+        calendar.set(Calendar.MONTH, Calendar.DECEMBER);
+        calendar.set(Calendar.DATE, 24);
         doReturn(calendar).when(sunTimer).getTime();
         dateFormat = new SimpleDateFormat("HH:mm");
         doReturn(Calendar.TUESDAY).when(sunTimer).getToday();
@@ -218,5 +221,19 @@ public class SunTimerTest {
         assertThat(proxy.getAttributeValue("Variable B"), is("11:00"));
         assertThat(proxy.getAttributeValue("Variable C"), is("12:00"));
         assertThat(proxy.getAttributeValue("Timer Today"), is("10:00->11:00,12:00->13:00"));
+    }
+
+    @Test
+    public void calculatesSunRiseTimeForKnownData() throws Exception {
+        proxy.setAttributeValue("Location: Lat,Long", "59.225527,18.000718");
+        sunTimer.activate(server);
+        assertThat(proxy.getAttributeValue("Sunrise(R)"), is("08:44"));
+    }
+
+    @Test
+    public void calculatesSunSetTimeForKnownData() throws Exception {
+        proxy.setAttributeValue("Location: Lat,Long", "59.225527,18.000718");
+        sunTimer.activate(server);
+        assertThat(proxy.getAttributeValue("Sunset(S)"), is("14:51"));
     }
 }

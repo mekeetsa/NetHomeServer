@@ -1,5 +1,7 @@
 package nu.nethome.home.items.timer.SunTimer;
 
+import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
+import com.luckycatlabs.sunrisesunset.dto.Location;
 import nu.nethome.home.impl.CommandLineExecutor;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.system.HomeService;
@@ -38,14 +40,17 @@ public class SunTimer extends HomeItemAdapter {
             + "  <Action Name=\"Enable timer\" 	Method=\"enableTimer\" />"
             + "  <Action Name=\"Disable timer\" 	Method=\"disableTimer\" />"
             + "</HomeItem> ");
+    private static final Location DEFAULT_LOCATION = new Location("0.0", "0.0");
 
     private String[] weekDays = new String[7];
     private List<SwitchTime> switchTimesToday = Collections.emptyList();
     private String onCommand = "";
     private String offCommand = "";
+    private String latLong = "";
     private Map<String,String> variables = new HashMap<>();
     private CommandLineExecutor executor;
     private Timer timer;
+    private SunriseSunsetCalculator sunriseSunsetCalculator = new SunriseSunsetCalculator(DEFAULT_LOCATION, TimeZone.getDefault());
 
     public SunTimer() {
         for (int i = 0; i < weekDays.length; i++) {
@@ -62,7 +67,19 @@ public class SunTimer extends HomeItemAdapter {
     public void activate(HomeService server) {
         super.activate(server);
         executor = new CommandLineExecutor(server, true);
+        createSunCalculator();
         applySwitchTimesForToday();
+    }
+
+    private void createSunCalculator() {
+        String[] latAndLong = latLong.split(",");
+        Location location;
+        if (latAndLong.length == 2) {
+            location = new Location(latAndLong[0], latAndLong[1]);
+        } else {
+            location = DEFAULT_LOCATION;
+        }
+        sunriseSunsetCalculator = new SunriseSunsetCalculator(location, TimeZone.getDefault());
     }
 
     @Override
@@ -137,6 +154,14 @@ public class SunTimer extends HomeItemAdapter {
 
     int getToday() {
         return Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
+    }
+
+    public String getSunriseToday() {
+        return sunriseSunsetCalculator.getOfficialSunriseForDate(getTime());
+    }
+
+    public String getSunsetToday() {
+        return sunriseSunsetCalculator.getOfficialSunsetForDate(getTime());
     }
 
     public String getMondays() {
@@ -252,6 +277,14 @@ public class SunTimer extends HomeItemAdapter {
 
     Calendar getTime() {
         return Calendar.getInstance();
+    }
+
+    public String getLatLong() {
+        return latLong;
+    }
+
+    public void setLatLong(String latLong) {
+        this.latLong = latLong;
     }
 
     class SunTimerTask extends TimerTask {
