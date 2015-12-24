@@ -32,7 +32,7 @@ public interface HomeService {
 
     String MINUTE_EVENT_TYPE = "MinuteEvent";
     
-     boolean callFunction(String functionName);
+     boolean executePython(String pythonCode);
 
     /**
      * Creates a new instance of an Event

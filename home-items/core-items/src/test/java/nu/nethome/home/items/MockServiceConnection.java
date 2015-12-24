@@ -40,7 +40,7 @@ public class MockServiceConnection implements HomeService {
     public List<HomeItem> m_Items = new LinkedList<HomeItem>();
     
     @Override
-    public boolean callFunction(String functionName) {
+    public boolean executePython(String pythonCode) {
         return true;
     }
     

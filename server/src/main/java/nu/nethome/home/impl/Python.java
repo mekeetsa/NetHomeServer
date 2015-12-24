@@ -24,8 +24,7 @@
 
 package nu.nethome.home.impl;
 
-import org.python.core.PyObject;
-import org.python.core.PyString;
+import org.python.core.PyCode;
 import org.python.core.PySyntaxError;
 import org.python.util.PythonInterpreter;
 
@@ -39,7 +38,6 @@ import java.util.logging.Logger;
  * @author Jari Sarkka
  */
 public class Python {
-    private PyObject compiledCode = null;
     private String scriptSourceFileName = "/home/nethome/nethome.py";
     private long sourceFilelastModifiedDate = 0;
     private PythonInterpreter interp;
@@ -51,32 +49,26 @@ public class Python {
         interp.set("log", logger);
     }
 
-    public synchronized boolean callFunction(String functionCall) throws FileNotFoundException {
+    public synchronized boolean executePython(String pythonCode) throws FileNotFoundException {
         try {
             reinterpretIfNeeded();
-            interp.exec(functionCall);
+            interp.exec(pythonCode);
             return true;
         } catch (PySyntaxError e) {
             logger.warning("Failed executing python: " + e.toString().trim());
-            return false;
         } catch (Exception e) {
             logger.warning("Failed executing python: " + e.getMessage());
-            return false;
         }
+        return false;
     }
 
     private void reinterpretIfNeeded() throws FileNotFoundException {
         File file = new File(getScriptSourceFileName());
-
-        if (compiledCode == null || file.lastModified() > sourceFilelastModifiedDate) {
-            compiledCode = compileScript(getScriptSourceFileName());
-            interp.exec(compiledCode);
+        if (file.lastModified() > sourceFilelastModifiedDate) {
+            PyCode code = interp.compile(new InputStreamReader(new FileInputStream(file)));
+            interp.exec(code);
             sourceFilelastModifiedDate = file.lastModified();
         }
-    }
-
-    private PyObject compileScript(String fileName) throws FileNotFoundException {
-        return interp.compile(new InputStreamReader(new FileInputStream(fileName)));
     }
 
     public String getScriptSourceFileName() {

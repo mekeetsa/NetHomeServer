@@ -335,12 +335,12 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
         }
     }
 
-    public boolean callFunction(String functionName) {
+    public boolean executePython(String pythonCode) {
         try {
-            if (python.callFunction(functionName)) {
+            if (python.executePython(pythonCode)) {
                 return true;
             } else {
-                logger.warning("Python function not found:" + functionName);
+                logger.warning("Python function not found:" + pythonCode);
                 return false;
             }
         } catch (IOException ex) {

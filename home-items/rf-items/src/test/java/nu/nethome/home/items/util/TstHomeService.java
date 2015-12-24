@@ -114,7 +114,7 @@ public class TstHomeService implements HomeService, ServiceConfiguration {
     }
     
     @Override
-    public boolean callFunction(String functionName) {
+    public boolean executePython(String pythonCode) {
         return true;
     }
 }

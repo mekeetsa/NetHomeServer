@@ -105,7 +105,7 @@ public class CommandLineExecutor {
             return performRename(it);
         }
         if (command.equalsIgnoreCase("python")) {
-            return performPythonFunction(it);
+            return executePython(it);
         }
         // Ok, it must be one of the commands which require an instance, get the instance
         if (!it.hasNext()) {
@@ -235,7 +235,7 @@ public class CommandLineExecutor {
         return "ok";
     }
     
-    String performPythonFunction(Iterator<String> it) {
+    String executePython(Iterator<String> it) {
         if (!it.hasNext()) {
             return "error,16,Missing function name";
         }
@@ -246,7 +246,7 @@ public class CommandLineExecutor {
             commandLine = commandLine.concat(",").concat(it.next());
         }
 
-        if (server.callFunction(commandLine))
+        if (server.executePython(commandLine))
         {
             return "ok";
         }
