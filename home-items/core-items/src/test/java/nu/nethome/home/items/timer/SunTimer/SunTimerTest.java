@@ -236,4 +236,24 @@ public class SunTimerTest {
         sunTimer.activate(server);
         assertThat(proxy.getAttributeValue("Sunset(S)"), is("14:51"));
     }
+
+    @Test
+    public void SunriseVariableIsInsertedInTimeExpressions() throws Exception {
+        proxy.setAttributeValue("Location: Lat,Long", "59.225527,18.000718");
+        proxy.setAttributeValue("Tuesdays", "00:00->R");
+
+        sunTimer.activate(server);
+
+        assertThat(proxy.getAttributeValue("Timer Today"), is("00:00->08:44"));
+    }
+
+    @Test
+    public void SunsetVariableIsInsertedInTimeExpressions() throws Exception {
+        proxy.setAttributeValue("Location: Lat,Long", "59.225527,18.000718");
+        proxy.setAttributeValue("Tuesdays", "S->23:59");
+
+        sunTimer.activate(server);
+
+        assertThat(proxy.getAttributeValue("Timer Today"), is("14:51->23:59"));
+    }
 }

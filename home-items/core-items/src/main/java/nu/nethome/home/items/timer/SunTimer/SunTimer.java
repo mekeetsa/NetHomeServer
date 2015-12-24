@@ -97,6 +97,8 @@ public class SunTimer extends HomeItemAdapter {
 
     void applySwitchTimesForToday() {
         try {
+            variables.put("R", getSunriseToday());
+            variables.put("S", getSunsetToday());
             switchTimesToday = TimeExpressionParser.parseExpression(getTodaysTimeExpression(), variables);
         } catch (TimeExpressionParser.TimeExpressionException e) {
             switchTimesToday = Collections.emptyList();
