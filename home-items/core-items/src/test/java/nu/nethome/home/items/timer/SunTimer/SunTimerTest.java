@@ -276,4 +276,23 @@ public class SunTimerTest {
         sunTimer.receiveEvent(MINUTE_EVENT);
         assertThat(proxy.getAttributeValue("Timer Today"), is("11:00->12:00"));
     }
+
+    @Test
+    public void repeatPreviousCharacterTakesValueFromPrevious() throws Exception {
+        proxy.setAttributeValue("Tuesdays", "10:00->11:00");
+        proxy.setAttributeValue("Wednesdays", SunTimer.REPEAT_STRING);
+        proxy.setAttributeValue("Thursdays", SunTimer.REPEAT_STRING);
+        sunTimer.activate(server);
+        assertThat(proxy.getAttributeValue("Timer Today"), is("10:00->11:00"));
+    }
+
+    @Test
+    public void repeatPreviousCharacterTakesValueFromPreviousAndWrapsAroundWeek() throws Exception {
+        for (String weekday : weekdays) {
+            proxy.setAttributeValue(weekday, SunTimer.REPEAT_STRING);
+        }
+        proxy.setAttributeValue("Fridays", "10:00->11:00");
+        sunTimer.activate(server);
+        assertThat(proxy.getAttributeValue("Timer Today"), is("10:00->11:00"));
+    }
 }

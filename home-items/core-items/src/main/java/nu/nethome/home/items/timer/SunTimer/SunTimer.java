@@ -42,8 +42,10 @@ public class SunTimer extends HomeItemAdapter {
             + "  <Action Name=\"Disable timer\" 	Method=\"disableTimer\" />"
             + "</HomeItem> ");
     private static final Location DEFAULT_LOCATION = new Location("0.0", "0.0");
+    private static final int DAYS_IN_A_WEEK = 7;
+    public static final String REPEAT_STRING = "\"";
 
-    private String[] weekDays = new String[7];
+    private String[] weekDays = new String[DAYS_IN_A_WEEK];
     private List<SwitchTime> switchTimesToday = Collections.emptyList();
     private String onCommand = "";
     private String offCommand = "";
@@ -147,7 +149,14 @@ public class SunTimer extends HomeItemAdapter {
     }
 
     private String getTodaysTimeExpression() {
-        return weekDays[getDayToday() - 1];
+        int index = getDayToday() - 1;
+        for (int i = 0; i < DAYS_IN_A_WEEK; i++) {
+            if (!weekDays[index].equals(REPEAT_STRING)) {
+                return weekDays[index];
+            }
+            index = (index + (DAYS_IN_A_WEEK - 1)) % DAYS_IN_A_WEEK;
+        }
+        return "";
     }
 
     public String getTodayStartEnd() {
