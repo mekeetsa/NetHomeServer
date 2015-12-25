@@ -1,8 +1,10 @@
 package nu.nethome.home.items.timer.SunTimer;
 
 import com.sun.org.apache.xerces.internal.parsers.SAXParser;
+import nu.nethome.home.impl.InternalEvent;
 import nu.nethome.home.impl.LocalHomeItemProxy;
 import nu.nethome.home.system.HomeService;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -13,10 +15,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
@@ -34,6 +33,8 @@ public class SunTimerTest {
     private Timer timer;
     private Calendar calendar;
     private DateFormat dateFormat;
+    private TimeZone timeZone;
+    private static final InternalEvent MINUTE_EVENT = new InternalEvent(HomeService.MINUTE_EVENT_TYPE);
 
     @Before
     public void setUp() throws Exception {
@@ -51,7 +52,14 @@ public class SunTimerTest {
         calendar.set(Calendar.DATE, 24);
         doReturn(calendar).when(sunTimer).getTime();
         dateFormat = new SimpleDateFormat("HH:mm");
-        doReturn(Calendar.TUESDAY).when(sunTimer).getToday();
+        // doReturn(Calendar.TUESDAY).when(sunTimer).getDayToday();
+        timeZone = TimeZone.getDefault();
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"));
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        TimeZone.setDefault(timeZone);
     }
 
     @Test
@@ -77,14 +85,14 @@ public class SunTimerTest {
 
     @Test
     public void activationSetsCurrentDayString() throws Exception {
-        proxy.setAttributeValue("Tuesdays", "10:00-01:00->11:00,->13:00,15:00->");
+        proxy.setAttributeValue("Thursdays", "10:00-01:00->11:00,->13:00,15:00->");
         sunTimer.activate(server);
         assertThat(proxy.getAttributeValue("Timer Today"), is("09:00->11:00,->13:00,15:00->"));
     }
 
     @Test
     public void updateDayTimeExpressionDoesNotSetCurrentDayStringIfNotActivated() throws Exception {
-        proxy.setAttributeValue("Tuesdays", "10:00->11:00");
+        proxy.setAttributeValue("Thursdays", "10:00->11:00");
         assertThat(proxy.getAttributeValue("Timer Today"), is(""));
     }
 
@@ -92,23 +100,23 @@ public class SunTimerTest {
     public void updateDayTimeExpressionSetsCurrentDayStringIfActivated() throws Exception {
         sunTimer.activate(server);
         assertThat(proxy.getAttributeValue("Timer Today"), is(""));
-        proxy.setAttributeValue("Tuesdays", "11:00->12:00");
+        proxy.setAttributeValue("Thursdays", "11:00->12:00");
         assertThat(proxy.getAttributeValue("Timer Today"), is("11:00->12:00"));
     }
 
     @Test
     public void updateDayTimeExpressionWithUnchangedValueDoesNotUpdateCurrentDayString() throws Exception {
-        proxy.setAttributeValue("Tuesdays", "11:00->12:00");
+        proxy.setAttributeValue("Thursdays", "11:00->12:00");
         sunTimer.activate(server);
-        proxy.setAttributeValue("Tuesdays", "11:00->12:00");
-        proxy.setAttributeValue("Tuesdays", "11:00->12:00");
-        proxy.setAttributeValue("Tuesdays", "11:00->12:00");
+        proxy.setAttributeValue("Thursdays", "11:00->12:00");
+        proxy.setAttributeValue("Thursdays", "11:00->12:00");
+        proxy.setAttributeValue("Thursdays", "11:00->12:00");
         verify(sunTimer, times(1)).applySwitchTimesForToday();
     }
 
     @Test
     public void activationCreatesTimerTasks() throws Exception {
-        proxy.setAttributeValue("Tuesdays", "13:00->14:00");
+        proxy.setAttributeValue("Thursdays", "13:00->14:00");
 
         sunTimer.activate(server);
 
@@ -125,7 +133,7 @@ public class SunTimerTest {
     @Test
     public void activationDoesNotCreatesTimerTasksInThePast() throws Exception {
         // Note, time now is 12:00
-        proxy.setAttributeValue("Tuesdays", "10:00->11:00,11:30->12:30");
+        proxy.setAttributeValue("Thursdays", "10:00->11:00,11:30->12:30");
 
         sunTimer.activate(server);
 
@@ -136,7 +144,7 @@ public class SunTimerTest {
 
     @Test
     public void onTimerTaskExecutesOnMethod() throws Exception {
-        proxy.setAttributeValue("Tuesdays", "13:00->");
+        proxy.setAttributeValue("Thursdays", "13:00->");
         proxy.setAttributeValue("OnCommand", "call,foo,fie");
 
         sunTimer.activate(server);
@@ -149,7 +157,7 @@ public class SunTimerTest {
 
     @Test
     public void offTimerTaskExecutesOffMethod() throws Exception {
-        proxy.setAttributeValue("Tuesdays", "->13:00");
+        proxy.setAttributeValue("Thursdays", "->13:00");
         proxy.setAttributeValue("OffCommand", "call,foo,fie");
 
         sunTimer.activate(server);
@@ -163,7 +171,7 @@ public class SunTimerTest {
     @Test
     public void executesMostRecentOnCommandInThePastWhenActivated() throws Exception {
         // Note, time now is 12:00
-        proxy.setAttributeValue("Tuesdays", "10:00->11:00,11:30->12:30");
+        proxy.setAttributeValue("Thursdays", "10:00->11:00,11:30->12:30");
         proxy.setAttributeValue("OnCommand", "call,foo,fie");
 
         sunTimer.activate(server);
@@ -174,7 +182,7 @@ public class SunTimerTest {
     @Test
     public void executesMostRecentOffCommandInThePastWhenActivated() throws Exception {
         // Note, time now is 12:00
-        proxy.setAttributeValue("Tuesdays", "10:00->11:00,11:30->11:40");
+        proxy.setAttributeValue("Thursdays", "10:00->11:00,11:30->11:40");
         proxy.setAttributeValue("OffCommand", "call,foo,fie");
 
         sunTimer.activate(server);
@@ -195,7 +203,7 @@ public class SunTimerTest {
     public void updateDayTimeExpressionCreatesTimerTasksAndCancelsExistingTimer() throws Exception {
         sunTimer.activate(server);
 
-        proxy.setAttributeValue("Tuesdays", "13:00->14:00");
+        proxy.setAttributeValue("Thursdays", "13:00->14:00");
 
         verify(timer).cancel();
         ArgumentCaptor<TimerTask> taskCaptor = ArgumentCaptor.forClass(TimerTask.class);
@@ -210,7 +218,7 @@ public class SunTimerTest {
 
     @Test
     public void variableValuesAreInsertedInTimeExpressions() throws Exception {
-        proxy.setAttributeValue("Tuesdays", "A->B,C->13:00");
+        proxy.setAttributeValue("Thursdays", "A->B,C->13:00");
         proxy.setAttributeValue("Variable A", "10:00");
         proxy.setAttributeValue("Variable B", "11:00");
         proxy.setAttributeValue("Variable C", "12:00");
@@ -240,7 +248,7 @@ public class SunTimerTest {
     @Test
     public void SunriseVariableIsInsertedInTimeExpressions() throws Exception {
         proxy.setAttributeValue("Location: Lat,Long", "59.225527,18.000718");
-        proxy.setAttributeValue("Tuesdays", "00:00->R");
+        proxy.setAttributeValue("Thursdays", "00:00->R");
 
         sunTimer.activate(server);
 
@@ -250,10 +258,22 @@ public class SunTimerTest {
     @Test
     public void SunsetVariableIsInsertedInTimeExpressions() throws Exception {
         proxy.setAttributeValue("Location: Lat,Long", "59.225527,18.000718");
-        proxy.setAttributeValue("Tuesdays", "S->23:59");
+        proxy.setAttributeValue("Thursdays", "S->23:59");
 
         sunTimer.activate(server);
 
         assertThat(proxy.getAttributeValue("Timer Today"), is("14:51->23:59"));
+    }
+
+    @Test
+    public void switchTimesRecalculatedOnNewDay() throws Exception {
+        proxy.setAttributeValue("Thursdays", "10:00->11:00");
+        proxy.setAttributeValue("Fridays", "11:00->12:00");
+        sunTimer.activate(server);
+        sunTimer.receiveEvent(MINUTE_EVENT);
+        assertThat(proxy.getAttributeValue("Timer Today"), is("10:00->11:00"));
+        calendar.set(Calendar.DATE, 25);
+        sunTimer.receiveEvent(MINUTE_EVENT);
+        assertThat(proxy.getAttributeValue("Timer Today"), is("11:00->12:00"));
     }
 }

@@ -4,6 +4,7 @@ import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 import nu.nethome.home.impl.CommandLineExecutor;
 import nu.nethome.home.item.HomeItemAdapter;
+import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
 
 import java.util.*;
@@ -47,10 +48,11 @@ public class SunTimer extends HomeItemAdapter {
     private String onCommand = "";
     private String offCommand = "";
     private String latLong = "";
-    private Map<String,String> variables = new HashMap<>();
+    private Map<String, String> variables = new HashMap<>();
     private CommandLineExecutor executor;
     private Timer timer;
     private SunriseSunsetCalculator sunriseSunsetCalculator = new SunriseSunsetCalculator(DEFAULT_LOCATION, TimeZone.getDefault());
+    private int currentDay = 0;
 
     public SunTimer() {
         for (int i = 0; i < weekDays.length; i++) {
@@ -69,6 +71,7 @@ public class SunTimer extends HomeItemAdapter {
         executor = new CommandLineExecutor(server, true);
         createSunCalculator();
         applySwitchTimesForToday();
+        currentDay = getDayToday();
     }
 
     private void createSunCalculator() {
@@ -86,6 +89,20 @@ public class SunTimer extends HomeItemAdapter {
     public void stop() {
         stopCurrentTimer();
         super.stop();
+    }
+
+    @Override
+    public boolean receiveEvent(Event event) {
+        super.receiveEvent(event);
+        if (event.isType(HomeService.MINUTE_EVENT_TYPE)) {
+            int dayToday = getDayToday();
+            if (dayToday != this.currentDay) {
+                applySwitchTimesForToday();
+                this.currentDay = dayToday;
+            }
+            return true;
+        }
+        return false;
     }
 
     private void stopCurrentTimer() {
@@ -130,7 +147,7 @@ public class SunTimer extends HomeItemAdapter {
     }
 
     private String getTodaysTimeExpression() {
-        return weekDays[getToday() - 1];
+        return weekDays[getDayToday() - 1];
     }
 
     public String getTodayStartEnd() {
@@ -154,8 +171,8 @@ public class SunTimer extends HomeItemAdapter {
         return result;
     }
 
-    int getToday() {
-        return Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
+    int getDayToday() {
+        return getTime().get(Calendar.DAY_OF_WEEK);
     }
 
     public String getSunriseToday() {
@@ -286,7 +303,10 @@ public class SunTimer extends HomeItemAdapter {
     }
 
     public void setLatLong(String latLong) {
-        this.latLong = latLong;
+        if (!latLong.equals(this.latLong)) {
+            this.latLong = latLong;
+            createSunCalculator();
+        }
     }
 
     class SunTimerTask extends TimerTask {
