@@ -295,4 +295,71 @@ public class SunTimerTest {
         sunTimer.activate(server);
         assertThat(proxy.getAttributeValue("Timer Today"), is("10:00->11:00"));
     }
+
+    @Test
+    public void stateIsEnabledFromStart() throws Exception {
+        assertThat(proxy.getAttributeValue("State"), is("Enabled"));
+    }
+
+    @Test
+    public void stateIsOnIfSwitchedOn() throws Exception {
+        // Note, time now is 12:00
+        proxy.setAttributeValue("Thursdays", "11:30->12:30");
+
+        sunTimer.activate(server);
+
+        assertThat(proxy.getAttributeValue("State"), is("On"));
+    }
+
+    @Test
+    public void stateIsEnabledIfSwitchedOff() throws Exception {
+        // Note, time now is 12:00
+        proxy.setAttributeValue("Thursdays", "11:30->11:40");
+
+        sunTimer.activate(server);
+
+        assertThat(proxy.getAttributeValue("State"), is("Enabled"));
+    }
+
+    @Test
+    public void stateIsDisabledIfDisabled() throws Exception {
+        sunTimer.activate(server);
+        proxy.callAction("Disable timer");
+
+        assertThat(proxy.getAttributeValue("State"), is("Disabled"));
+    }
+
+    @Test
+    public void noActiveTimesIfDisabled() throws Exception {
+        proxy.setAttributeValue("Thursdays", "11:30->11:40");
+
+        sunTimer.activate(server);
+        assertThat(proxy.getAttributeValue("Timer Today"), is("11:30->11:40"));
+        proxy.callAction("Disable timer");
+
+        assertThat(proxy.getAttributeValue("Timer Today"), is(""));
+    }
+
+    @Test
+    public void noSwitchTimesRecalculatedOnNewDayIfDisabled() throws Exception {
+        proxy.setAttributeValue("Thursdays", "10:00->11:00");
+        proxy.setAttributeValue("Fridays", "11:00->12:00");
+        sunTimer.activate(server);
+        proxy.callAction("Disable timer");
+        sunTimer.receiveEvent(MINUTE_EVENT);
+        assertThat(proxy.getAttributeValue("Timer Today"), is(""));
+        calendar.set(Calendar.DATE, 25);
+        sunTimer.receiveEvent(MINUTE_EVENT);
+        assertThat(proxy.getAttributeValue("Timer Today"), is(""));
+    }
+
+    @Test
+    public void noSwitchTimesRecalculatedOnActivationIfDisabled() throws Exception {
+        proxy.setAttributeValue("Thursdays", "10:00->11:00");
+
+        proxy.setAttributeValue("State", "Disabled", false);
+        sunTimer.activate(server);
+
+        assertThat(proxy.getAttributeValue("Timer Today"), is(""));
+    }
 }

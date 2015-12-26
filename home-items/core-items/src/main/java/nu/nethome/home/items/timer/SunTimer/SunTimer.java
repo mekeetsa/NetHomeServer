@@ -55,6 +55,8 @@ public class SunTimer extends HomeItemAdapter {
     private Timer timer;
     private SunriseSunsetCalculator sunriseSunsetCalculator = new SunriseSunsetCalculator(DEFAULT_LOCATION, TimeZone.getDefault());
     private int currentDay = 0;
+    private boolean isEnabled = true;
+    private boolean isOn = false;
 
     public SunTimer() {
         for (int i = 0; i < weekDays.length; i++) {
@@ -115,16 +117,18 @@ public class SunTimer extends HomeItemAdapter {
     }
 
     void applySwitchTimesForToday() {
-        try {
-            variables.put("R", getSunriseToday());
-            variables.put("S", getSunsetToday());
-            switchTimesToday = TimeExpressionParser.parseExpression(getTodaysTimeExpression(), variables);
-        } catch (TimeExpressionParser.TimeExpressionException e) {
-            switchTimesToday = Collections.emptyList();
+        if (isEnabled) {
+            try {
+                variables.put("R", getSunriseToday());
+                variables.put("S", getSunsetToday());
+                switchTimesToday = TimeExpressionParser.parseExpression(getTodaysTimeExpression(), variables);
+            } catch (TimeExpressionParser.TimeExpressionException e) {
+                switchTimesToday = Collections.emptyList();
+            }
+            stopCurrentTimer();
+            timer = createTimer();
+            createTimerTasksForSwitchTimes();
         }
-        stopCurrentTimer();
-        timer = createTimer();
-        createTimerTasksForSwitchTimes();
     }
 
     private void createTimerTasksForSwitchTimes() {
@@ -144,8 +148,13 @@ public class SunTimer extends HomeItemAdapter {
             }
         }
         if (mostRecentSwitchTime != null) {
-            executor.executeCommandLine(mostRecentSwitchTime.isOn() ? onCommand : offCommand);
+            executeOnOffCommand(mostRecentSwitchTime.isOn());
         }
+    }
+
+    private void executeOnOffCommand(boolean shouldBeOn) {
+        executor.executeCommandLine(shouldBeOn ? onCommand : offCommand);
+        isOn = shouldBeOn;
     }
 
     private String getTodaysTimeExpression() {
@@ -156,6 +165,13 @@ public class SunTimer extends HomeItemAdapter {
             }
             index = (index + (DAYS_IN_A_WEEK - 1)) % DAYS_IN_A_WEEK;
         }
+        return "";
+    }
+
+    public String disableTimer() {
+        isEnabled = false;
+        stopCurrentTimer();
+        switchTimesToday = Collections.emptyList();
         return "";
     }
 
@@ -318,6 +334,13 @@ public class SunTimer extends HomeItemAdapter {
         }
     }
 
+    public String getState() {
+        return isEnabled ? (isOn ? "On" : "Enabled") : "Disabled";
+    }
+
+    public void setState(String state) {
+        isEnabled = !"Disabled".equalsIgnoreCase(state);
+    }
     class SunTimerTask extends TimerTask {
 
         private final boolean on;
@@ -328,7 +351,7 @@ public class SunTimer extends HomeItemAdapter {
 
         @Override
         public void run() {
-            executor.executeCommandLine(on ? onCommand : offCommand);
+            executeOnOffCommand(on);
         }
     }
 }
