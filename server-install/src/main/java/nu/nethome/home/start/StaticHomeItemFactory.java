@@ -38,9 +38,9 @@ import java.util.logging.Logger;
  */
 public class StaticHomeItemFactory implements HomeItemFactory {
 
-    private AbstractMap<String, HomeItemClassInfo> classNameMap = new TreeMap<String, HomeItemClassInfo>();
-    private AbstractMap<String, String> renamedClassMap = new TreeMap<String, String>();
-    private List<HomeItemInfo> classInfo = new ArrayList<HomeItemInfo>();
+    private AbstractMap<String, HomeItemClassInfo> classNameMap = new TreeMap<>();
+    private AbstractMap<String, String> renamedClassMap = new TreeMap<>();
+    private List<HomeItemInfo> classInfo = new ArrayList<>();
     private static Logger logger = Logger.getLogger(StaticHomeItemFactory.class.getName());
 
     /**
@@ -51,7 +51,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
     }
 
     public HomeItem createInstance(String className) {
-        HomeItem createdHomeItem = null;
+        HomeItem createdHomeItem;
         try {
             // Lookup real class name
             if (classNameMap.containsKey(className)) {
@@ -102,6 +102,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("AudioProtocolParser", nu.nethome.home.items.audio.AudioProtocolParser.class),
             new HomeItemClassInfo("AudioProtocolTransmitter", nu.nethome.home.items.audio.AudioProtocolTransmitter.class),
             new HomeItemClassInfo("DayLiteTimer", nu.nethome.home.items.timer.DayLiteTimer.class),
+            new HomeItemClassInfo("SunTimer", nu.nethome.home.items.timer.SunTimer.SunTimer.class),
             new HomeItemClassInfo("LampRepeater", nu.nethome.home.items.timer.LampRepeater.class),
             new HomeItemClassInfo("GateKeeper", nu.nethome.home.items.net.GateKeeper.class),
             new HomeItemClassInfo("MBMThermometer", nu.nethome.home.items.misc.MBMThermometer.class),
@@ -218,7 +219,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
     private void addKnownClasses() {
         for (HomeItemClassInfo i : CLASSES_INFO) {
             classNameMap.put(i.getClassName(), i);
-            classInfo.add(new nu.nethome.home.impl.HomeItemClassInfo((Class<? extends HomeItem>) i.getItemClass()));
+            classInfo.add(new nu.nethome.home.impl.HomeItemClassInfo(i.getItemClass()));
         }
         for (int i = 0; i < RENAMED_CLASSES.length; i += 2) {
             renamedClassMap.put(RENAMED_CLASSES[i], RENAMED_CLASSES[i + 1]);
@@ -226,7 +227,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
     }
 
     public List<String> listClasses(boolean includeHidden) {
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         for (HomeItemClassInfo info : CLASSES_INFO) {
             if (info.isPublic() || includeHidden) {
                 result.add(info.getClassName());

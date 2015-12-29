@@ -4,8 +4,10 @@ import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 import nu.nethome.home.impl.CommandLineExecutor;
 import nu.nethome.home.item.HomeItemAdapter;
+import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
+import nu.nethome.util.plugin.Plugin;
 
 import java.util.*;
 
@@ -17,18 +19,18 @@ import static nu.nethome.home.items.timer.SunTimer.TimeExpressionParser.TIME_PER
  *
  */
 @SuppressWarnings("UnusedDeclaration")
+@Plugin
+@HomeItemType("Timers")
 public class SunTimer extends HomeItemAdapter {
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"SunTimer\" Category=\"Timers\" >"
-            + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Init=\"setState\" Default=\"true\" />"
+            + "  <Attribute Name=\"State\" Type=\"StringList\" Get=\"getState\" Init=\"setState\" Default=\"true\">"
+            + "   <item>Enabled</item> <item>Disabled</item></Attribute>"
             + "  <Attribute Name=\"Location: Lat,Long\" Type=\"String\" Get=\"getLatLong\" 	Set=\"setLatLong\" />"
             + "  <Attribute Name=\"Timer Today\" Type=\"String\" Get=\"getTodayStartEnd\" />"
             + "  <Attribute Name=\"Sunrise(R)\" Type=\"String\" Get=\"getSunriseToday\" />"
             + "  <Attribute Name=\"Sunset(S)\" Type=\"String\" Get=\"getSunsetToday\" />"
-            + "  <Attribute Name=\"Variable A\" Type=\"String\" Get=\"getVariableA\" Set=\"setVariableA\" />"
-            + "  <Attribute Name=\"Variable B\" Type=\"String\" Get=\"getVariableB\" Set=\"setVariableB\" />"
-            + "  <Attribute Name=\"Variable C\" Type=\"String\" Get=\"getVariableC\" Set=\"setVariableC\" />"
             + "  <Attribute Name=\"Mondays\" Type=\"String\" Get=\"getMondays\" 	Set=\"setMondays\" />"
             + "  <Attribute Name=\"Tuesdays\" Type=\"String\" Get=\"getTuesdays\" 	Set=\"setTuesdays\" />"
             + "  <Attribute Name=\"Wednesdays\" Type=\"String\" Get=\"getWednesdays\" 	Set=\"setWednesdays\" />"
@@ -36,6 +38,9 @@ public class SunTimer extends HomeItemAdapter {
             + "  <Attribute Name=\"Fridays\" Type=\"String\" Get=\"getFridays\" 	Set=\"setFridays\" />"
             + "  <Attribute Name=\"Saturdays\" Type=\"String\" Get=\"getSaturdays\" 	Set=\"setSaturdays\" />"
             + "  <Attribute Name=\"Sundays\" Type=\"String\" Get=\"getSundays\" 	Set=\"setSundays\" />"
+            + "  <Attribute Name=\"Variable A\" Type=\"String\" Get=\"getVariableA\" Set=\"setVariableA\" />"
+            + "  <Attribute Name=\"Variable B\" Type=\"String\" Get=\"getVariableB\" Set=\"setVariableB\" />"
+            + "  <Attribute Name=\"Variable C\" Type=\"String\" Get=\"getVariableC\" Set=\"setVariableC\" />"
             + "  <Attribute Name=\"OnCommand\" Type=\"Command\" Get=\"getOnCommand\" 	Set=\"setOnCommand\" />"
             + "  <Attribute Name=\"OffCommand\" Type=\"Command\" Get=\"getOffCommand\" 	Set=\"setOffCommand\" />"
             + "  <Action Name=\"Enable timer\" 	Method=\"enableTimer\" />"
@@ -49,7 +54,7 @@ public class SunTimer extends HomeItemAdapter {
     private List<SwitchTime> switchTimesToday = Collections.emptyList();
     private String onCommand = "";
     private String offCommand = "";
-    private String latLong = "";
+    private String latLong = "59.225527,18.000718";
     private Map<String, String> variables = new HashMap<>();
     private CommandLineExecutor executor;
     private Timer timer;
@@ -60,8 +65,9 @@ public class SunTimer extends HomeItemAdapter {
 
     public SunTimer() {
         for (int i = 0; i < weekDays.length; i++) {
-            weekDays[i] = "";
+            weekDays[i] = "\"";
         }
+        setMondays("07:00->R,S->22:00");
     }
 
     @Override
@@ -172,6 +178,12 @@ public class SunTimer extends HomeItemAdapter {
         isEnabled = false;
         stopCurrentTimer();
         switchTimesToday = Collections.emptyList();
+        return "";
+    }
+
+    public String enableTimer() {
+        isEnabled = true;
+        applySwitchTimesForToday();
         return "";
     }
 

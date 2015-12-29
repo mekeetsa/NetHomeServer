@@ -40,6 +40,9 @@ public class SunTimerTest {
     public void setUp() throws Exception {
         sunTimer = spy(new SunTimer());
         proxy = new LocalHomeItemProxy(sunTimer);
+        for (String weekday : weekdays) {
+            proxy.setAttributeValue(weekday, "");
+        }
         server = mock(HomeService.class);
         timer = mock(Timer.class);
         doReturn(timer).when(sunTimer).createTimer();
@@ -354,12 +357,14 @@ public class SunTimerTest {
     }
 
     @Test
-    public void noSwitchTimesRecalculatedOnActivationIfDisabled() throws Exception {
+    public void switchTimesRecalculatedWhenEnabled() throws Exception {
         proxy.setAttributeValue("Thursdays", "10:00->11:00");
 
         proxy.setAttributeValue("State", "Disabled", false);
         sunTimer.activate(server);
-
         assertThat(proxy.getAttributeValue("Timer Today"), is(""));
+        proxy.callAction("Enable timer");
+
+        assertThat(proxy.getAttributeValue("Timer Today"), is("10:00->11:00"));
     }
 }

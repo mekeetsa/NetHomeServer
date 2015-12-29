@@ -29,7 +29,7 @@ import nu.nethome.home.item.HomeItem;
 public class HomeItemClassInfo {
 
     private String className;
-    private Class<?> clazz;
+    private Class<? extends HomeItem> clazz;
     private boolean isPublic;
 
     public String getClassName() {
@@ -40,23 +40,23 @@ public class HomeItemClassInfo {
         return isPublic;
     }
 
-    public HomeItemClassInfo(String className, Class<?> clazz) {
+    public HomeItemClassInfo(String className, Class<? extends HomeItem> clazz) {
         this.className = className;
         this.clazz = clazz;
         isPublic = true;
     }
 
-    public HomeItemClassInfo(String className, Class<?> clazz, boolean aPublic) {
+    public HomeItemClassInfo(String className, Class<? extends HomeItem> clazz, boolean aPublic) {
         this.className = className;
         this.clazz = clazz;
         isPublic = aPublic;
     }
 
     public HomeItem createHomeItem() throws IllegalAccessException, InstantiationException {
-        return (HomeItem) clazz.newInstance();
+        return clazz.newInstance();
     }
 
-    public Class<?> getItemClass() {
+    public Class<? extends HomeItem> getItemClass() {
         return clazz;
     }
 
