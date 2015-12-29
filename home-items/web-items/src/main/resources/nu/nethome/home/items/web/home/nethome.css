@@ -54,11 +54,11 @@
     position: relative;
     width: auto;
     background: url(menuback.png) top left repeat-x;
-    padding: 0em 1em;
+    padding: 0 1em;
     margin-bottom: 1em;
     height: 2.36em;
     overflow: hidden;
-    top:0px;
+    top:0;
 }
 
 .menubar.edit
@@ -135,8 +135,8 @@
     background: url(menu_right.png) top right no-repeat;
     width:8px;
     height:2.36em;
-    top:0px;
-    right:0px;
+    top:0;
+    right:0;
 }
 
 .menubarRight.edit {
@@ -148,8 +148,8 @@
     background: url(menu_left.png) top left no-repeat;
     width:8px;
     height:2.36em;
-    top:0px;
-    left:0px;
+    top:0;
+    left:0;
 }
 
 .menubarLeft.edit {
@@ -280,6 +280,10 @@ div.itemcolumn ol,div.itemcolumn ul{
 div.itemcolumn ul.sidenav{
 	margin:0;
 	padding:0;
+}
+
+.itemcolumn.related {
+    width:350px;
 }
 
 div.itemcolumn.menu ul {

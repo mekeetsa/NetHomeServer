@@ -185,8 +185,8 @@ public class EditItemPage extends PortletPage {
         }
 
         // Print any general errors
+        boolean bSet = false;
         for (HomeItemError homeItemError : homeItemErrors) {
-            boolean bSet = false;
             if (homeItemError.type == HomeItemError.ErrorType.general) {
                 if (!bSet) {
                     p.println("<div class=\"homeitem-errors\">");
@@ -222,11 +222,11 @@ public class EditItemPage extends PortletPage {
 
     private void printRelatedItems(PrintWriter p, EditItemArguments pageArguments, HomeItemProxy item) throws ServletException, IOException {
 
-        this.printColumnStart(p, false);
+        this.printRelatedItemColumnStart(p);
 
-        List<DirectoryEntry> relatedItems = server.listInstances(false ? "" : "@related=" + item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE));
-        List<String> referring = new ArrayList<String>();
-        List<String> containing = new ArrayList<String>();
+        List<DirectoryEntry> relatedItems = server.listInstances("@related=" + item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE));
+        List<String> referring = new ArrayList<>();
+        List<String> containing = new ArrayList<>();
 
         for (DirectoryEntry relatedItem : relatedItems) {
             if (relatedItem.getCategory().equals("Infrastructure")) {
@@ -237,15 +237,20 @@ public class EditItemPage extends PortletPage {
         }
 
         if (referring.size() > 0) {
-            this.printRoom(p, pageArguments.getPage(), pageArguments.getName(), "Related Items", null, null, referring.toArray(new String[referring.size()]), server);
+            this.printRoom(p, pageArguments.getPage(), pageArguments.getName(), "Related Items", null, null, referring.toArray(new String[referring.size()]), server, false);
         }
 
         if (containing.size() > 0) {
-            this.printRoom(p, pageArguments.getPage(), pageArguments.getName(), "Located in", null, null, containing.toArray(new String[containing.size()]), server);
+            this.printRoom(p, pageArguments.getPage(), pageArguments.getName(), "Located in", null, null, containing.toArray(new String[containing.size()]), server, false);
         }
 
         this.printColumnEnd(p);
     }
+
+    protected void printRelatedItemColumnStart(PrintWriter p) {
+        p.println("<div class=\"itemcolumn related\">");
+    }
+
 
     private void configureServletResponse(HttpServletResponse res) {
         res.setStatus(HttpServletResponse.SC_OK);
@@ -253,7 +258,7 @@ public class EditItemPage extends PortletPage {
     }
 
     private void performActionsAndRedirect(HttpServletRequest req, PrintWriter p, EditItemArguments arguments, HomeItemProxy item) throws ServletException, IOException {
-        List<HomeItemError> homeItemErrors = new ArrayList<HomeItemError>();
+        List<HomeItemError> homeItemErrors = new ArrayList<>();
         if (arguments.isAction(UPDATE_ATTRIBUTES_ACTION)) {
             processAttributeUpdateAction(req, p, arguments, item, homeItemErrors);
         } else if (arguments.isAction(DELETE_RENAME_ACTION)) {
@@ -618,9 +623,7 @@ public class EditItemPage extends PortletPage {
                         roomItem.setAttributeValue("Items", items);
                     }
                 }
-            } catch (IllegalValueException e) {
-                homeItemErrors.add(new HomeItemError(e.getMessage()));
-            } catch (ExecutionFailure e) {
+            } catch (IllegalValueException | ExecutionFailure e) {
                 homeItemErrors.add(new HomeItemError(e.getMessage()));
             }
         }

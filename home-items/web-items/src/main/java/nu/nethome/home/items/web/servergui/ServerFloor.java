@@ -65,7 +65,7 @@ public class ServerFloor extends PortletPage {
 
         PrintWriter p = res.getWriter();
         List<DirectoryEntry> directoryEntries = server.listInstances("");
-        ArrayList<String> categoryItems = new ArrayList<String>();
+        ArrayList<String> categoryItems = new ArrayList<>();
 
         // Loop through all instances to find the rooms and categorize them after column
         for (DirectoryEntry directoryEntry : directoryEntries) {
@@ -81,7 +81,7 @@ public class ServerFloor extends PortletPage {
         printColumnStart(p, true);
 
         p.println("<table>");
-        String isSelected = "";
+        String isSelected;
         for (String category : HomeItemModel.HOME_ITEM_CATEGORIES) {
             isSelected = category.equals(selectedCategory) ? " selected" : "";
             p.println("<tr class=\"catlink" + isSelected + "\">");
@@ -98,7 +98,7 @@ public class ServerFloor extends PortletPage {
         printColumnStart(p, false);
 
         if (selectedCategory != null) {
-            printRoom(p, "server", arguments.getSubpage(), selectedCategory, null, null, categoryItems.toArray(new String[categoryItems.size()]), server);
+            printRoom(p, "server", arguments.getSubpage(), selectedCategory, null, null, categoryItems.toArray(new String[categoryItems.size()]), server, true);
         }
 
         // End right column
