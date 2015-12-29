@@ -88,7 +88,7 @@ public class JeeLink extends HomeItemAdapter implements HomeItem, ProtocolDecode
     private long sendCount = 0;
     private float modulationFrequency = 0;
     private EncoderFactory factory;
-    private String portName = "COM2";
+    private String portName = "Select Serial Port";
     private String lastErrorMessage = "Not Connected";
 
 

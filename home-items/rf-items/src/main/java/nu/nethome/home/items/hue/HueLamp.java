@@ -19,6 +19,7 @@
 
 package nu.nethome.home.items.hue;
 
+import nu.nethome.home.item.AutoCreationInfo;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
@@ -27,8 +28,26 @@ import nu.nethome.util.plugin.Plugin;
 
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
-@HomeItemType(value = "Lamps", creationEvents = "Hue_Message")
+@HomeItemType(value = "Lamps", creationInfo = HueLamp.HueCreationInfo.class)
 public class HueLamp extends HomeItemAdapter implements HomeItem {
+
+    public static class HueCreationInfo implements AutoCreationInfo {
+        static final String[] CREATION_EVENTS = {"Hue_Message"};
+        @Override
+        public String[] getCreationEvents() {
+            return CREATION_EVENTS;
+        }
+
+        @Override
+        public boolean canBeCreatedBy(Event e) {
+            return e.isType("Hue_Message");
+        }
+
+        @Override
+        public String getCreationIdentification(Event e) {
+            return String.format("Philips Hue lamp %s: \"%s\"",e.getAttribute("Hue.Lamp"), e.getAttribute("Hue.Name"));
+        }
+    }
 
     public static final int DIM_STEP = 20;
     private String lampId = "";
