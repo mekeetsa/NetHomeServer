@@ -22,10 +22,10 @@ package nu.nethome.home.items.web.servergui.attributes;
 import nu.nethome.home.item.Attribute;
 import nu.nethome.home.item.HomeItemModel;
 import nu.nethome.home.item.HomeItemProxy;
+import nu.nethome.home.items.web.servergui.CategorizedItemList;
 import nu.nethome.home.items.web.servergui.HTMLEncode;
 import nu.nethome.home.items.web.servergui.HomeGUI;
 import nu.nethome.home.items.web.servergui.PortletPage;
-import nu.nethome.home.system.DirectoryEntry;
 import nu.nethome.home.system.HomeService;
 
 import java.io.PrintWriter;
@@ -37,28 +37,6 @@ import java.util.*;
  * @author Stefan
  */
 public class ItemAttributePrinter extends StringAttributePrinter {
-
-    private class CategorizedItemList {
-        private String category;
-        private List<HomeItemProxy> items;
-
-        private CategorizedItemList(String category) {
-            this.category = category;
-            items = new ArrayList<HomeItemProxy>();
-        }
-
-        public void addItem(HomeItemProxy item) {
-            items.add(item);
-        }
-
-        public String getCategory() {
-            return category;
-        }
-
-        public List<HomeItemProxy> getItems() {
-            return Collections.unmodifiableList(items);
-        }
-    }
 
     protected HomeService server;
 
@@ -103,10 +81,10 @@ public class ItemAttributePrinter extends StringAttributePrinter {
     }
 
     protected void printItemSelectionList(PrintWriter p, String identity, Attribute attribute) {
-        Set<String> refs = new HashSet<String>(Arrays.asList(attribute.getValue().split(",")));
+        Set<String> refs = new HashSet<>(Arrays.asList(attribute.getValue().split(",")));
         p.println("    <div class=\"iteminputrows\">");
         p.println("     <ul>");
-        Map<String, CategorizedItemList> categories = getCategorizedItems();
+        Map<String, CategorizedItemList> categories = CategorizedItemList.categorizeItems(server);
         for (String category : HomeItemModel.HOME_ITEM_CATEGORIES) {
             if (categories.containsKey(category)) {
                 CategorizedItemList itemsInCategory = categories.get(category);
@@ -121,21 +99,6 @@ public class ItemAttributePrinter extends StringAttributePrinter {
         }
         p.println("     </ul>");
         p.println("    </div>");
-    }
-
-    private Map<String, CategorizedItemList> getCategorizedItems() {
-        Map<String, CategorizedItemList> itemCategories = new HashMap<String, CategorizedItemList>();
-        for (DirectoryEntry directoryEntry : this.server.listInstances("")) {
-            HomeItemProxy item = server.openInstance(directoryEntry.getInstanceName());
-            HomeItemModel model = item.getModel();
-            CategorizedItemList category = itemCategories.get(model.getCategory());
-            if (category == null) {
-                category = new CategorizedItemList(model.getCategory());
-                itemCategories.put(model.getCategory(), category);
-            }
-            category.addItem(item);
-        }
-        return itemCategories;
     }
 
     protected String getListItemClass() {
