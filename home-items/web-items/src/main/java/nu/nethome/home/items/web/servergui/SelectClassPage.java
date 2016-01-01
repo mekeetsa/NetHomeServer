@@ -29,8 +29,10 @@
 package nu.nethome.home.items.web.servergui;
 
 import nu.nethome.home.item.HomeItemInfo;
+import nu.nethome.home.item.HomeItemModel;
 import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
+import org.python.google.common.collect.Lists;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -86,7 +88,7 @@ public class SelectClassPage extends PortletPage {
         if (arguments.hasEvent()) {
             ItemEvent itemEvent = creationEventCache.getItemEvent(arguments.getEventId());
             printClassesListPanel(p, arguments, creationEventCache.getItemsCreatableByEvent(itemEvent.getEvent()), "Create new item",
-                    "Select Item type from this list. The Item will be initialized to handle the selected event");
+                    "Select Item type from this list. The Item will be initialized to handle the selected device");
         } else {
             printClassesListPanel(p, arguments, server.listClasses(), "Create new Item", "Select Item type from this list");
             p.println("<br>");
@@ -98,10 +100,10 @@ public class SelectClassPage extends PortletPage {
     private void printEventsPanel(PrintWriter p, EditItemArguments arguments) {
         HomeUrlBuilder createLink = new HomeUrlBuilder(localURL);
         createLink.preserveReturnPage(arguments).withPage(pageName).preserveRoom(arguments);
-        p.printf ("<script>homeManager.classUrl=%s;</script>", createLink.toQuotedString()) ;
+        p.printf("<script>homeManager.classUrl=%s;</script>", createLink.toQuotedString());
         p.println("<div class=\"panel thin\">");
-        p.println(" <h1>Received Events</h1>");
-        p.println(" <h2>Select an event to create an Item based on that event.</h2>");
+        p.println(" <h1>Detected Devices</h1>");
+        p.println(" <h2>Create Items based on detected devices</h2>");
         p.println(" <div class=\"panellist\">");
         p.println("<div id=\"eventsTableHolder\"></div>");
         printListPanelEnd(p);
@@ -161,20 +163,52 @@ public class SelectClassPage extends PortletPage {
 
     private void printClassesListPanel(PrintWriter p, EditItemArguments arguments, List<HomeItemInfo> itemClasses, String h1, String h2) {
         p.println("<div class=\"panel thin\">");
-        p.printf (" <h1>%s</h1>", h1);
+        p.printf(" <h1>%s</h1>", h1);
         if (h2 != null) {
-            p.printf (" <h2>%s</h2>", h2);
+            p.printf(" <h2>%s</h2>", h2);
         }
-        p.println(" <div class=\"panellist\">");
+        p.println(" <div class=\"creationlist\">");
         p.println(" <table>");
-        p.println("  <tr><th></th><th>Item Type</th><th>Category</th><th>Create</th></tr>");
-        for (HomeItemInfo itemInfo : itemClasses) {
-            printClassRow(p, itemInfo, arguments);
+        Map<String, List<HomeItemInfo>> categorizedInfo = categorizeItemInfo(itemClasses);
+        for (String category : HomeItemModel.HOME_ITEM_CATEGORIES) {
+            List<HomeItemInfo> itemInfos = categorizedInfo.get(category);
+            if (itemInfos != null) {
+                printCategoryHeaderRow(p, category);
+                for (HomeItemInfo itemInfo : itemInfos) {
+                    printClassRow(p, itemInfo, arguments);
+                }
+            }
         }
         p.println(" </table>");
         p.println(" </div>");
         p.println(" <h5></h5>");
         p.println("</div>");
+    }
+
+    private void printCategoryHeaderRow(PrintWriter p, String category) {
+        p.println("  <tr>");
+        p.printf("   <td>&nbsp;</td>\n");
+        p.printf("   <td>&nbsp;</td>\n");
+        p.printf("   <td>&nbsp;</td>\n");
+        p.println("  </tr>");
+        p.println("  <tr class=\"categoryheader\">");
+        p.printf("   <td><img src=\"web/home/%s\" />%s</td>\n", HomeGUI.itemIcon(category, false), category);
+        p.printf("   <td>&nbsp;</td>\n");
+        p.printf("   <td>&nbsp;</td>\n");
+        p.println("  </tr>");
+    }
+
+    private Map<String, List<HomeItemInfo>> categorizeItemInfo(List<HomeItemInfo> itemClasses) {
+        Map<String, List<HomeItemInfo>> categorizedInfo = new HashMap<>();
+        for (HomeItemInfo itemClass : itemClasses) {
+            List<HomeItemInfo> currentList = categorizedInfo.get(itemClass.getCategory());
+            if (currentList == null) {
+                currentList = Lists.newArrayList();
+                categorizedInfo.put(itemClass.getCategory(), currentList);
+            }
+            currentList.add(itemClass);
+        }
+        return categorizedInfo;
     }
 
     private boolean itemCandBeCreatedFromEvent(ItemEvent itemEvent, HomeItemInfo itemInfo) {
@@ -189,10 +223,10 @@ public class SelectClassPage extends PortletPage {
             createLink.addParameter("event", Long.toString(arguments.getEventId()));
         }
         p.println("  <tr>");
-        p.printf("   <td><img src=\"web/home/%s\" /></td>\n", HomeGUI.itemIcon(event.getCategory(), true)) ;
-        p.printf ("   <td><a href=\"http://wiki.nethome.nu/doku.php?id=%s\" target=\"new_window\" >%s</a></td>\n", event.getClassName(), event.getClassName());
-        p.printf ("   <td>%s</td>\n", event.getCategory()) ;
-        p.printf ("   <td><a href=%s>Create Item</a></td>\n", createLink.toQuotedString()) ;
+        p.printf("   <td>%s</td>\n", event.getClassName());
+        p.printf("   <td><a href=%s>Create Item</a></td>\n",createLink.toQuotedString());
+        p.printf("   <td><a href=\"http://wiki.nethome.nu/doku.php?id=%s\" target=\"new_window\" >View online documentation</a></td>\n", event.getClassName());
+//        p.printf("   <td><img src=\"web/home/%s\" /></td>\n", HomeGUI.itemIcon(event.getCategory(), true));
         p.println("  </tr>");
     }
 

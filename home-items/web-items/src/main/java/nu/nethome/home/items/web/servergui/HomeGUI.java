@@ -653,7 +653,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
 
     private void printEventsTable(PrintWriter p) {
         p.println(" <table>");
-        p.println("  <tr><th></th><th>Identity</th><th>Time since</th><th>Item Exists</th><th>Create</th></tr>");
+        p.println("  <tr><th></th><th>Identity</th><th>Create</th><th>Time since</th><th>Item Exists</th></tr>");
         for (ItemEvent itemEvent : creationEvents.getItemEvents()) {
             printEventRow(p, itemEvent);
         }
@@ -681,9 +681,9 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         } else  {
             p.printf ("   <td title=\"%s\">%s...</td>\n", event.getContent(), event.getContent().substring(0, MAX_EVENT_ID_LENGTH));
         }
+        p.printf ("   <td><a onclick=\"location.href=homeManager.classUrl + '&event=%d';return false;\" href=\"%s?page=edit&event=%d\">Create Item</a></td>\n", event.getId(), localURL, event.getId());
         p.printf ("   <td>%s</td>\n", ageString);
         p.printf ("   <td>%s</td>\n", (event.getWasHandled() ? "Existing" : "New"));
-        p.printf ("   <td><a onclick=\"location.href=homeManager.classUrl + '&event=%d';return false;\" href=\"%s?page=edit&event=%d\">Select Event</a></td>\n", event.getId(), localURL, event.getId());
         p.println("  </tr>");
     }
 }

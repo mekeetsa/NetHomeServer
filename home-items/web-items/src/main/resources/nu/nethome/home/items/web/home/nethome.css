@@ -736,7 +736,7 @@ textarea.iteminput {
 	vertical-align: top;
 }
 
-.logrows, .panel .panellist {
+.logrows, .panel .panellist, .creationlist {
     background: none repeat scroll 0 0 white;
     border-color: #C9C9CA #EDEDEF #EDEDEF #C9C9CA;
     color: #000000;
@@ -748,7 +748,7 @@ textarea.iteminput {
     font-size: 130%;
 }
 
-.logrows.coders, .panel .panellist {
+.logrows.coders, .panel .panellist, .creationlist {
     height: 200px;
 }
 
@@ -756,6 +756,28 @@ textarea.iteminput {
     background-color: #F0F0F0;
     font-weight: bold;
     text-align:left;
+}
+
+.creationlist tr td:first-child {
+    width: 1%;
+    font-weight: bold;
+}
+
+.categoryheader {
+    background-color: #F0F0F0;
+    font-weight: bold;
+    font-size: 150%;
+    text-align:left;
+    color: #777777;
+    vertical-align: middle;
+}
+
+.categoryheader td {
+    background-color: #F0F0F0;
+}
+
+.categoryheader td img {
+    vertical-align: middle;
 }
 
 div.graphPanel {
