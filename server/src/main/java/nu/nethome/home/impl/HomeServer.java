@@ -57,6 +57,8 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
                 + "  <Attribute Name=\"UpgradeCommand\" Type=\"String\" Get=\"getUpgradeCommand\" Set=\"setUpgradeCommand\" />"
                 + "  <Attribute Name=\"LogFile\" Type=\"String\" Get=\"getLogFile\" 	Set=\"setLogFile\" />"
                 + "  <Attribute Name=\"PythonScriptFile\" Type=\"String\" Get=\"getPythonFile\" 	Set=\"setPythonFile\" />"
+                + "  <Attribute Name=\"WarningAction\" Type=\"Command\" Get=\"getWarningAction\" 	Set=\"setWarningAction\" />"
+                + "  <Attribute Name=\"ErrorAction\" Type=\"Command\" Get=\"getErrorAction\" 	Set=\"setErrorAction\" />"
                 + "  <Attribute Name=\"UpTime\" Type=\"String\" Get=\"getUpTime\" />"
                 + "  <Attribute Name=\"MaxDistributionTime\" Type=\"String\" Get=\"getMaxDistributionTime\" Unit=\"ms\" />"
                 + "  <Attribute Name=\"AverageDistributionTime\" Type=\"String\" Get=\"getAverageDistributionTime\"  Unit=\"ms\" />"
@@ -112,6 +114,9 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
     private int minutesBetweenItemSave = 60;
     private String logDirectory = "";
     private Python python;
+    private CommandLineExecutor commandLineExecutor;
+    private String warningAction = "";
+    private String errorAction = "";
 
     public HomeServer() {
         eventQueue = new LinkedBlockingQueue<Event>(MAX_QUEUE_SIZE);
@@ -119,6 +124,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
         setupLogger();
         eventCountlogger.activate(this);
         python = new Python(this);
+        commandLineExecutor = new CommandLineExecutor(this, true);
     }
 
     private void setupLogger() {
@@ -156,10 +162,9 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
         if (record.getLevel().intValue() >= Level.WARNING.intValue()) {
             currentWarningCount++;
             if (record.getLevel().intValue() < Level.SEVERE.intValue()) {
-                // Severe errors are not safe to send as Events, as the system cannot be trusted and we may end up
-                // with recursive calls since it may be the event mechanism that is failing.
-                Event alarmEvent = new InternalEvent("Alarm", record.getMessage());
-                send(alarmEvent);
+                commandLineExecutor.executeCommandLine(warningAction);
+            } else {
+                commandLineExecutor.executeCommandLine(errorAction);
             }
         }
     }
@@ -771,5 +776,21 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 
     public void setPythonFile(String scriptFile) {
         python.setScriptSourceFileName(scriptFile);
+    }
+
+    public String getWarningAction() {
+        return warningAction;
+    }
+
+    public void setWarningAction(String warningAction) {
+        this.warningAction = warningAction;
+    }
+
+    public String getErrorAction() {
+        return errorAction;
+    }
+
+    public void setErrorAction(String errorAction) {
+        this.errorAction = errorAction;
     }
 }

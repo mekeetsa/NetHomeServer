@@ -51,6 +51,14 @@ public class SettingsBasePage extends PortletPage {
         return "Settings";
     }
 
+    @Override
+    public List<String> getJavaScriptFileNames() {
+        List<String> scripts = new ArrayList<>();
+        scripts.add("web/home/js/jquery-1.4.3.min.js");
+        scripts.add("web/home/edititempage.js");
+        return scripts;
+    }
+
     /**
      * This is the main entrance point of the class. This is called when a http
      * request is routed to this servlet.
