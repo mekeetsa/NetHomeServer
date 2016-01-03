@@ -92,7 +92,7 @@ public class Plan extends HomeItemAdapter implements HomeItem {
     protected String imageFile = "media/home.jpg";
     protected String itemLocations = "";
     protected int updateInterval = 2;
-    private boolean popupOnClick = true;
+    private boolean popupOnClick = false;
 
     public Plan() {
     }

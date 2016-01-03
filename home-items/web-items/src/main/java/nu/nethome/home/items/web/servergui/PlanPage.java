@@ -217,9 +217,6 @@ public class PlanPage implements HomePageInterface {
             return;
         }
 
-        List<Action> actions = model.getActions();
-
-        String popupIconImageFileName = "web/home/" + HomeGUI.itemIcon(category, false);
         String arrowIconAttributes = "";
         String arrowIconImageClass = arrowIcon(category);
         if (category.equals("Lamps")) {
@@ -239,22 +236,6 @@ public class PlanPage implements HomePageInterface {
             mainAttributeValue += " " + model.getDefaultAttribute().getUnit();
         }
         String itemText = arguments.isEditMode() ? itemName : mainAttributeValue;
-
-        // Make an estimate of how many rows of action buttons there will be
-        int size = 0;
-        for (Action action : actions) {
-            size += action.getName().length();
-            size += 2;
-        }
-        int actionRowCount = size / 50 + 1;
-
-        // Adjust the height of the panel to the number of rows of action buttons
-        String noActionRows = "";
-        if ((actionRowCount > 1) && (actionRowCount < 7)) {
-            noActionRows = " row" + Integer.toString(actionRowCount);
-        } else if (actionRowCount > 6) {
-            noActionRows = " row9";
-        }
 
         String iconClass;
         String title;
@@ -282,6 +263,33 @@ public class PlanPage implements HomePageInterface {
         p.println("        <li class=\"itemvalue\"  " + getUnitAttribute(model) + " data-item=\"" + itemId + "\">" + itemText + "</li>");
         p.println("    </ul>");
         p.println("</div>");
+        if (!arguments.isEditMode() && iconClass.equals("poppable")) {
+            printItemPopup(p, item, planItem, arguments, model);
+        }
+    }
+
+    private void printItemPopup(PrintWriter p, HomeItemProxy item, Plan.PlanItem planItem, HomeGUIArguments arguments, HomeItemModel model) {
+        String itemName = item.getAttributeValue("Name");
+        String itemId = item.getAttributeValue("ID");
+        String category = model.getCategory();
+        String popupIconImageFileName = "web/home/" + HomeGUI.itemIcon(category, false);
+
+        List<Action> actions = model.getActions();
+        // Make an estimate of how many rows of action buttons there will be
+        int size = 0;
+        for (Action action : actions) {
+            size += action.getName().length();
+            size += 2;
+        }
+        int actionRowCount = size / 50 + 1;
+
+        // Adjust the height of the panel to the number of rows of action buttons
+        String noActionRows = "";
+        if ((actionRowCount > 1) && (actionRowCount < 7)) {
+            noActionRows = " row" + Integer.toString(actionRowCount);
+        } else if (actionRowCount > 6) {
+            noActionRows = " row9";
+        }
 
         p.println("<div class=\"phomeitem" + noActionRows + "\" data-item=\"" + itemId + "\" style=\"top:" +
                 Integer.toString(planItem.getY(false)) + "px;left:" +
