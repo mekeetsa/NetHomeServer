@@ -76,7 +76,7 @@ public abstract class PortletPage implements HomePageInterface {
         return false;
     }
 
-    public List<String> getEditControls() {
+    public List<EditControl> getEditControls() {
         return null;
     }
 

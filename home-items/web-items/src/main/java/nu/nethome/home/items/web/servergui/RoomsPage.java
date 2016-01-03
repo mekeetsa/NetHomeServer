@@ -57,10 +57,10 @@ public class RoomsPage extends PortletPage {
     }
 
     @Override
-    public List<String> getEditControls() {
-        return Arrays.asList("<a href=\"javascript:gotoRoomEditPage();\">" +
+    public List<EditControl> getEditControls() {
+        return Arrays.<EditControl>asList(new EditControlAdapter("<a href=\"javascript:gotoRoomEditPage();\">" +
                 "<img src=\"web/home/door_new16.png\" /></a></td><td><a href=\"" +
-                "javascript:gotoRoomEditPage();\">Add Room...</a>");
+                "javascript:gotoRoomEditPage();\">Add Room...</a>"));
     }
 
     public List<String> getJavaScriptFileNames() {

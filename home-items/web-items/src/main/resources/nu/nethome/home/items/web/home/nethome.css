@@ -66,6 +66,19 @@
     background: url(menubackedit.png) top left repeat-x;
 }
 
+.menubar.edit select
+{
+    background: url(menubackedit.png) top left repeat-x;
+    margin-top: -0.15em;
+    color: white;
+}
+
+.menubar.edit option, .menubar.edit optgroup
+{
+    background: url(menubackedit.png) top left repeat-x;
+    color: black;
+}
+
 .menubar ul
 {
     list-style: none;

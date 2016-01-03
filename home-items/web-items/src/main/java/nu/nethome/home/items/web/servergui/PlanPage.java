@@ -32,6 +32,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class PlanPage implements HomePageInterface {
 
@@ -81,12 +82,14 @@ public class PlanPage implements HomePageInterface {
         return true;
     }
 
-    public List<String> getEditControls() {
+    public List<EditControl> getEditControls() {
         String editLink = "javascript:gotoPlanEditPage();";
-        return Arrays.asList("<a href=\"" + editLink + "\">" +
-                "<img src=\"web/home/preferences16.png\" /></a></td><td><a href=\"" +
-                editLink + "\">&nbsp;Edit settings...</a>",
-                "<img src=\"web/home/info16.png\" />&nbsp;Drag and drop to move Items on the page");
+        return Arrays.<EditControl>asList(
+                new EditControlAdapter("<img src=\"web/home/info16.png\" />&nbsp;Drag and drop to move Items on the page"),
+                new AddItemEditControl(),
+                new EditControlAdapter("<a href=\"" + editLink + "\">" +
+                        "<img src=\"web/home/preferences16.png\" /></a></td><td><a href=\"" +
+                        editLink + "\">&nbsp;Edit settings...</a>"));
     }
 
     /* (non-Javadoc)
@@ -96,6 +99,11 @@ public class PlanPage implements HomePageInterface {
         PrintWriter p = res.getWriter();
         HomeGUIArguments arguments = new HomeGUIArguments(req);
         Plan viewedPlan = findPlan(server, arguments, defaultPlanIdentity);
+        if (arguments.isAction("add")) {
+            viewedPlan.addItem(arguments.getName());
+        } else if (arguments.isAction("remove")) {
+            viewedPlan.removeItem(arguments.getName());
+        }
         printPlanUpdateScript(p, viewedPlan, arguments.isEditMode());
         printPlanPageStart(p, viewedPlan);
         if (arguments.isEditMode()) {
@@ -400,5 +408,35 @@ public class PlanPage implements HomePageInterface {
             return "actuator";
         }
         return "item.png";
+    }
+
+    class AddItemEditControl implements EditControl {
+        @Override
+        public String print(HomeGUIArguments arguments, HomeService server) {
+            String subpageArgument = arguments.hasSubpage() ? "&subpage=" + arguments.getSubpage() : "";
+            String result = "";
+            result += "<form action=\"" + localURL + "?page=" + getPageNameURL() + subpageArgument +"&mode=edit\" method=\"POST\">";
+            result += "<input type=\"hidden\" name=\"a\" value=\"add\">";
+            result += "  <select   onchange=\"this.form.submit()\" name=\"name\">";
+            result += "  <option value=\"\">Add Item to plan</option>";
+            Map<String, CategorizedItemList> categories = CategorizedItemList.categorizeItems(server);
+            for (String category : HomeItemModel.HOME_ITEM_CATEGORIES) {
+                if (categories.containsKey(category)) {
+                    CategorizedItemList itemsInCategory = categories.get(category);
+                    result += "  <optgroup label=\"" + category + "\">";
+                    for (HomeItemProxy item : itemsInCategory.getItems()) {
+                        result += "  <option value=\""
+                                + item.getAttributeValue("ID")
+                                + "\""
+                                + ">" + item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE)
+                                + "</option>";
+                    }
+                    result += "  </optgroup>";
+                }
+            }
+            result += "  </select>";
+            result += "</form>";
+            return result;
+        }
     }
 }

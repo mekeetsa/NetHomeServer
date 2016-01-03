@@ -476,8 +476,8 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
 
         if (arguments.isEditMode() && selectedPage.supportsEdit()) {
             p.println("   <li>Editing " + selectedPage.getPageName() + ":</li>");
-            for (String controlButton : selectedPage.getEditControls()) {
-                p.println("   <li>" + controlButton + "</li>");
+            for (EditControl controlButton : selectedPage.getEditControls()) {
+                p.println("   <li>" + controlButton.print(arguments, homeServer) + "</li>");
             }
         } else {
             // Loop through all page plugins and add their link to the nav bar
