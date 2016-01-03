@@ -74,7 +74,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
     protected String m_Name = "NoNameYet";
     protected long m_ID = 0L;
     static final long serialVersionUID = 1;
-    protected LinkedList<HomePageInterface> pages = new LinkedList<HomePageInterface>();
+    protected LinkedList<HomePageInterface> pages = new LinkedList<>();
 
     // Public attributes
     protected String webServer = "JettyWEB";
@@ -142,7 +142,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
                 mediaDirectory = ((HomeWebServer) possibleWebServer).getMediaDirectory();
             }
         }
-        pages.add(new PlanPage(localURL, getDefaultPlanAccessor()));
+        pages.add(new PlanPage(localURL, getDefaultPlanAccessor(), mediaDirectory));
         pages.add(new RoomsPage(localURL, getDefaultLocationAccessor()));
         pages.add(new ServerFloor(localURL));
         pages.add(new EditItemPage(localURL, homeServer, mediaDirectory, creationEvents, getEditPermission()));
@@ -389,8 +389,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         if (name == null) {
             return;
         }
-
-        if (name != null) name = fromURL(name);
+        name = fromURL(name);
 
         // Open the instance and check it
         HomeItemProxy item = homeServer.openInstance(name);
