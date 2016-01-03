@@ -211,7 +211,7 @@ public class EditItemPage extends PortletPage {
 
         // Print the Delete and Rename buttons
         if (editPermission.isEditPermitted()) {
-            printDeleteRenameSection(p, name);
+            printFooterSection(p, name);
         }
 
         // Print page end
@@ -786,8 +786,36 @@ public class EditItemPage extends PortletPage {
         p.println("</ul></span>");
     }
 
-    protected void printDeleteRenameSection(PrintWriter p, String name)
+    protected void printFooterSection(PrintWriter p, String name)
             throws ServletException, IOException {
+        p.println("<div class=\"detail\">");
+        p.println("<table class=\"actions\">");
+        p.println("<tr>");
+        printMoveControl(p, name);
+        p.println("</tr>");
+        printDeleteControl(p, name);
+        p.println("</tr>");
+        p.println("</table>");
+        p.println("</div>");
+    }
+
+    private void printMoveControl(PrintWriter p, String name) {
+        p.println("<form name=\"move\" action=\"" + localURL
+                + "\" method=\"post\">");
+        p.println("<input type=\"hidden\" name=\"name\" value=\"" + HTMLEncode.encode(name)
+                + "\" />");
+        p.println("<input type=\"hidden\" name=\"a\" value=\"delete_rename\" />");
+        p.println("<input type=\"hidden\" name=\"move\" value=\"Place\"/>");
+        p.println("<input type=\"hidden\" name=\"page\" value=\"" + pageName
+                + "\" />");
+        p.println(" <td><select name=\"new_location\" onchange=\"this.form.submit()\">");
+        printRoomsAsOptions(p, name);
+        p.println("</select>");
+        p.println("</td>");
+        p.println("</form>");
+    }
+
+    private void printDeleteControl(PrintWriter p, String name) {
         p.println("<form name=\"delete_rename\" action=\"" + localURL
                 + "\" method=\"post\">");
         p.println("<input type=\"hidden\" name=\"name\" value=\"" + HTMLEncode.encode(name)
@@ -795,24 +823,15 @@ public class EditItemPage extends PortletPage {
         p.println("<input type=\"hidden\" name=\"a\" value=\"delete_rename\" />");
         p.println("<input type=\"hidden\" name=\"page\" value=\"" + pageName
                 + "\" />");
-        p.println("<div class=\"detail\">");
-        p.println("<table class=\"actions\">");
         p.println("<tr>");
-        p.println(" <td class=\"actioncolumn\"><input type=\"submit\" name=\"move\" value=\"Place "
-                + HTMLEncode.encode(name) + " in:\"> <select class=\"attributecmd-action\" name=\"new_location\">");
-        printRoomsAsOptions(p);
-        p.println("</select>");
-        p.println("</td></tr>");
-        p.println("<tr> <td class=\"actioncolumn\"><input type=\"submit\" name=\"delete\" value=\"Delete "
-                + HTMLEncode.encode(name) + "\"></td></tr>");
-        p.println("</table>");
-        p.println("</div>");
+        p.println(" <td class=\"actioncolumn\"><input type=\"submit\" name=\"delete\" value=\"Delete "
+                + HTMLEncode.encode(name) + "\"></td>");
         p.println("</form>");
     }
 
-    private void printRoomsAsOptions(PrintWriter p) {
+    private void printRoomsAsOptions(PrintWriter p, String name) {
         p.println("  <optgroup label=\"Select a Location\">");
-        p.println("  <option>[Select Location]</option>");
+        p.println("  <option>[Place " + HTMLEncode.encode(name) + " in Location]</option>");
         List<DirectoryEntry> directoryEntries = server.listInstances("");
         for (DirectoryEntry directoryEntry : directoryEntries) {
             // Open the instance so we know class and category
@@ -823,6 +842,7 @@ public class EditItemPage extends PortletPage {
                         + item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE)
                         + "\""
                         + ">" + HTMLEncode.encode(item.getAttributeValue("Name"))
+                        + " [" + model.getClassName() + "]"
                         + "</option>");
             }
         }
