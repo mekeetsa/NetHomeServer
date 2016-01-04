@@ -10,6 +10,7 @@ import nu.nethome.home.system.HomeService;
 import nu.nethome.util.plugin.Plugin;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static nu.nethome.home.items.timer.SunTimer.TimeExpressionParser.SwitchTime;
 import static nu.nethome.home.items.timer.SunTimer.TimeExpressionParser.TIME_EXPRESSION_SEPARATOR;
@@ -41,6 +42,7 @@ public class SunTimer extends HomeItemAdapter {
             + "  <Attribute Name=\"Variable A\" Type=\"String\" Get=\"getVariableA\" Set=\"setVariableA\" />"
             + "  <Attribute Name=\"Variable B\" Type=\"String\" Get=\"getVariableB\" Set=\"setVariableB\" />"
             + "  <Attribute Name=\"Variable C\" Type=\"String\" Get=\"getVariableC\" Set=\"setVariableC\" />"
+            + "  <Attribute Name=\"Random Interval I\" Type=\"String\" Get=\"getRandom\" Set=\"setRandom\" />"
             + "  <Attribute Name=\"OnCommand\" Type=\"Command\" Get=\"getOnCommand\" 	Set=\"setOnCommand\" />"
             + "  <Attribute Name=\"OffCommand\" Type=\"Command\" Get=\"getOffCommand\" 	Set=\"setOffCommand\" />"
             + "  <Action Name=\"Enable timer\" 	Method=\"enableTimer\" />"
@@ -62,6 +64,7 @@ public class SunTimer extends HomeItemAdapter {
     private int currentDay = 0;
     private boolean isEnabled = true;
     private boolean isOn = false;
+    private String random = "";
 
     public SunTimer() {
         for (int i = 0; i < weekDays.length; i++) {
@@ -123,10 +126,11 @@ public class SunTimer extends HomeItemAdapter {
     }
 
     void applySwitchTimesForToday() {
-        if (isEnabled) {
+        if (isEnabled && isActivated()) {
             try {
                 variables.put("R", getSunriseToday());
                 variables.put("S", getSunsetToday());
+                variables.put("I", generateRandomTime());
                 switchTimesToday = TimeExpressionParser.parseExpression(getTodaysTimeExpression(), variables);
             } catch (TimeExpressionParser.TimeExpressionException e) {
                 switchTimesToday = Collections.emptyList();
@@ -135,6 +139,18 @@ public class SunTimer extends HomeItemAdapter {
             timer = createTimer();
             createTimerTasksForSwitchTimes();
         }
+    }
+
+    private String generateRandomTime() {
+        try {
+            if (!random.isEmpty()) {
+                int randomSeconds = SwitchTime.parseTime(random);
+                return "" + ThreadLocalRandom.current().nextInt(0, randomSeconds + 1) / 60;
+            }
+        } catch (TimeExpressionParser.TimeExpressionException e) {
+            // Ignore
+        }
+        return "0";
     }
 
     private void createTimerTasksForSwitchTimes() {
@@ -306,7 +322,14 @@ public class SunTimer extends HomeItemAdapter {
     }
 
     public void setVariableA(String value) {
-        variables.put("A", value);
+        updateVariable(value, "A");
+    }
+
+    private void updateVariable(String value, String var) {
+        if (!variables.containsKey(var) || !value.equals(variables.get(var))) {
+            variables.put(var, value);
+            applySwitchTimesForToday();
+        }
     }
 
     public String getVariableB() {
@@ -315,7 +338,7 @@ public class SunTimer extends HomeItemAdapter {
     }
 
     public void setVariableB(String value) {
-        variables.put("B", value);
+        updateVariable(value, "B");
     }
 
     public String getVariableC() {
@@ -324,7 +347,7 @@ public class SunTimer extends HomeItemAdapter {
     }
 
     public void setVariableC(String value) {
-        variables.put("C", value);
+        updateVariable(value, "C");
     }
 
     Timer createTimer() {
@@ -353,6 +376,18 @@ public class SunTimer extends HomeItemAdapter {
     public void setState(String state) {
         isEnabled = !"Disabled".equalsIgnoreCase(state);
     }
+
+    public String getRandom() {
+        return random;
+    }
+
+    public void setRandom(String random) {
+        if (!this.random.equals(random)) {
+            this.random = random;
+            applySwitchTimesForToday();
+        }
+    }
+
     class SunTimerTask extends TimerTask {
 
         private final boolean on;

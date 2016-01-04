@@ -20,12 +20,15 @@ import java.util.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThan;
 import static org.mockito.Mockito.*;
 
 /**
  *
  */
 public class SunTimerTest {
+
+    private static final int HOUR = 60 * 60;
 
     private SunTimer sunTimer;
     private LocalHomeItemProxy proxy;
@@ -235,6 +238,17 @@ public class SunTimerTest {
     }
 
     @Test
+    public void updateVariableRecalulatesTimes() throws Exception {
+        proxy.setAttributeValue("Thursdays", "13:00->14:00");
+
+        sunTimer.activate(server);
+        proxy.setAttributeValue("Variable A", "14:00");
+
+        verify(timer).cancel();
+        verify(timer, times(4)).schedule(any(TimerTask.class), any(Date.class));
+    }
+
+    @Test
     public void calculatesSunRiseTimeForKnownData() throws Exception {
         proxy.setAttributeValue("Location: Lat,Long", "59.225527,18.000718");
         sunTimer.activate(server);
@@ -366,5 +380,42 @@ public class SunTimerTest {
         proxy.callAction("Enable timer");
 
         assertThat(proxy.getAttributeValue("Timer Today"), is("10:00->11:00"));
+    }
+
+    @Test
+    public void randomTimeInterval() throws Exception {
+        proxy.setAttributeValue("Random Interval I", "01:00");
+        assertThat(proxy.getAttributeValue("Random Interval I"), is("01:00"));
+    }
+
+    @Test
+    public void emptyRandomTimeIntervalIsZero() throws Exception {
+        proxy.setAttributeValue("Thursdays", "10:00->11:00+I");
+        proxy.setAttributeValue("Random Interval I", "");
+
+        sunTimer.activate(server);
+
+        assertThat(proxy.getAttributeValue("Timer Today"), is("10:00->11:00"));
+    }
+
+    @Test
+    public void zeroRandomTimeIntervalIsZero() throws Exception {
+        proxy.setAttributeValue("Thursdays", "10:00->11:00+I");
+        proxy.setAttributeValue("Random Interval I", "0");
+
+        sunTimer.activate(server);
+
+        assertThat(proxy.getAttributeValue("Timer Today"), is("10:00->11:00"));
+    }
+
+    @Test
+    public void randomTimeWithinInterval() throws Exception {
+        proxy.setAttributeValue("Thursdays", "I->");
+        proxy.setAttributeValue("Random Interval I", "23:00");
+
+        sunTimer.activate(server);
+
+        int time  = TimeExpressionParser.SwitchTime.parseTime(proxy.getAttributeValue("Timer Today").substring(0,5));
+        assertThat(time, lessThan(23 * HOUR));
     }
 }
