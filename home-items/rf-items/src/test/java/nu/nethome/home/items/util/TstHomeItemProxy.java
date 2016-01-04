@@ -21,6 +21,7 @@ package nu.nethome.home.items.util;
 
 import nu.nethome.home.item.Action;
 import nu.nethome.home.item.Attribute;
+import nu.nethome.home.item.ExtendedLoggerComponent;
 import nu.nethome.home.item.HomeItemModel;
 import nu.nethome.home.item.HomeItemProxy;
 
@@ -106,6 +107,11 @@ public class TstHomeItemProxy implements HomeItemProxy {
 	 */
 	public String getLastCalled() {
 		return m_LastCalled;
+	}
+
+	@Override
+	public ExtendedLoggerComponent getLoggerComponent() {
+		return null;
 	}
 
 }

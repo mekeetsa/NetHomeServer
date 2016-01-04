@@ -123,6 +123,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("WemoBridge", nu.nethome.home.items.net.wemo.WemoBridge.class),
             new HomeItemClassInfo("WemoLamp", nu.nethome.home.items.net.wemo.WemoLamp.class),
             new HomeItemClassInfo("UPnPScanner", UPnPScanner.class),
+            new HomeItemClassInfo("H2DatabaseTCPServer", nu.nethome.home.items.net.H2DatabaseTCPServer.class),
 
             // rf-items
             new HomeItemClassInfo("UPMThermometer", nu.nethome.home.items.upm.UPMThermometer.class),
