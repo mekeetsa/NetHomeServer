@@ -59,7 +59,7 @@ public interface HomePageInterface {
      */
     public abstract boolean supportsEdit();
 
-    public abstract List<String> getEditControls();
+    public abstract List<EditControl> getEditControls();
 
     /**
      * Print the page. Note that header and footer of the page is printed by the caller

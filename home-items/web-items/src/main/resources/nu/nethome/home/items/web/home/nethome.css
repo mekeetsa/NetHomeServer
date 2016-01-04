@@ -54,16 +54,29 @@
     position: relative;
     width: auto;
     background: url(menuback.png) top left repeat-x;
-    padding: 0em 1em;
+    padding: 0 1em;
     margin-bottom: 1em;
     height: 2.36em;
     overflow: hidden;
-    top:0px;
+    top:0;
 }
 
 .menubar.edit
 {
     background: url(menubackedit.png) top left repeat-x;
+}
+
+.menubar.edit select
+{
+    background: url(menubackedit.png) top left repeat-x;
+    margin-top: -0.15em;
+    color: white;
+}
+
+.menubar.edit option, .menubar.edit optgroup
+{
+    background: url(menubackedit.png) top left repeat-x;
+    color: black;
 }
 
 .menubar ul
@@ -135,8 +148,8 @@
     background: url(menu_right.png) top right no-repeat;
     width:8px;
     height:2.36em;
-    top:0px;
-    right:0px;
+    top:0;
+    right:0;
 }
 
 .menubarRight.edit {
@@ -148,8 +161,8 @@
     background: url(menu_left.png) top left no-repeat;
     width:8px;
     height:2.36em;
-    top:0px;
-    left:0px;
+    top:0;
+    left:0;
 }
 
 .menubarLeft.edit {
@@ -280,6 +293,10 @@ div.itemcolumn ol,div.itemcolumn ul{
 div.itemcolumn ul.sidenav{
 	margin:0;
 	padding:0;
+}
+
+.itemcolumn.related {
+    width:350px;
 }
 
 div.itemcolumn.menu ul {
@@ -732,7 +749,7 @@ textarea.iteminput {
 	vertical-align: top;
 }
 
-.logrows, .panel .panellist {
+.logrows, .panel .panellist, .creationlist {
     background: none repeat scroll 0 0 white;
     border-color: #C9C9CA #EDEDEF #EDEDEF #C9C9CA;
     color: #000000;
@@ -744,7 +761,7 @@ textarea.iteminput {
     font-size: 130%;
 }
 
-.logrows.coders, .panel .panellist {
+.logrows.coders, .panel .panellist, .creationlist {
     height: 200px;
 }
 
@@ -752,6 +769,28 @@ textarea.iteminput {
     background-color: #F0F0F0;
     font-weight: bold;
     text-align:left;
+}
+
+.creationlist tr td:first-child {
+    width: 1%;
+    font-weight: bold;
+}
+
+.categoryheader {
+    background-color: #F0F0F0;
+    font-weight: bold;
+    font-size: 150%;
+    text-align:left;
+    color: #777777;
+    vertical-align: middle;
+}
+
+.categoryheader td {
+    background-color: #F0F0F0;
+}
+
+.categoryheader td img {
+    vertical-align: middle;
 }
 
 div.graphPanel {

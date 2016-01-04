@@ -74,7 +74,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
     protected String m_Name = "NoNameYet";
     protected long m_ID = 0L;
     static final long serialVersionUID = 1;
-    protected LinkedList<HomePageInterface> pages = new LinkedList<HomePageInterface>();
+    protected LinkedList<HomePageInterface> pages = new LinkedList<>();
 
     // Public attributes
     protected String webServer = "JettyWEB";
@@ -142,7 +142,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
                 mediaDirectory = ((HomeWebServer) possibleWebServer).getMediaDirectory();
             }
         }
-        pages.add(new PlanPage(localURL, getDefaultPlanAccessor()));
+        pages.add(new PlanPage(localURL, getDefaultPlanAccessor(), mediaDirectory));
         pages.add(new RoomsPage(localURL, getDefaultLocationAccessor()));
         pages.add(new ServerFloor(localURL));
         pages.add(new EditItemPage(localURL, homeServer, mediaDirectory, creationEvents, getEditPermission()));
@@ -389,8 +389,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         if (name == null) {
             return;
         }
-
-        if (name != null) name = fromURL(name);
+        name = fromURL(name);
 
         // Open the instance and check it
         HomeItemProxy item = homeServer.openInstance(name);
@@ -476,8 +475,8 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
 
         if (arguments.isEditMode() && selectedPage.supportsEdit()) {
             p.println("   <li>Editing " + selectedPage.getPageName() + ":</li>");
-            for (String controlButton : selectedPage.getEditControls()) {
-                p.println("   <li>" + controlButton + "</li>");
+            for (EditControl controlButton : selectedPage.getEditControls()) {
+                p.println("   <li>" + controlButton.print(arguments, homeServer) + "</li>");
             }
         } else {
             // Loop through all page plugins and add their link to the nav bar
@@ -653,7 +652,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
 
     private void printEventsTable(PrintWriter p) {
         p.println(" <table>");
-        p.println("  <tr><th></th><th>Identity</th><th>Time since</th><th>Item Exists</th><th>Create</th></tr>");
+        p.println("  <tr><th></th><th>Identity</th><th>Create</th><th>Time since</th><th>Item Exists</th></tr>");
         for (ItemEvent itemEvent : creationEvents.getItemEvents()) {
             printEventRow(p, itemEvent);
         }
@@ -681,9 +680,9 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         } else  {
             p.printf ("   <td title=\"%s\">%s...</td>\n", event.getContent(), event.getContent().substring(0, MAX_EVENT_ID_LENGTH));
         }
+        p.printf ("   <td><a onclick=\"location.href=homeManager.classUrl + '&event=%d';return false;\" href=\"%s?page=edit&event=%d\">Create Item</a></td>\n", event.getId(), localURL, event.getId());
         p.printf ("   <td>%s</td>\n", ageString);
         p.printf ("   <td>%s</td>\n", (event.getWasHandled() ? "Existing" : "New"));
-        p.printf ("   <td><a onclick=\"location.href=homeManager.classUrl + '&event=%d';return false;\" href=\"%s?page=edit&event=%d\">Select Event</a></td>\n", event.getId(), localURL, event.getId());
         p.println("  </tr>");
     }
 }

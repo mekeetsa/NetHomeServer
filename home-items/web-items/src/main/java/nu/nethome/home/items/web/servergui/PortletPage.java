@@ -76,7 +76,7 @@ public abstract class PortletPage implements HomePageInterface {
         return false;
     }
 
-    public List<String> getEditControls() {
+    public List<EditControl> getEditControls() {
         return null;
     }
 
@@ -118,7 +118,7 @@ public abstract class PortletPage implements HomePageInterface {
         p.println("</div>");
     }
 
-    protected void printRoom(PrintWriter p, String page, String subpage, String itemName, String headerLink, String addLink, String itemNames[], HomeService server) throws ServletException, IOException {
+    protected void printRoom(PrintWriter p, String page, String subpage, String itemName, String headerLink, String addLink, String itemNames[], HomeService server, boolean includeActions) throws ServletException, IOException {
 
         // Start Room Portlet
         printItemPortletStart(p, itemName, headerLink);
@@ -131,7 +131,7 @@ public abstract class PortletPage implements HomePageInterface {
             if (item == null) continue;
 
             // Print instance
-            printHomeItem(p, item, page, subpage);
+            printHomeItem(p, item, page, subpage, includeActions);
         }
 
         // End Portlet
@@ -142,22 +142,19 @@ public abstract class PortletPage implements HomePageInterface {
      * Prints a HomeItem instance to the output stream.
      *
      *
+     *
      * @param p    Output stream
      * @param item HomeItem to print
      * @param page Name of the current page
-     * @param subpage
+     * @param subpage sub page identity
+     * @param includeActions print actions of the home item
      * @throws javax.servlet.ServletException
      * @throws java.io.IOException
      */
     private void printHomeItem(PrintWriter p,
-                               HomeItemProxy item, String page, String subpage) throws ServletException, IOException {
+                               HomeItemProxy item, String page, String subpage, boolean includeActions) throws ServletException, IOException {
 
         HomeItemModel model = item.getModel();
-        if (model.getCategory().equals("Lamps")) {
-            printLampItem(p, item, page);
-            return;
-        }
-
         String defaultAttributeValue = "";
         boolean hasDefaultAttribute = model.getDefaultAttribute() != null;
         if (hasDefaultAttribute) {
@@ -167,18 +164,9 @@ public abstract class PortletPage implements HomePageInterface {
             }
         }
 
-        List<Action> actions = model.getActions();
-        int maxCount = 0;
-        int size = 0;
-        for (Action action : actions) {
-            size += action.getName().length();
-            size += 2;
-            if (size > 60) break;
-            maxCount++;
-        }
 
         p.println("   <li class=\"homeitem\">");
-        p.println("	 <img src=\"web/home/" + HomeGUI.itemIcon(model.getCategory(), false) + "\" />");
+        p.println("	 <img src=\"" + getItemIconUrl(model, defaultAttributeValue) + "\" />");
         p.println("	 <img src=\"web/home/item_divider.png\" />");
         p.println("	 <span class=\"homeiteminfo\">");
         p.println("	  <ul>");
@@ -186,9 +174,17 @@ public abstract class PortletPage implements HomePageInterface {
                 .addParameter("name", HomeGUI.toURL(item.getAttributeValue("ID")))
                 .addParameter("return", page).addParameterIfNotNull("returnsp", subpage);
         p.println("	   <li><a href=\"" + url.toString() + "\">" + item.getAttributeValue("Name") + "</a>" + (hasDefaultAttribute ? (": " + defaultAttributeValue) : "") + "</li>");
-        p.println("	   <li><span class=actions><ul>");
 
-        int count = 0;
+        if (includeActions) {
+            printItemActions(p, item, page, subpage, model);
+        }
+        p.println("	  </ul>");
+        p.println("	 </span>");
+        p.println("	</li>");
+    }
+
+    private void printItemActions(PrintWriter p, HomeItemProxy item, String page, String subpage, HomeItemModel model) {
+        p.println("	   <li><span class=actions><ul>");
         if (model.getClassName().equals("Plan")) {
             p.println("		  <li><a href=\"" + localURL + "?page=plan&subpage=" +
                     item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE) + "\">Go to location...</a></li>");
@@ -199,71 +195,36 @@ public abstract class PortletPage implements HomePageInterface {
             p.println("		  <li><a href=\"" + localURL + "?page=graphs&subpage=" +
                     item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE) + "\">View graph...</a></li>");
         }
+        List<Action> actions = model.getActions();
+        int size = 0;
         for (Action action : actions) {
-            if (count >= maxCount) break;
+            if (size > 60) break;
             HomeUrlBuilder actionUrl = new HomeUrlBuilder(localURL).addParameter("page", page)
                     .addParameterIfNotNull("subpage", subpage)
                     .addParameter("a", "perform_action")
                     .addParameter("name", item.getAttributeValue("ID"))
                     .addParameter("action", HomeGUI.toURL(action.getName()));
             p.println("		  <li><a href=\"" + actionUrl + "\">" + action.getName() + "</a></li>");
-            count++;
+            size += action.getName().length() + 2;
         }
-
         p.println("	   </ul></span></li>");
-        p.println("	  </ul>");
-        p.println("	 </span>");
-        p.println("	</li>");
+    }
+
+    private String getItemIconUrl(HomeItemModel model, String defaultAttributeValue) {
+        String category = model.getCategory();
+        String icon = HomeGUI.itemIcon(category, false);
+        if (category.equals("Lamps")) {
+            if (defaultAttributeValue != null && !defaultAttributeValue.isEmpty() && !defaultAttributeValue.trim().equalsIgnoreCase("Off")) {
+                icon = "lamp_on.png";
+            } else {
+                icon = "lamp_off.png";
+            }
+        }
+        return "web/home/" + icon;
     }
 
     private boolean hasLogFile(HomeItemProxy item) {
         return item.getAttributeValue(LOG_FILE_ATTRIBUTE).length() > 0;
-    }
-
-    private void printLampItem(PrintWriter p,
-                               HomeItemProxy item1, String page) throws ServletException, IOException {
-        List<Action> actions = item1.getModel().getActions();
-        int maxCount = 0;
-        int size = 0;
-        for (Action action : actions) {
-            size += action.getName().length();
-            size += 2;
-            if (size > 60) break;
-            maxCount++;
-        }
-
-        String state = item1.getAttributeValue("State");
-
-        p.println("   <li class=\"homeitem\">");
-        if (!state.isEmpty() && !state.equalsIgnoreCase("Off")) {
-            p.println("	 <img src=\"web/home/lamp_on.png\" />");
-        } else {
-            p.println("	 <img src=\"web/home/lamp_off.png\" />");
-        }
-        p.println("	 <img src=\"web/home/item_divider.png\" />");
-        p.println("	 <span class=\"homeiteminfo\">");
-        p.println("	  <ul>");
-        HomeUrlBuilder url = new HomeUrlBuilder(localURL).addParameter("page", "edit")
-                .addParameter("name", HomeGUI.toURL(item1.getAttributeValue("ID")))
-                .addParameter("return", page);
-
-        p.println("	   <li><a href=\"" + url.toString() + "\">" + item1.getAttributeValue("Name") + "</a>: " + state + "</li>");
-        p.println("	   <li><span class=actions><ul>");
-
-        int count = 0;
-        for (Action action : actions) {
-            if (count >= maxCount) break;
-            p.println("		  <li><a href=\"" + localURL + "?page=" + page +
-                    "&a=perform_action" +
-                    "&name=" + HomeGUI.toURL(item1.getAttributeValue("Name")) +
-                    "&action=" + HomeGUI.toURL(action.getName()) + "\">" + action.getName() + "</a></li>");
-            count++;
-        }
-
-        p.println("	   </ul></span></li>");
-        p.println("	  </ul>");
-        p.println("	 </span>");
-        p.println("	</li>");
     }
 
     protected void printRedirectionScript(PrintWriter p, String url) {

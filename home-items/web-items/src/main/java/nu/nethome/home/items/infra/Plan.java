@@ -28,13 +28,13 @@ import nu.nethome.util.plugin.Plugin;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Plan
  *
  * @author Stefan Stromberg
  */
+@SuppressWarnings("UnusedDeclaration")
 @Plugin
 @HomeItemType("Infrastructure")
 public class Plan extends HomeItemAdapter implements HomeItem {
@@ -75,7 +75,7 @@ public class Plan extends HomeItemAdapter implements HomeItem {
         }
     }
 
-    private final String m_Model = ("<?xml version = \"1.0\"?> \n"
+    private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"Plan\"  Category=\"Infrastructure\" >"
             + "  <Attribute Name=\"Items\" Type=\"Items\" Get=\"getItems\" 	Set=\"setItems\" />"
             + "  <Attribute Name=\"ImageFile\" Type=\"MediaFile\" Get=\"getImageFile\" 	Set=\"setImageFile\" />"
@@ -85,27 +85,20 @@ public class Plan extends HomeItemAdapter implements HomeItem {
 			+ "  <item>Popup</item><item>DefaultAction</item></Attribute>"
             + "</HomeItem> ");
 
-    private static Logger logger = Logger.getLogger(Plan.class.getName());
     private Map<String, PlanItem> planItems = null;
 
     // Public attributes
-    protected String m_Items = "";
-    protected String m_ImageFile = "media/home.jpg";
-    protected String m_ItemLocations = "";
-    protected int m_UpdateInterval = 2;
-    private boolean popupOnClick = true;
+    protected String items = "";
+    protected String imageFile = "media/home.jpg";
+    protected String itemLocations = "";
+    protected int updateInterval = 2;
+    private boolean popupOnClick = false;
 
     public Plan() {
     }
 
     public String getModel() {
-        return m_Model;
-    }
-
-    /**
-     * HomeItem method which stops all object activity for program termination
-     */
-    public void stop() {
+        return MODEL;
     }
 
     public void setItemLocation(String itemId, int x, int y, boolean ie) {
@@ -138,8 +131,8 @@ public class Plan extends HomeItemAdapter implements HomeItem {
     }
 
     private void createPlanItems() {
-        planItems = new HashMap<String, PlanItem>();
-        String[] ids = m_Items.split(",");
+        planItems = new HashMap<>();
+        String[] ids = items.split(",");
         for (String id : ids) {
             HomeItemProxy item = server.openInstance(id);
             if (item != null) {
@@ -150,7 +143,7 @@ public class Plan extends HomeItemAdapter implements HomeItem {
     }
 
     private void locatePlanItems() {
-        String[] locations = m_ItemLocations.split(",");
+        String[] locations = itemLocations.split(",");
         for (String location : locations) {
             String[] locationParts = location.split("#");
             if (locationParts.length == 3) {
@@ -200,37 +193,51 @@ public class Plan extends HomeItemAdapter implements HomeItem {
             newItemLocations.append(item.getY(false));
             isFirstItem = false;
         }
-        this.m_Items = newItems.toString();
-        this.m_ItemLocations = newItemLocations.toString();
+        this.items = newItems.toString();
+        this.itemLocations = newItemLocations.toString();
     }
 
-    /**
-     * @return Returns the m_Items.
-     */
     public String getItems() {
-        return m_Items;
+        return items;
     }
 
-    /**
-     * @param Items The m_Items to set.
-     */
-    public void setItems(String Items) {
-        m_Items = Items;
+    public void setItems(String items) {
+        this.items = items;
         planItems = null;
     }
 
-    /**
-     * @return Returns the m_ItemLocations.
-     */
+    public void addItem(String itemId) {
+        removeItem(itemId);
+        String temp = items;
+        if (!temp.isEmpty()) {
+            temp += ",";
+        }
+        setItems(temp + itemId);
+    }
+
+    public void removeItem(String itemId) {
+        String[] itemArr = items.split(",");
+        String result = "";
+        String separator = "";
+        for (String item : itemArr) {
+            if (!item.equals(itemId)) {
+                result += separator;
+                result += item;
+                separator = ",";
+            }
+        }
+        setItems(result);
+    }
+
     public String getItemLocations() {
-        return m_ItemLocations;
+        return itemLocations;
     }
 
     /**
-     * @param ItemLocations The m_ItemLocations to set.
+     * @param itemLocations The m_ItemLocations to set.
      */
-    public void setItemLocations(String ItemLocations) {
-        m_ItemLocations = ItemLocations;
+    public void setItemLocations(String itemLocations) {
+        this.itemLocations = itemLocations;
         planItems = null;
     }
 
@@ -238,32 +245,32 @@ public class Plan extends HomeItemAdapter implements HomeItem {
      * @return Returns the m_ImageFile.
      */
     public String getImageFile() {
-        return m_ImageFile;
+        return imageFile;
     }
 
     /**
      * @param ImageFile The m_ImageFile to set.
      */
     public void setImageFile(String ImageFile) {
-        m_ImageFile = ImageFile;
+        imageFile = ImageFile;
     }
 
     /**
      * @return Returns the m_UpdateInterval.
      */
     public String getUpdateInterval() {
-        return Integer.toString(m_UpdateInterval);
+        return Integer.toString(updateInterval);
     }
 
     /**
      * @param UpdateInterval The m_UpdateInterval to set.
      */
     public void setUpdateInterval(String UpdateInterval) {
-        m_UpdateInterval = Integer.parseInt(UpdateInterval);
+        updateInterval = Integer.parseInt(UpdateInterval);
     }
 
     public int getUpdateIntervalInt() {
-        return m_UpdateInterval;
+        return updateInterval;
     }
 
     /**

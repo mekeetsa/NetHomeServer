@@ -19,19 +19,15 @@
 
 package nu.nethome.home.impl;
 
+import nu.nethome.home.item.*;
+import nu.nethome.home.items.UPnPScanner;
+import nu.nethome.home.items.UsbScanner;
+import nu.nethome.home.system.*;
+import nu.nethome.util.plugin.PluginProvider;
+
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Handler;
@@ -42,27 +38,8 @@ import java.util.prefs.Preferences;
 
 import org.apache.commons.lang3.StringUtils;
 
-import nu.nethome.home.item.ExtendedLoggerComponent;
-import nu.nethome.home.item.HomeItem;
-import nu.nethome.home.item.HomeItemInfo;
-import nu.nethome.home.item.HomeItemModel;
-import nu.nethome.home.item.HomeItemProxy;
-import nu.nethome.home.item.LoggerComponentFactory;
-import nu.nethome.home.item.LoggerComponentType;
-import nu.nethome.home.item.ValueItem;
-import nu.nethome.home.items.UPnPScanner;
-import nu.nethome.home.items.UsbScanner;
-import nu.nethome.home.system.DirectoryEntry;
-import nu.nethome.home.system.Event;
-import nu.nethome.home.system.FinalEventListener;
-import nu.nethome.home.system.HomeService;
-import nu.nethome.home.system.ServiceConfiguration;
-import nu.nethome.home.system.ServiceState;
-import nu.nethome.util.plugin.PluginProvider;
-
 /**
- * This is the main class of the NetHomeServer. It will start and manage all
- * other HomeItem instances.
+ * This is the main class of the NetHomeServer. It will start and manage all other HomeItem instances.
  *
  * @author Stefan Stromberg
  */
@@ -82,6 +59,8 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 				+ "  <Attribute Name=\"LogFile\" Type=\"String\" Get=\"getLogFile\" 	Set=\"setLogFile\" />"
 				+ "  <Attribute Name=\"PythonScriptFile\" Type=\"String\" Get=\"getPythonFile\" 	Set=\"setPythonFile\" />"
 				+ "  <Attribute Name=\"GlobalLogger\" Type=\"String\" Get=\"getGlobalLogger\" 	Set=\"setGlobalLogger\" />"
+                + "  <Attribute Name=\"WarningAction\" Type=\"Command\" Get=\"getWarningAction\" 	Set=\"setWarningAction\" />"
+                + "  <Attribute Name=\"ErrorAction\" Type=\"Command\" Get=\"getErrorAction\" 	Set=\"setErrorAction\" />"
 				+ "  <Attribute Name=\"UpTime\" Type=\"String\" Get=\"getUpTime\" />"
 				+ "  <Attribute Name=\"MaxDistributionTime\" Type=\"String\" Get=\"getMaxDistributionTime\" Unit=\"ms\" />"
 				+ "  <Attribute Name=\"AverageDistributionTime\" Type=\"String\" Get=\"getAverageDistributionTime\"  Unit=\"ms\" />"
@@ -139,6 +118,9 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 	private String logDirectory = "";
 	private Python python;
 	private String loggerComponentDescriptor;
+    private CommandLineExecutor commandLineExecutor;
+    private String warningAction = "";
+    private String errorAction = "";
 
 	public HomeServer() {
 		eventQueue = new LinkedBlockingQueue<Event>(MAX_QUEUE_SIZE);
@@ -146,6 +128,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 		setupLogger();
 		eventCountlogger.activate(this);
 		python = new Python(this);
+        commandLineExecutor = new CommandLineExecutor(this, true);
 	}
 
 	private void setupLogger() {
@@ -183,12 +166,9 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 		if (record.getLevel().intValue() >= Level.WARNING.intValue()) {
 			currentWarningCount++;
 			if (record.getLevel().intValue() < Level.SEVERE.intValue()) {
-				// Severe errors are not safe to send as Events, as the system
-				// cannot be trusted and we may end up
-				// with recursive calls since it may be the event mechanism that
-				// is failing.
-				Event alarmEvent = new InternalEvent("Alarm", record.getMessage());
-				send(alarmEvent);
+                commandLineExecutor.executeCommandLine(warningAction);
+            } else {
+                commandLineExecutor.executeCommandLine(errorAction);
 			}
 		}
 	}
@@ -197,9 +177,9 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 		if (record.getMessage() == null) {
 			return false;
 		}
-		return record.getMessage().startsWith("Prefs file removed in background")
-				|| record.getMessage().startsWith("Could not open/create prefs root node")
-				|| record.getMessage().startsWith("SAAJ0009");
+        return record.getMessage().startsWith("Prefs file removed in background") ||
+                record.getMessage().startsWith("Could not open/create prefs root node") ||
+                record.getMessage().startsWith("SAAJ0009");
 	}
 
 	public String clearLog() {
@@ -269,12 +249,16 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 		date.set(Calendar.SECOND, 0);
 		date.set(Calendar.MILLISECOND, 0);
 		// Schedule the job at m_Interval minutes interval
-		minuteTimer.schedule(new TimerTask() {
+        minuteTimer.schedule(
+                new TimerTask() {
 			@Override
 			public void run() {
 				send(minuteEvent);
 			}
-		}, date.getTime(), MS_PER_MINUTE);
+                },
+                date.getTime(),
+                MS_PER_MINUTE
+        );
 		activated = true;
 	}
 
@@ -295,13 +279,11 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 	}
 
 	/**
-	 * @param fileName
-	 *            the fileName to set
+     * @param fileName the fileName to set
 	 */
 	public void setFileName(String fileName) {
 		if (activated && !fileName.equals(this.fileName)) {
-			// Kind of ugly. If the user changes the save file name, we also
-			// save this as a system property
+            // Kind of ugly. If the user changes the save file name, we also save this as a system property
 			// so we can find the name (file) again when the server is started.
 			Preferences prefs = Preferences.userNodeForPackage(HomeManager.class);
 			prefs.put("SaveFileName", fileName);
@@ -381,8 +363,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 
 	private void handleEventDistributionFaliure(Event event) {
 		if (statistics.isItemCurrentlyProcessingEvent()) {
-			logger.severe("Event queue full. Current Item processing is \"" + statistics.getCurrentItemName()
-					+ "\"  since " + getCurrentItemProcessingTime() + " ms");
+            logger.severe("Event queue full. Current Item processing is \"" + statistics.getCurrentItemName() + "\"  since " + getCurrentItemProcessingTime() + " ms");
 		} else {
 			logger.severe("Event queue full trying to distribute " + event.toString());
 		}
@@ -393,8 +374,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 			Event event;
 			String itemName = "";
 			try {
-				// Take the next event from the queue, will wait if no events
-				// yet
+                // Take the next event from the queue, will wait if no events yet
 				event = eventQueue.take();
 				// Check if it was the quit event, quit in that case
 				if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(QUIT_EVENT)) {
@@ -411,8 +391,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 						boolean handled = home.receiveEvent(event);
 						eventIsHandled |= handled;
 					} catch (Exception e) {
-						logger.log(Level.WARNING,
-								"Failed to distribute event to \"" + itemName + "\" (" + event.toString() + ") ", e);
+                        logger.log(Level.WARNING, "Failed to distribute event to \"" + itemName + "\" (" + event.toString() + ") ", e);
 					}
 					statistics.endItemDistribution();
 				}
@@ -432,8 +411,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 	/**
 	 * Register a new HomeItem
 	 *
-	 * @param item
-	 *            Instance to register
+     * @param item Instance to register
 	 */
 	public int registerInstance(HomeItem item) {
 		return itemDirectory.registerInstance(item);
@@ -444,8 +422,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 	}
 
 	public boolean receiveEvent(Event e) {
-		if (e.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(MINUTE_EVENT_TYPE)
-				&& ++minuteCounter >= minutesBetweenItemSave) {
+        if (e.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(MINUTE_EVENT_TYPE) && ++minuteCounter >= minutesBetweenItemSave) {
 			saveItems();
 			minuteCounter = 0;
 			return true;
@@ -482,11 +459,10 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 	}
 
 	/**
-	 * Load HomeItems from a file and activate them. This is done in two steps:
-	 * First the Items are registered in the internal directory. After that the
-	 * Items are activated in start order. This means that at activation, all
-	 * Items are reachable in the directory even those which are not yet
-	 * activated.
+     * Load HomeItems from a file and activate them. This is done in two steps: First the Items are
+     * registered in the internal directory. After that the Items are activated in start order.
+     * This means that at activation, all Items are reachable in the directory even those which are
+     * not yet activated.
 	 */
 	public void loadItems() {
 		String currentFileName = getFileName();
@@ -506,8 +482,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 		// Loop through all created Items, and register them
 		for (HomeItem item : loadedItems) {
 
-			// This is a backward compatibility check. If the Item has no valid
-			// ID, assign one
+            // This is a backward compatibility check. If the Item has no valid ID, assign one
 			if (item.getItemId() == 0) {
 				item.setItemId(maxID);
 				maxID += 1;
@@ -516,10 +491,8 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 			// Register the new instance
 			int regResult = registerInstance(item);
 			if (regResult != 0) {
-				// IF we fail to register the instance, mark it as bad by
-				// setting ID = 0
-				HomeServer.logger
-						.warning("Failed to register Item " + item.getName() + " Error " + Integer.toString(regResult));
+                // IF we fail to register the instance, mark it as bad by setting ID = 0
+                HomeServer.logger.warning("Failed to register Item " + item.getName() + " Error " + Integer.toString(regResult));
 				item.setItemId(0);
 			}
 		}
@@ -537,8 +510,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 				}
 			}
 		}
-		HomeServer.logger.info(
-				"Activated " + Integer.toString(activatedItemCount) + " of " + Integer.toString(itemCount) + " Items");
+        HomeServer.logger.info("Activated " + Integer.toString(activatedItemCount) + " of " + Integer.toString(itemCount) + " Items");
 		setFileName(currentFileName);
 	}
 
@@ -626,13 +598,11 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 			try {
 				logger.info("Starting upgrade sequence");
 				Runtime r = Runtime.getRuntime();
-				// Run the upgrade command. If this is a Windows bat-file, you
-				// have to have one bat file which
+                // Run the upgrade command. If this is a Windows bat-file, you have to have one bat file which
 				// does a "start" of the second real upgrade bat file.
 				r.exec(upgradeCommand);
 				try {
-					// For some reason we have to wait a while, otherwise it
-					// seems this program exits before
+                    // For some reason we have to wait a while, otherwise it seems this program exits before
 					// the execution of the upgrade command is really started.
 					Thread.sleep(UPGRADE_HOLDOFF_TIME);
 				} catch (InterruptedException i) {
@@ -652,8 +622,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 	}
 
 	/**
-	 * @param upgradeCommand
-	 *            the upgradeCommand to set
+     * @param upgradeCommand the upgradeCommand to set
 	 */
 	public void setUpgradeCommand(String upgradeCommand) {
 		this.upgradeCommand = upgradeCommand;
@@ -903,4 +872,19 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 		return getGlobalLogger();
 	}
 
+    public String getWarningAction() {
+        return warningAction;
+    }
+
+    public void setWarningAction(String warningAction) {
+        this.warningAction = warningAction;
+    }
+
+    public String getErrorAction() {
+        return errorAction;
+    }
+
+    public void setErrorAction(String errorAction) {
+        this.errorAction = errorAction;
+    }
 }

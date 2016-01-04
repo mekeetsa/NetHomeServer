@@ -27,27 +27,31 @@ import nu.nethome.home.system.HomeService;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class PlanPage implements HomePageInterface {
 
     protected String localURL;
     private DefaultPageIdentity defaultPlanIdentity;
+    private String mediaDirectory;
 
-    public PlanPage(String localURL, DefaultPageIdentity defaultPlanIdentity) {
+    public PlanPage(String localURL, DefaultPageIdentity defaultPlanIdentity, String mediaDirectory) {
         this.localURL = localURL;
         this.defaultPlanIdentity = defaultPlanIdentity;
+        this.mediaDirectory = mediaDirectory;
     }
 
     /* (non-Javadoc)
       * @see nu.nethome.home.items.web.servergui.HomePageInterface#getCssFileName()
       */
     public List<String> getCssFileNames() {
-        List<String> styles = new ArrayList<String>();
+        List<String> styles = new ArrayList<>();
         styles.add("web/home/plan.css");
         return styles;
     }
@@ -56,7 +60,7 @@ public class PlanPage implements HomePageInterface {
       * @see nu.nethome.home.items.web.servergui.HomePageInterface#getJavaScriptFileName()
       */
     public List<String> getJavaScriptFileNames() {
-        List<String> scripts = new ArrayList<String>();
+        List<String> scripts = new ArrayList<>();
         scripts.add("web/home/js/jquery-1.4.3.min.js");
         scripts.add("web/home/js/jquery-ui-1.8.24.custom.min.js");
         scripts.add("web/home/newplan.js");
@@ -81,12 +85,12 @@ public class PlanPage implements HomePageInterface {
         return true;
     }
 
-    public List<String> getEditControls() {
-        String editLink = "javascript:gotoPlanEditPage();";
-        return Arrays.asList("<a href=\"" + editLink + "\">" +
-                "<img src=\"web/home/preferences16.png\" /></a></td><td><a href=\"" +
-                editLink + "\">&nbsp;Edit settings...</a>",
-                "<img src=\"web/home/info16.png\" />&nbsp;Drag and drop to move Items on the page");
+    public List<EditControl> getEditControls() {
+        return Arrays.asList(
+                new AddItemEditControl(),
+                new RemoveItemEditControl(),
+                new BackgroundEditControl(),
+                new ClickActionEditControl());
     }
 
     /* (non-Javadoc)
@@ -96,13 +100,31 @@ public class PlanPage implements HomePageInterface {
         PrintWriter p = res.getWriter();
         HomeGUIArguments arguments = new HomeGUIArguments(req);
         Plan viewedPlan = findPlan(server, arguments, defaultPlanIdentity);
+        if (arguments.isAction("add")) {
+            viewedPlan.addItem(arguments.getName());
+        } else if (arguments.isAction("remove")) {
+            viewedPlan.removeItem(arguments.getName());
+        } else if (arguments.isAction("background")) {
+            viewedPlan.setImageFile(arguments.getName());
+        } else if (arguments.isAction("click")) {
+            viewedPlan.setClickAction(arguments.getName());
+        }
         printPlanUpdateScript(p, viewedPlan, arguments.isEditMode());
         printPlanPageStart(p, viewedPlan);
-        if (arguments.isEditMode()) {
-            printItemSelectionPanel(p, server);
-        }
         printPlanItems(server, p, viewedPlan, arguments);
         printPlanPageEnd(p);
+        if (arguments.isEditMode()) {
+            printEditInfo(p);
+        }
+    }
+
+    private void printEditInfo(PrintWriter p) {
+        p.println("<div class=\"draggable ui-draggable\" style=\"top:170px;left:41px;\">\n" +
+                "<img src=\"web/home/info16.png\" />&nbsp;Drag and drop to move Items on the page" +
+                "</div>");
+        p.println("<div class=\"draggable ui-draggable\" style=\"top:250px;left:41px;\">\n" +
+                "<img src=\"web/home/info16.png\" />&nbsp;Background image file directory: " + mediaDirectory +
+                "</div>");
     }
 
     private void printPlanUpdateScript(PrintWriter p, Plan viewedPlan, boolean editMode) {
@@ -129,26 +151,6 @@ public class PlanPage implements HomePageInterface {
                 printPlanHomeItem(p, viewedPlan, item, planItem, arguments);
             }
         }
-    }
-
-    private void printItemSelectionPanel(PrintWriter p, HomeService server) {
-        p.println("<div class=\"pitemlistpanel\" style=\"display: none;\">");
-        p.println("    <form method=\"post\" action=\"/home\" name=\"delete_rename\">");
-        p.println("        <input type=\"hidden\" name=\"page\" value=\"plan\"/>");
-        p.println("        <div class=\"panelclose\"><img src=\"web/home/close.png\"/></div>");
-        p.println("        <ul>");
-        for (DirectoryEntry directoryEntry : server.listInstances("")) {
-            String instanceId = Long.toString(directoryEntry.getInstanceId());
-            p.println("      <li> <input type=\"checkbox\" value=\"" + instanceId +
-                    "\"  class=\"refselsingle\">" + directoryEntry.getInstanceName() + "</li>");
-        }
-        p.println("            <li><input type=\"checkbox\" value=\"a123\" name=\"r1\">Test 1</li>");
-        p.println("        </ul>");
-        p.println("        <input class=\"ibutton\" type=\"submit\" name=\"save_type\" value=\"Save\"> <input class=\"ibutton\" type=\"submit\"");
-        p.println("            name=\"save_type\"");
-        p.println("            value=\"Cancel\">");
-        p.println("    </form>");
-        p.println("</div>");
     }
 
     private Plan findPlan(HomeService server, HomeGUIArguments arguments, DefaultPageIdentity defaultPlanIdentity) {
@@ -195,7 +197,7 @@ public class PlanPage implements HomePageInterface {
      * Prints a HomeItem instance to the output stream.
      *
      * @param p          Output stream
-     * @param viewedPlan
+     * @param viewedPlan Current Plan
      * @param item       HomeItem to print
      * @param arguments  @throws ServletException
      * @throws java.io.IOException
@@ -207,17 +209,14 @@ public class PlanPage implements HomePageInterface {
         String category = model.getCategory();
 
         if (model.getClassName().equals("Plan") && !arguments.isEditMode()) {
-            printPlanHomeItemLink(p, viewedPlan, item, planItem, arguments);
+            printPlanHomeItemLink(p, item, planItem);
             return;
         }
         if (model.getClassName().equals("ActionButton") && !arguments.isEditMode()) {
-            printActionButton(p, viewedPlan, item, planItem, arguments);
+            printActionButton(p, item, planItem);
             return;
         }
 
-        List<Action> actions = model.getActions();
-
-        String popupIconImageFileName = "web/home/" + HomeGUI.itemIcon(category, false);
         String arrowIconAttributes = "";
         String arrowIconImageClass = arrowIcon(category);
         if (category.equals("Lamps")) {
@@ -237,22 +236,6 @@ public class PlanPage implements HomePageInterface {
             mainAttributeValue += " " + model.getDefaultAttribute().getUnit();
         }
         String itemText = arguments.isEditMode() ? itemName : mainAttributeValue;
-
-        // Make an estimate of how many rows of action buttons there will be
-        int size = 0;
-        for (Action action : actions) {
-            size += action.getName().length();
-            size += 2;
-        }
-        int actionRowCount = size / 50 + 1;
-
-        // Adjust the height of the panel to the number of rows of action buttons
-        String noActionRows = "";
-        if ((actionRowCount > 1) && (actionRowCount < 7)) {
-            noActionRows = " row" + Integer.toString(actionRowCount);
-        } else if (actionRowCount > 6) {
-            noActionRows = " row9";
-        }
 
         String iconClass;
         String title;
@@ -280,6 +263,33 @@ public class PlanPage implements HomePageInterface {
         p.println("        <li class=\"itemvalue\"  " + getUnitAttribute(model) + " data-item=\"" + itemId + "\">" + itemText + "</li>");
         p.println("    </ul>");
         p.println("</div>");
+        if (!arguments.isEditMode() && iconClass.equals("poppable")) {
+            printItemPopup(p, item, planItem, arguments, model);
+        }
+    }
+
+    private void printItemPopup(PrintWriter p, HomeItemProxy item, Plan.PlanItem planItem, HomeGUIArguments arguments, HomeItemModel model) {
+        String itemName = item.getAttributeValue("Name");
+        String itemId = item.getAttributeValue("ID");
+        String category = model.getCategory();
+        String popupIconImageFileName = "web/home/" + HomeGUI.itemIcon(category, false);
+
+        List<Action> actions = model.getActions();
+        // Make an estimate of how many rows of action buttons there will be
+        int size = 0;
+        for (Action action : actions) {
+            size += action.getName().length();
+            size += 2;
+        }
+        int actionRowCount = size / 50 + 1;
+
+        // Adjust the height of the panel to the number of rows of action buttons
+        String noActionRows = "";
+        if ((actionRowCount > 1) && (actionRowCount < 7)) {
+            noActionRows = " row" + Integer.toString(actionRowCount);
+        } else if (actionRowCount > 6) {
+            noActionRows = " row9";
+        }
 
         p.println("<div class=\"phomeitem" + noActionRows + "\" data-item=\"" + itemId + "\" style=\"top:" +
                 Integer.toString(planItem.getY(false)) + "px;left:" +
@@ -293,16 +303,12 @@ public class PlanPage implements HomePageInterface {
         p.println("    <li><a href=\"" + localURL + "?page=edit&name=" + itemId + "&return=" + this.getPageNameURL() +
                 this.subPageArg(arguments) + "\">" + itemName + ": </a><span class=\"itemvalue\" " + getUnitAttribute(model) + " data-item=\"" + itemId + "\"></span></li>");
         p.println("    <li><ul>");
-        int count = 0;
         if (hasLogFile(item)) {
             p.println("		<li><a href=\"" + localURL + "?page=graphs&subpage=" +
                     item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE) + "\">View graph...</a></li>");
         }
         for (Action action : actions) {
-            //if (count >= maxCount) break;
-
             p.println("     <li><a href=\"javascript:void(0)\" onclick=\"callItemAction('" + itemId + "','" + HomeGUI.toURL(action.getName()) + "');\">" + action.getName() + "</a></li>");
-            count++;
         }
         p.println("	&nbsp;");
         p.println("	</ul></li>");
@@ -315,7 +321,7 @@ public class PlanPage implements HomePageInterface {
     private String getUnitAttribute(HomeItemModel model) {
         AttributeModel att = model.getDefaultAttribute();
         if (att != null && att.getUnit() != null && att.getUnit().length() > 0) {
-           return " data-unit=\"" + att.getUnit() + "\" ";
+            return " data-unit=\"" + att.getUnit() + "\" ";
         }
         return "";
     }
@@ -332,7 +338,7 @@ public class PlanPage implements HomePageInterface {
     }
 
     private void printPlanHomeItemLink(PrintWriter p,
-                                       Plan viewedPlan, HomeItemProxy item, Plan.PlanItem planItem, HomeGUIArguments arguments) throws ServletException, IOException {
+                                       HomeItemProxy item, Plan.PlanItem planItem) throws ServletException, IOException {
 
         String title = "Click to follow link to the " + item.getAttributeValue("Name") + " page";
         p.println("<div class=\"planlink\" title=\"" + title + "\" style=\"top:" +
@@ -346,7 +352,7 @@ public class PlanPage implements HomePageInterface {
     }
 
     private void printActionButton(PrintWriter p,
-                                   Plan viewedPlan, HomeItemProxy item, Plan.PlanItem planItem, HomeGUIArguments arguments) throws ServletException, IOException {
+                                   HomeItemProxy item, Plan.PlanItem planItem) throws ServletException, IOException {
 
         String title = item.getAttributeValue("Title");
         p.println("<div class=\"actionbutton\" title=\"" + title + "\" style=\"top:" +
@@ -400,5 +406,105 @@ public class PlanPage implements HomePageInterface {
             return "actuator";
         }
         return "item.png";
+    }
+
+    class AddItemEditControl implements EditControl {
+        @Override
+        public String print(HomeGUIArguments arguments, HomeService server) {
+            String subpageArgument = arguments.hasSubpage() ? "&subpage=" + arguments.getSubpage() : "";
+            String result = "";
+            result += "<form action=\"" + localURL + "?page=" + getPageNameURL() + subpageArgument + "&mode=edit\" method=\"POST\">";
+            result += "<input type=\"hidden\" name=\"a\" value=\"add\">";
+            result += "  <select   onchange=\"this.form.submit()\" name=\"name\">";
+            result += "  <option value=\"\">Add Item to plan</option>";
+            Map<String, CategorizedItemList> categories = CategorizedItemList.categorizeItems(server);
+            for (String category : HomeItemModel.HOME_ITEM_CATEGORIES) {
+                if (categories.containsKey(category)) {
+                    CategorizedItemList itemsInCategory = categories.get(category);
+                    result += "  <optgroup label=\"" + category + "\">";
+                    for (HomeItemProxy item : itemsInCategory.getItems()) {
+                        result += "  <option value=\""
+                                + item.getAttributeValue("ID")
+                                + "\""
+                                + ">" + item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE)
+                                + "</option>";
+                    }
+                    result += "  </optgroup>";
+                }
+            }
+            result += "  </select>";
+            result += "</form>";
+            return result;
+        }
+    }
+
+    class RemoveItemEditControl implements EditControl {
+        @Override
+        public String print(HomeGUIArguments arguments, HomeService server) {
+            String subpageArgument = arguments.hasSubpage() ? "&subpage=" + arguments.getSubpage() : "";
+            String result = "";
+            result += "<form action=\"" + localURL + "?page=" + getPageNameURL() + subpageArgument + "&mode=edit\" method=\"POST\">";
+            result += "<input type=\"hidden\" name=\"a\" value=\"remove\">";
+            result += "  <select   onchange=\"this.form.submit()\" name=\"name\">";
+            result += "  <option value=\"\">Remove Item from plan</option>";
+            Plan viewedPlan = findPlan(server, arguments, defaultPlanIdentity);
+            String[] itemIds = viewedPlan.getItems().split(",");
+            for (String itemId : itemIds) {
+                HomeItemProxy item = server.openInstance(itemId);
+                if (item != null) {
+                    result += "  <option value=\""
+                            + item.getAttributeValue("ID")
+                            + "\""
+                            + ">" + item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE)
+                            + "</option>";
+                }
+            }
+            result += "  </select>";
+            result += "</form>";
+            return result;
+        }
+    }
+
+    class BackgroundEditControl implements EditControl {
+        @Override
+        public String print(HomeGUIArguments arguments, HomeService server) {
+            String subpageArgument = arguments.hasSubpage() ? "&subpage=" + arguments.getSubpage() : "";
+            String result = "";
+            result += "<form action=\"" + localURL + "?page=" + getPageNameURL() + subpageArgument + "&mode=edit\" method=\"POST\">";
+            result += "<input type=\"hidden\" name=\"a\" value=\"background\">";
+            result += "  <select   onchange=\"this.form.submit()\" name=\"name\">";
+            result += "  <option value=\"\">Select background</option>";
+            File f = new File(mediaDirectory);
+            if (f.exists() && f.isDirectory()) {
+                ArrayList<String> names = new ArrayList<>(Arrays.asList(f.list()));
+                for (String fileName : names) {
+                    result += "  <option value=\""
+                            + "media/" + fileName
+                            + "\""
+                            + ">" + fileName
+                            + "</option>";
+                }
+            }
+            result += "  </select>";
+            result += "</form>";
+            return result;
+        }
+    }
+
+    class ClickActionEditControl implements EditControl {
+        @Override
+        public String print(HomeGUIArguments arguments, HomeService server) {
+            String subpageArgument = arguments.hasSubpage() ? "&subpage=" + arguments.getSubpage() : "";
+            String result = "";
+            result += "<form action=\"" + localURL + "?page=" + getPageNameURL() + subpageArgument + "&mode=edit\" method=\"POST\">";
+            result += "<input type=\"hidden\" name=\"a\" value=\"click\">";
+            result += "  <select   onchange=\"this.form.submit()\" name=\"name\">";
+            result += "  <option value=\"\">Action on click</option>";
+            result += "  <option value=\"DefaultAction\">" + "Default Action</option>";
+            result += "  <option value=\"Popup\">" + "Popup</option>";
+            result += "  </select>";
+            result += "</form>";
+            return result;
+        }
     }
 }

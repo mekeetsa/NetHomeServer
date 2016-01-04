@@ -57,10 +57,10 @@ public class RoomsPage extends PortletPage {
     }
 
     @Override
-    public List<String> getEditControls() {
-        return Arrays.asList("<a href=\"javascript:gotoRoomEditPage();\">" +
+    public List<EditControl> getEditControls() {
+        return Arrays.<EditControl>asList(new EditControlAdapter("<a href=\"javascript:gotoRoomEditPage();\">" +
                 "<img src=\"web/home/door_new16.png\" /></a></td><td><a href=\"" +
-                "javascript:gotoRoomEditPage();\">Add Room...</a>");
+                "javascript:gotoRoomEditPage();\">Add Room...</a>"));
     }
 
     public List<String> getJavaScriptFileNames() {
@@ -82,8 +82,8 @@ public class RoomsPage extends PortletPage {
         HomeItemProxy viewedLocation = findLocation(server, arguments, defaultLocation);
         String viewedLocationId = viewedLocation.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE);
         printPageData(p, viewedLocationId);
-        List<HomeItemProxy> leftColumnRooms = new LinkedList<HomeItemProxy>();
-        List<HomeItemProxy> rightColumnRooms = new LinkedList<HomeItemProxy>();
+        List<HomeItemProxy> leftColumnRooms = new LinkedList<>();
+        List<HomeItemProxy> rightColumnRooms = new LinkedList<>();
         if (viewedLocation.getModel().getClassName().equals("Location")) {
             distributeRoomsOverColumns(server, viewedLocation, leftColumnRooms, rightColumnRooms);
         } else {
@@ -130,7 +130,7 @@ public class RoomsPage extends PortletPage {
                 headerLink += "&mode=edit";
             }
             printRoom(p, "rooms", returnSubPage, room.getAttributeValue("Name"), editMode ? headerLink : null,
-                    editMode ? addLink : null, itemNames, server);
+                    editMode ? addLink : null, itemNames, server, true);
         }
 
         printColumnEnd(p);
@@ -148,10 +148,12 @@ public class RoomsPage extends PortletPage {
             foundLocationItem = server.createInstance("Location", "DefaultLocation");
             int counter = 0;
             while(foundLocationItem == null && counter < 100) {
-                foundLocationItem = server.createInstance("Location", "DefaultLocation" + counter);
+                foundLocationItem = server.createInstance("Location", "DefaultLocation" + counter++);
             }
-            defaultLocationIdentity.setDefaultPage(foundLocationItem.getAttributeValue("ID"));
-            addAllRooms(foundLocationItem, server);
+            if (foundLocationItem != null) {
+                defaultLocationIdentity.setDefaultPage(foundLocationItem.getAttributeValue("ID"));
+                addAllRooms(foundLocationItem, server);
+            }
         }
         return foundLocationItem;
     }

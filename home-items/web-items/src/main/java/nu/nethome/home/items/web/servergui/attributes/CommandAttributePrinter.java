@@ -19,18 +19,16 @@
 
 package nu.nethome.home.items.web.servergui.attributes;
 
-import nu.nethome.home.item.Action;
-import nu.nethome.home.item.Attribute;
-import nu.nethome.home.item.HomeItemProxy;
-import nu.nethome.home.item.IllegalValueException;
+import nu.nethome.home.item.*;
 import nu.nethome.home.items.web.servergui.AttributeTypePrinterInterface;
+import nu.nethome.home.items.web.servergui.CategorizedItemList;
 import nu.nethome.home.items.web.servergui.PortletPage;
-import nu.nethome.home.system.DirectoryEntry;
 import nu.nethome.home.system.HomeService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Map;
 
 public class CommandAttributePrinter implements AttributeTypePrinterInterface {
 
@@ -83,25 +81,30 @@ public class CommandAttributePrinter implements AttributeTypePrinterInterface {
     }
 
     private void printItemSelection(PrintWriter p, String identity, String targetItemName) {
-        List<DirectoryEntry> directoryEntries = server.listInstances("");
         p.println("  <td>");
         p.println("  <select class=\"attributecmd-item\" name=\""
                 + identity + "\">");
-        p.println("  <optgroup label=\"Select a home item\">");
         p.println("  <option class=\"attributecmd-itemdim\" value=\"\">[No Action Selected]</option>");
-        for (DirectoryEntry directoryEntry : directoryEntries) {
-            HomeItemProxy item = server.openInstance(directoryEntry.getInstanceName());
-            List<Action> actions = item.getModel().getActions();
-            if (actions.size() == 0)
-                continue;
-            p.println("  <option value=\""
-                    + item.getAttributeValue("ID")
-                    + "\""
-                    + (directoryEntry.getInstanceName().equals(targetItemName) ? " selected='selected'" : "")
-                    + ">" + item.getAttributeValue("Name")
-                    + "</option>");
+
+        Map<String, CategorizedItemList> categories = CategorizedItemList.categorizeItems(server);
+        for (String category : HomeItemModel.HOME_ITEM_CATEGORIES) {
+            if (categories.containsKey(category)) {
+                CategorizedItemList itemsInCategory = categories.get(category);
+                p.println("  <optgroup label=\"" + category + "\">");
+                for (HomeItemProxy item : itemsInCategory.getItems()) {
+                    List<Action> actions = item.getModel().getActions();
+                    if (actions.size() == 0)
+                        continue;
+                    p.println("  <option value=\""
+                            + item.getAttributeValue("ID")
+                            + "\""
+                            + (item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE).equals(targetItemName) ? " selected='selected'" : "")
+                            + ">" + item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE)
+                            + "</option>");
+                }
+                p.println("  </optgroup>");
+            }
         }
-        p.println("  </optgroup>");
         p.println("  <optgroup label=\"Custom actions\">");
         p.println("  <option value=\"set,[item name],[item attribute],[attribute value]\">Set</option>");
         p.println("  <option value=\"exec,[shell command line]\">Exec</option>");
