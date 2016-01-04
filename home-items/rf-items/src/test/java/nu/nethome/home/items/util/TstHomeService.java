@@ -119,7 +119,7 @@ public class TstHomeService implements HomeService, ServiceConfiguration {
     }
 
 	@Override
-	public String getLoggerComponentDescriptor() {
+	public String getValueItemLoggerDescriptor() {
 		// TODO Auto-generated method stub
 		return null;
 	}

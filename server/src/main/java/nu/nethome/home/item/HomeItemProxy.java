@@ -22,98 +22,78 @@ package nu.nethome.home.item;
 import java.util.List;
 
 /**
- * This is an abstract interface representing a home item. It can be viewed as a
- * generic interface, since attributes and actions are accessed by specifying
- * their names.
+ * This is an abstract interface representing a home item. It can
+ * be viewed as a generic interface, since attributes and actions are
+ * accessed by specifying their names.
  */
 public interface HomeItemProxy {
 
-	String ID_ATTRIBUTE = "ID";
-	String NAME_ATTRIBUTE = "Name";
-	String MODEL_ATTRIBUTE = "Model";
+    String ID_ATTRIBUTE = "ID";
+    String NAME_ATTRIBUTE = "Name";
+    String MODEL_ATTRIBUTE = "Model";
 
-	/**
-	 * Returns the value for the attribute with the specified name. If the
-	 * underlying HomeItem class does not have an attribute with the specified
-	 * name an empty string is returned.
-	 *
-	 * Note that there are three built in attributes which are not shown in the
-	 * XML-specification of an HomeItem: Model, Name and ID.
-	 *
-	 * @param attributeName
-	 *            Name of the attribute
-	 * @return The value of the attribute
-	 */
+    /**
+     * Returns the value for the attribute with the specified name. If the underlying HomeItem class
+     * does not have an attribute with the specified name an empty string is returned.
+     *
+     * Note that there are three built in attributes which are not shown in the XML-specification
+     * of an HomeItem: Model, Name and ID.
+     *
+     * @param attributeName Name of the attribute
+     * @return The value of the attribute
+     */
 	String getAttributeValue(String attributeName);
 
-	/**
-	 * Returns a list of attributes from the HomeItem. If an attribute name is
-	 * specified, the list will only contain that attribute, if the
-	 * attributeName string is empty, all attributes of the HomeItem will be
-	 * returned.
-	 * <p/>
-	 * Note that there are three built in attributes which are not shown in the
-	 * XML-specification of an HomeItem: Model, Name and ID. They are however
-	 * not included in the list when no attribute name is specified.
-	 *
-	 * @return List of attributes
-	 */
-	List<Attribute> getAttributeValues();
+    /**
+     * Returns a list of attributes from the HomeItem. If an attribute name is specified, the list will only contain
+     * that attribute, if the attributeName string is empty, all attributes of the HomeItem will be returned.
+     * <p/>
+     * Note that there are three built in attributes which are not shown in the XML-specification
+     * of an HomeItem: Model, Name and ID. They are however not included in the list when no attribute name
+     * is specified.
+     *
+     * @return List of attributes
+     */
+    List<Attribute> getAttributeValues();
 
-	/**
-	 * Sets the specified attribute to the specified value. If the specified
-	 * attribute does not exist in the HomeItem, this operation has no effect.
-	 * If the attribute does not accept the specified value an
-	 * IllegalValueException MAY be thrown. The HomeItem may also silently
-	 * ignore an unacceptable value.
-	 *
-	 * The return value is set to true if the attribute was found and is
-	 * settable. This does not however guarantee that the value was set.
-	 *
-	 * @param attributeName
-	 *            Name of the attribute to set
-	 * @param attributeValue
-	 *            Value to set
-	 * @return true if the attribute exists and is settable.
-	 * @throws IllegalValueException
-	 */
-	boolean setAttributeValue(String attributeName, String attributeValue) throws IllegalValueException;
+    /**
+     * Sets the specified attribute to the specified value. If the specified attribute does not exist in the
+     * HomeItem, this operation has no effect. If the attribute does not accept the specified value an
+     * IllegalValueException MAY be thrown. The HomeItem may also silently ignore an unacceptable value.
+     *
+     * The return value is set to true if the attribute was found and is settable. This does not however guarantee
+     * that the value was set.
+     *
+     * @param attributeName Name of the attribute to set
+     * @param attributeValue Value to set
+     * @return true if the attribute exists and is settable.
+     * @throws IllegalValueException
+     */
+	boolean setAttributeValue(String attributeName,
+			String attributeValue) throws IllegalValueException;
 
-	/**
-	 * Calls the specified action in the HomeItem. If the HomeItem does not have
-	 * an action with the specified name the operation has no effect.
-	 * 
-	 * @param actionName
-	 *            name of action to call
-	 * @return the value from the action
-	 * @throws ExecutionFailure
-	 */
+
+    /**
+     * Calls the specified action in the HomeItem. If the HomeItem does not have an action with the specified name
+     * the operation has no effect.
+     * @param actionName name of action to call
+     * @return the value from the action
+     * @throws ExecutionFailure
+     */
 	String callAction(String actionName) throws ExecutionFailure;
 
-	/**
-	 * @return a description of the HomeItem class
-	 */
-	HomeItemModel getModel();
+    /**
+     * @return a description of the HomeItem class
+     */
+    HomeItemModel getModel();
 
-	/**
-	 * Get the internal implementation of the HomeItem. This should only be used
-	 * in vary rare cases where you actually need (and know) the internal
-	 * representation class. Even if you know the internal representation class,
-	 * this may fail if the representation is accessed via a proxy (if it is
-	 * located remotely).
-	 * 
-	 * @return The representation class or null if the representation is not
-	 *         currently available
-	 */
-	Object getInternalRepresentation();
+    /**
+     * Get the internal implementation of the HomeItem. This should only be used in vary rare
+     * cases where you actually need (and know) the internal representation class. Even if you
+     * know the internal representation class, this may fail if the representation is accessed
+     * via a proxy (if it is located remotely).
+     * @return The representation class or null if the representation is not currently available
+     */
+    Object getInternalRepresentation();
 
-	/**
-	 * Gets an associated extended logger component of the HomeItem. Note that
-	 * it is up to the HomeItem implementation to actually use a component
-	 * logger or not. This method will try to find one in its private members by
-	 * using introspection.
-	 * 
-	 * @return an ExtendedLoggerComponent object, or null if none is found.
-	 */
-	ExtendedLoggerComponent getLoggerComponent();
 }

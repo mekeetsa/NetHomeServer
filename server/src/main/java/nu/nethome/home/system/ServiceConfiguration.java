@@ -5,21 +5,20 @@ package nu.nethome.home.system;
  */
 public interface ServiceConfiguration {
 
-	/**
-	 * Get the file path to the directory where log and data files should be
-	 * written. This directory can be assumed writable by the process.
-	 *
-	 * @return full file path to the log directory including ending path
-	 *         separator
-	 */
-	String getLogDirectory();
+    /**
+     * Get the file path to the directory where log and data files should be written.
+     * This directory can be assumed writable by the process.
+     *
+     * @return full file path to the log directory including ending path separator
+     */
+    String getLogDirectory();
 
 	/**
-	 * Get the LoggerComponentType descriptor which is used to set the global
+	 * Get the ValueItemLogger descriptor which is used to set the global
 	 * logger component type used by all HomeItems that require logging its
 	 * value.
 	 * 
 	 * @return
 	 */
-	String getLoggerComponentDescriptor();
+	String getValueItemLoggerDescriptor();
 }

@@ -18,11 +18,11 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * This is a file based implementation of the LoggerComponentType.
+ * This is a file based implementation of the ValueItemLogger.
  * 
  * @author Peter Lagerhem, 2015-12-30
  */
-public class LoggerComponentFileBased extends LoggerComponentType {
+public class ValueItemLoggerFileBased extends ValueItemLogger {
 
 	private static Logger logger = Logger.getLogger(LoggerComponent.class.getName());
 	private String logTimeFormat = "yyyy.MM.dd HH:mm:ss;";

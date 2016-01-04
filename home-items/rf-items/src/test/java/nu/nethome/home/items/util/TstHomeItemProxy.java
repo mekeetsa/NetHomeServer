@@ -109,9 +109,4 @@ public class TstHomeItemProxy implements HomeItemProxy {
 		return m_LastCalled;
 	}
 
-	@Override
-	public ExtendedLoggerComponent getLoggerComponent() {
-		return null;
-	}
-
 }

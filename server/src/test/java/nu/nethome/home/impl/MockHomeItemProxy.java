@@ -109,9 +109,4 @@ public class MockHomeItemProxy implements HomeItemProxy {
 		return m_LastCalled;
 	}
 
-	@Override
-	public ExtendedLoggerComponent getLoggerComponent() {
-		return null;
-	}
-
 }

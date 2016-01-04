@@ -7,9 +7,9 @@ import nu.nethome.home.system.HomeService;
  */
 public class ExtendedLoggerComponent extends LoggerComponent {
 
-	public ExtendedLoggerComponent(Object o) {
-		super((ValueItem) o);
-		homeItemId = Long.toString( ((HomeItem)o).getItemId() );
+	public ExtendedLoggerComponent(ValueItem logged) {
+		super(logged);
+		homeItemId = Long.toString( logged.getItemId() );
 	}
 
 	public void activate(HomeService server) {

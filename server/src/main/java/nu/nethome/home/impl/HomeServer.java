@@ -27,6 +27,7 @@ import nu.nethome.util.plugin.PluginProvider;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -787,7 +788,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 	}
 
 	/**
-	 * Gets the loggerComponentDescriptor. See {@link LoggerComponentType}.
+	 * Gets the loggerComponentDescriptor. See {@link ValueItemLogger}.
 	 * 
 	 * @return the loggerComponentDescriptor.
 	 */
@@ -797,7 +798,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 
 	/**
 	 * Sets the loggerComponentDescriptor that defines the global logger. See
-	 * {@link LoggerComponentType}.
+	 * {@link ValueItemLogger}.
 	 * 
 	 * @param loggerComponentDescriptor
 	 *            the loggerComponentDescriptor to set
@@ -835,7 +836,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 				HomeItemProxy proxy = new LocalHomeItemProxy(home, this);
 
 				// Check if HomeItem has private ExtendedLoggerComponent
-				ExtendedLoggerComponent extLogComp = proxy.getLoggerComponent();
+				ExtendedLoggerComponent extLogComp = getLoggerComponent(proxy);
 				if (extLogComp == null) {
 					logger.log(Level.FINE, itemName + " does not have an extended logger component...");
 					continue;
@@ -853,7 +854,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 					logger.log(Level.INFO, itemName + " with id " + homeItemId + " has a private logfile ('" + logFile
 							+ "') that will be merged with the global database.");
 
-					LoggerComponentType logger = LoggerComponentFactory.createLoggerComponentType(getGlobalLogger());
+					ValueItemLogger logger = ValueItemLoggerFactory.createValueItemLogger(getGlobalLogger());
 					if (logger != null) {
 						logger.importCsvFile(logFile, getGlobalLogger(), homeItemId);
 					}
@@ -866,9 +867,43 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 
 		return "";
 	}
+	
+	/**
+	 * Gets an associated extended logger component of the HomeItem. Note that
+	 * it is up to the HomeItem implementation to actually use a component
+	 * logger or not. This method will try to find one in its private members by
+	 * using introspection.
+	 * 
+	 * @param HomeItemProxy
+	 *            the home item proxy
+	 * 
+	 * @return an ExtendedLoggerComponent object, or null if none is found.
+	 */
+	private ExtendedLoggerComponent getLoggerComponent(HomeItemProxy proxy) {
+		HomeItem item = (HomeItem) proxy.getInternalRepresentation();
+		ExtendedLoggerComponent elc = null;
+		Class<?> clz = item.getClass();
+		do {
+			for (Field field : clz.getDeclaredFields()) {
+				field.setAccessible(true);
+				Class<?> classType = field.getType();
+				if (classType.getName().contains("ExtendedLoggerComponent")) {
+					try {
+						elc = (ExtendedLoggerComponent) field.get(item);
+					} catch (IllegalArgumentException | IllegalAccessException e) {
+						// Eat!
+					}
+					break;
+				}
+			}
+			clz = clz.getSuperclass();
+		} while (null != clz);
+
+		return elc;
+	}
 
 	@Override
-	public String getLoggerComponentDescriptor() {
+	public String getValueItemLoggerDescriptor() {
 		return getGlobalLogger();
 	}
 

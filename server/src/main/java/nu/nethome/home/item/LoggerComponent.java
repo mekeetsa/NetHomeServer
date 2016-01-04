@@ -1,21 +1,22 @@
 /**
  * Copyright (C) 2005-2013, Stefan Strömberg <stefangs@nethome.nu>
  *
- * This file is part of OpenNetHome (http://www.nethome.nu)
+ * This file is part of OpenNetHome  (http://www.nethome.nu)
  *
- * OpenNetHome is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * OpenNetHome is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * OpenNetHome is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * OpenNetHome is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with
- * this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package nu.nethome.home.item;
 
 import java.io.File;
@@ -44,7 +45,7 @@ import nu.nethome.home.system.ServiceConfiguration;
  * These fields are parsed as follows:
  * <ul>
  * <li>File log: provide a file name optionally prefixed with file:.<br/>
- * Examples: 'file:mylogfile.log', 'mylogfile.log' or '/var/log/mylogfile.log/
+ * Examples: 'file:mylogfile.log', 'mylogfile.log' or '/var/log/mylogfile.log'
  * </li>
  * <li>Database log: provide a database file name prefixed with jdbc:h2:.<br/>
  * Example: 'jdbc:h2:~/mydblog.log', 'jdbc:h2:/var/log/mydblog.log'</li>
@@ -94,55 +95,58 @@ import nu.nethome.home.system.ServiceConfiguration;
  */
 public class LoggerComponent extends TimerTask {
 
-	private Timer logTimer = new Timer("Logger Component", true);
-	private static Logger logger = Logger.getLogger(LoggerComponent.class.getName());
-	private boolean loggerIsActivated = false;
-	private boolean loggerIsRunning = false;
-	private String logDirectoryPath = "";
+    private Timer logTimer = new Timer("Logger Component", true);
+    private static Logger logger = Logger.getLogger(LoggerComponent.class.getName());
+    private boolean loggerIsActivated = false;
+    private boolean loggerIsRunning = false;
+    private String logDirectoryPath = "";
+	// Public attributes
+	private String logFileName = "";
+	private int logInterval = 15;
+
 	private ValueItem loggedItem = null;
 	protected String homeItemId;
 	protected HomeService service;
 	protected ServiceConfiguration config;
 
-	// Public attributes
-	private String logFileName = "";
-	private int logInterval = 15;
+    public LoggerComponent(ValueItem logged) {
+        loggedItem = logged;
+    }
+    
+    public void activate() {
+        loggerIsActivated = true;
+        if (logFileName.length() == 0) {
+            return;
+        }
+        // Get current time
+        Calendar date = Calendar.getInstance();
+        // Start at next even hour
+        date.set(Calendar.HOUR, date.get(Calendar.HOUR) + 1);
+        date.set(Calendar.MINUTE, 0);
+        date.set(Calendar.SECOND, 0);
+        date.set(Calendar.MILLISECOND, 0);
+        // Schedule the job at m_Interval minutes interval
+        logTimer.schedule(
+                this,
+                date.getTime(),
+                1000L * 60 * logInterval
+        );
+        loggerIsRunning = true;
+    }
 
-	public LoggerComponent(ValueItem logged) {
-		loggedItem = logged;
-	}
+    protected void activate(String logDirectoryPath) {
+        this.logDirectoryPath = logDirectoryPath;
+        activate();
+    }
 
-	public void activate() {
-		loggerIsActivated = true;
-		if (logFileName.length() == 0) {
-			return;
-		}
-
-		// Get current time
-		Calendar date = Calendar.getInstance();
-		// Start at next even hour
-		date.set(Calendar.HOUR, date.get(Calendar.HOUR) + 1);
-		date.set(Calendar.MINUTE, 0);
-		date.set(Calendar.SECOND, 0);
-		date.set(Calendar.MILLISECOND, 0);
-		// Schedule the job at m_Interval minutes interval
-		logTimer.schedule(this, date.getTime(), 1000L * 60 * logInterval);
-		loggerIsRunning = true;
-	}
-
-	protected void activate(String logDirectoryPath) {
-		this.logDirectoryPath = logDirectoryPath;
-		activate();
-	}
-
-	/**
-	 * HomeItem method which stops all object activity for program termination
-	 */
-	public void stop() {
-		logTimer.cancel();
-		loggerIsRunning = false;
-		loggerIsActivated = false;
-	}
+    /**
+     * HomeItem method which stops all object activity for program termination
+     */
+    public void stop() {
+        logTimer.cancel();
+        loggerIsRunning = false;
+        loggerIsActivated = false;
+    }
 
 	public void run() {
 		logger.fine("Value Log Timer Fired");
@@ -166,13 +170,13 @@ public class LoggerComponent extends TimerTask {
 		}
 		
 		// Check and log to global logger
-		LoggerComponentType logger = LoggerComponentFactory.createLoggerComponentType(config.getLoggerComponentDescriptor());
+		ValueItemLogger logger = ValueItemLoggerFactory.createValueItemLogger(config.getValueItemLoggerDescriptor());
 		if (logger != null) {
-			logger.store(config.getLoggerComponentDescriptor(), homeItemId, value);
+			logger.store(config.getValueItemLoggerDescriptor(), homeItemId, value);
 		}
 		
 		// Check and log to local logger
-		logger = LoggerComponentFactory.createLoggerComponentType(logFileName);
+		logger = ValueItemLoggerFactory.createValueItemLogger(logFileName);
 		if (logger != null) {
 			logger.store(getFullFileName(), homeItemId, value);
 		}
@@ -193,39 +197,36 @@ public class LoggerComponent extends TimerTask {
 		return logFileName;
 	}
 
-	/**
-	 * @param fileName
-	 *            The FileName to set.
-	 */
-	public void setFileName(String fileName) {
-		logFileName = fileName;
-		// If we got a file name, and we are activated but not running - then
-		// start
-		if ((fileName.length() != 0) && loggerIsActivated && !loggerIsRunning) {
-			activate();
-		}
-	}
+    /**
+     * @param fileName The FileName to set.
+     */
+    public void setFileName(String fileName) {
+        logFileName = fileName;
+        // If we got a file name, and we are activated but not running - then start
+        if ((fileName.length() != 0) && loggerIsActivated && !loggerIsRunning) {
+            activate();
+        }
+    }
 
-	/**
-	 * @return Returns the Interval.
-	 */
-	public String getInterval() {
-		return Integer.toString(logInterval);
-	}
+    /**
+     * @return Returns the Interval.
+     */
+    public String getInterval() {
+        return Integer.toString(logInterval);
+    }
 
-	/**
-	 * @param interval
-	 *            The Interval to set.
-	 */
-	public void setInterval(String interval) {
-		logInterval = Integer.parseInt(interval);
-	}
+    /**
+     * @param interval The Interval to set.
+     */
+    public void setInterval(String interval) {
+        logInterval = Integer.parseInt(interval);
+    }
 
-	/**
-	 * @return the IsActivated
-	 */
-	public boolean isActivated() {
-		return loggerIsActivated;
-	}
+    /**
+     * @return the IsActivated
+     */
+    public boolean isActivated() {
+        return loggerIsActivated;
+    }
 
 }

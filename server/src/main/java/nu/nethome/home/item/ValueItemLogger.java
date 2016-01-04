@@ -30,12 +30,12 @@ import java.util.List;
  * 
  * @author Peter Lagerhem
  */
-public abstract class LoggerComponentType {
+public abstract class ValueItemLogger {
 
 	/**
 	 * Constructs the componentType.
 	 */
-	LoggerComponentType() {
+	ValueItemLogger() {
 	}
 
 	/**

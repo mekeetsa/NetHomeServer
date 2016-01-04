@@ -34,9 +34,9 @@ import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 
 import nu.nethome.home.item.HomeItemProxy;
-import nu.nethome.home.item.LoggerComponentFactory;
-import nu.nethome.home.item.LoggerComponentFileBased;
-import nu.nethome.home.item.LoggerComponentType;
+import nu.nethome.home.item.ValueItemLoggerFactory;
+import nu.nethome.home.item.ValueItemLoggerFileBased;
+import nu.nethome.home.item.ValueItemLogger;
 import nu.nethome.home.system.HomeService;
 import nu.nethome.home.system.ServiceConfiguration;
 
@@ -44,10 +44,9 @@ public class LogReader {
 
 	private static Logger logger = Logger.getLogger(LogReader.class.getName());
 	private static final SimpleDateFormat inputDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 	private HomeService service;
 	private ServiceConfiguration config;
-	private LoggerComponentType loggerComponentType;
+	private ValueItemLogger valueItemLogger;
 	private String currentLoggerComponentDescriptor = "";
 
 	public LogReader(HomeService server) {
@@ -60,13 +59,13 @@ public class LogReader {
 	 * current selected component logger is defined in the service
 	 * configuration.
 	 * 
-	 * @return LoggerComponentType
+	 * @return ValueItemLogger
 	 */
-	public LoggerComponentType getLoggerComponent(String loggerComponentDescriptor, String itemId) {
+	public ValueItemLogger getLoggerComponent(String loggerComponentDescriptor, String itemId) {
 		if (StringUtils.isBlank(loggerComponentDescriptor)) {
 			// No logging is wanted - check and delete previous logger component
-			if (loggerComponentType != null) {
-				loggerComponentType = null;
+			if (valueItemLogger != null) {
+				valueItemLogger = null;
 				currentLoggerComponentDescriptor = "";
 				logger.log(Level.INFO, "Disabled global logging");
 			}
@@ -75,22 +74,22 @@ public class LogReader {
 
 		if (loggerComponentDescriptor.compareToIgnoreCase(this.currentLoggerComponentDescriptor) == 0) {
 			// Has not been updated, return current logger component.
-			return loggerComponentType;
+			return valueItemLogger;
 		}
 
-		LoggerComponentType newLoggerComponentType = LoggerComponentFactory.createLoggerComponentType(loggerComponentDescriptor);
-		if (newLoggerComponentType == null) {
+		ValueItemLogger newValueItemLogger = ValueItemLoggerFactory.createValueItemLogger(loggerComponentDescriptor);
+		if (newValueItemLogger == null) {
 			logger.log(Level.SEVERE,
-					"Can't create loggerComponentType for " + loggerComponentDescriptor + " and " + itemId);
+					"Can't create ValueItemLogger for " + loggerComponentDescriptor + " and " + itemId);
 			return null;
 		}
 
-		logger.log(Level.INFO, "Enabled global logging of type: " + newLoggerComponentType.getClass().getName() + " with descriptor: " + loggerComponentDescriptor);
+		logger.log(Level.INFO, "Enabled global logging of type: " + newValueItemLogger.getClass().getName() + " with descriptor: " + loggerComponentDescriptor);
 
-		loggerComponentType = newLoggerComponentType;
+		valueItemLogger = newValueItemLogger;
 		currentLoggerComponentDescriptor = loggerComponentDescriptor;
 
-		return loggerComponentType;
+		return valueItemLogger;
 	}
 
 	public List<Object[]> getLog(String startTimeString, String stopTimeString, HomeItemProxy item) throws IOException {
@@ -109,7 +108,7 @@ public class LogReader {
 		if (item != null) {
 
 			// Global logger wins if exists!
-			fileName = config.getLoggerComponentDescriptor();
+			fileName = config.getValueItemLoggerDescriptor();
 
 			if (StringUtils.isBlank(fileName)) {
 				fileName = item.getAttributeValue("LogFile");
@@ -125,10 +124,10 @@ public class LogReader {
 			return Collections.<Object[]> emptyList();
 		}
 		
-		LoggerComponentType logger = LoggerComponentFactory.createLoggerComponentType(fileName);
+		ValueItemLogger logger = ValueItemLoggerFactory.createValueItemLogger(fileName);
 		
 		// Must handle LoggerComponentFileBased specially
-		if (logger instanceof LoggerComponentFileBased) {
+		if (logger instanceof ValueItemLoggerFileBased) {
 			fileName = getFullFileName(fileName);
 		}
 

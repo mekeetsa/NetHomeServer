@@ -18,13 +18,13 @@ import nu.nethome.util.plugin.Plugin;
  * @author Peter Lagerhem 2016-01-03
  */
 @Plugin
-@HomeItemType("Database")
+@HomeItemType("Ports")
 public class H2DatabaseTCPServer extends HomeItemAdapter implements HomeItem {
 
 	private final String m_Model = ("<?xml version = \"1.0\"?> \n"
-			+ "<HomeItem Class=\"H2DatabaseTCPServer\" Category=\"Database\" >"
+			+ "<HomeItem Class=\"H2DatabaseTCPServer\" Category=\"Ports\" >"
 			+ "  <Attribute Name=\"ConnectionString\" Type=\"String\" Get=\"getConnectionString\" />"
-			+ "  <Attribute Name=\"TCPPort\" Type=\"String\" Get=\"getTcpPort\" Set=\"setTcpPort\" Default=\"9123\" />"
+			+ "  <Attribute Name=\"TCPPort\" Type=\"String\" Get=\"getTcpPort\" Set=\"setTcpPort\" Default=\"9092\" />"
 			+ "</HomeItem> ");
 
 	/*

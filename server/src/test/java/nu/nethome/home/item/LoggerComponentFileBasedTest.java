@@ -58,7 +58,7 @@ public class LoggerComponentFileBasedTest {
 		String homeItemId = "1";
 		
         // First save some values
-        LoggerComponentFileBased instance = new LoggerComponentFileBased();
+        ValueItemLoggerFileBased instance = new ValueItemLoggerFileBased();
         assertTrue(instance.store(connectionString, homeItemId, "1,0"));
         assertTrue(instance.store(connectionString, homeItemId, "10,25"));
 

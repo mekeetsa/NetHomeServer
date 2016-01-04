@@ -25,18 +25,18 @@ import org.h2.jdbc.JdbcSQLException;
 import org.h2.jdbcx.JdbcConnectionPool;
 
 /**
- * This is an H2 database implementation of the LoggerComponentType.
+ * This is an H2 database implementation of the ValueItemLogger.
  * 
  * @author Peter Lagerhem, 2015-12-30
  */
-public class LoggerComponentH2Database extends LoggerComponentType {
+public class ValueItemLoggerH2Database extends ValueItemLogger {
 
 	private enum STORE_ERROR {
 
 		JDBC_EXCEPTION, MISSING_TABLE, NONE
 	};
 
-	private static Logger logger = Logger.getLogger(LoggerComponentH2Database.class.getName());
+	private static Logger logger = Logger.getLogger(ValueItemLoggerH2Database.class.getName());
 	private static final SimpleDateFormat DATEFORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 	private static final String DB_DRIVER = "org.h2.Driver";
 	private static final String DB_PASSWORD = "sa";
@@ -65,12 +65,12 @@ public class LoggerComponentH2Database extends LoggerComponentType {
 
 				connection.commit();
 			} catch (Exception e) {
-				Logger.getLogger(LoggerComponentH2Database.class.getName()).log(Level.SEVERE, null, e);
+				Logger.getLogger(ValueItemLoggerH2Database.class.getName()).log(Level.WARNING, null, e);
 			} finally {
 				connection.close();
 			}
 		} catch (SQLException ex) {
-			Logger.getLogger(LoggerComponentH2Database.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(ValueItemLoggerH2Database.class.getName()).log(Level.WARNING, null, ex);
 		}
 	}
 
@@ -101,7 +101,7 @@ public class LoggerComponentH2Database extends LoggerComponentType {
 			Connection connection = jdbcConnectionPool.getConnection();
 			PreparedStatement selectPreparedStatement = null;
 
-			String SelectQuery = "SELECT * FROM VALUELOGGER WHERE lastupdate >= ? AND lastupdate <= ? AND valueItemId = ?";
+			String SelectQuery = "SELECT * FROM VALUELOGGER WHERE lastupdate >= ? AND lastupdate <= ? AND valueItemId = ? ORDER BY valueitemid, lastupdate";
 			try {
 				selectPreparedStatement = connection.prepareStatement(SelectQuery);
 				selectPreparedStatement.setTimestamp(1, new java.sql.Timestamp(from.getTime()));
@@ -117,20 +117,20 @@ public class LoggerComponentH2Database extends LoggerComponentType {
 				selectPreparedStatement.close();
 			} catch (JdbcSQLException e) {
 				if (e.getOriginalMessage().compareToIgnoreCase("Table \"VALUELOGGER\" not found") == 0) {
-					Logger.getLogger(LoggerComponentH2Database.class.getName()).log(Level.INFO, "Table is missing", e);
+					Logger.getLogger(ValueItemLoggerH2Database.class.getName()).log(Level.INFO, "Table is missing", e);
 					if (autoCreateTables) {
 						createTable(connectionString);
 					}
 				}
 			} catch (Exception e) {
-				Logger.getLogger(LoggerComponentH2Database.class.getName()).log(Level.SEVERE, null, e);
+				Logger.getLogger(ValueItemLoggerH2Database.class.getName()).log(Level.WARNING, null, e);
 			} finally {
 				connection.close();
 				jdbcConnectionPool.dispose();
 			}
 
 		} catch (SQLException ex) {
-			Logger.getLogger(LoggerComponentH2Database.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(ValueItemLoggerH2Database.class.getName()).log(Level.WARNING, null, ex);
 		}
 
 		return result;
@@ -153,7 +153,7 @@ public class LoggerComponentH2Database extends LoggerComponentType {
 		if (result == STORE_ERROR.NONE) {
 			return true;
 		}
-		Logger.getLogger(LoggerComponentH2Database.class.getName()).log(Level.SEVERE,
+		Logger.getLogger(ValueItemLoggerH2Database.class.getName()).log(Level.WARNING,
 				"Can't store value to H2 database. (" + result.name() + ")");
 		return false;
 	}
@@ -195,11 +195,11 @@ public class LoggerComponentH2Database extends LoggerComponentType {
 				connection.commit();
 			} catch (JdbcSQLException e) {
 				if (e.getOriginalMessage().compareToIgnoreCase("Table \"VALUELOGGER\" not found") == 0) {
-					Logger.getLogger(LoggerComponentH2Database.class.getName()).log(Level.INFO, "Table is missing", e);
+					Logger.getLogger(ValueItemLoggerH2Database.class.getName()).log(Level.INFO, "Table is missing", e);
 					result = STORE_ERROR.MISSING_TABLE;
 				}
 			} catch (Exception e) {
-				Logger.getLogger(LoggerComponentH2Database.class.getName()).log(Level.SEVERE, null, e);
+				Logger.getLogger(ValueItemLoggerH2Database.class.getName()).log(Level.WARNING, null, e);
 				result = STORE_ERROR.JDBC_EXCEPTION;
 			} finally {
 				connection.close();
@@ -207,7 +207,7 @@ public class LoggerComponentH2Database extends LoggerComponentType {
 			}
 
 		} catch (SQLException ex) {
-			Logger.getLogger(LoggerComponentH2Database.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(ValueItemLoggerH2Database.class.getName()).log(Level.WARNING, null, ex);
 			result = STORE_ERROR.JDBC_EXCEPTION;
 		}
 
@@ -271,20 +271,20 @@ public class LoggerComponentH2Database extends LoggerComponentType {
 						continue;
 					} catch (JdbcSQLException e) {
 						if (e.getOriginalMessage().compareToIgnoreCase("Table \"VALUELOGGER\" not found") == 0) {
-							Logger.getLogger(LoggerComponentH2Database.class.getName()).log(Level.INFO,
+							Logger.getLogger(ValueItemLoggerH2Database.class.getName()).log(Level.INFO,
 									"Table is missing", e);
 							System.out.println("Can't continue...");
-							// if (autoCreateTables) {
-							// createTable();
-							// }
+							// Could create the table automatically, but since the view graph does this
+							// for us anyways, we will skip it here.
+							// if (autoCreateTables) { createTable(); }
 						}
 						break;
 					} catch (SQLException ex) {
-						Logger.getLogger(LoggerComponentH2Database.class.getName()).log(Level.SEVERE, null, ex);
+						Logger.getLogger(ValueItemLoggerH2Database.class.getName()).log(Level.WARNING, null, ex);
 						System.out.println("Can't continue...");
 						break;
 					} catch (Exception e) {
-						Logger.getLogger(LoggerComponentH2Database.class.getName()).log(Level.SEVERE,
+						Logger.getLogger(ValueItemLoggerH2Database.class.getName()).log(Level.WARNING,
 								"Connecting with: " + connectionString, e);
 						System.out.println("Can't continue...");
 						break;

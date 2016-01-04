@@ -29,126 +29,102 @@ import java.util.List;
 
 public class LocalHomeItemProxy implements HomeItemProxy {
 
-	private final HomeItem item;
-	private final StaticHomeItemModel model;
-	private HomeService server;
+    private final HomeItem item;
+    private final StaticHomeItemModel model;
+    private HomeService server;
 
-	public LocalHomeItemProxy(HomeItem item) throws ModelException {
-		this(item, null);
-	}
+    public LocalHomeItemProxy(HomeItem item) throws ModelException {
+        this(item, null);
+    }
 
-	public LocalHomeItemProxy(HomeItem item, HomeService server) throws ModelException {
-		this.item = item;
-		this.server = server;
-		model = StaticHomeItemModel.getModel(item);
-	}
+    public LocalHomeItemProxy(HomeItem item, HomeService server) throws ModelException {
+        this.item = item;
+        this.server = server;
+        model = StaticHomeItemModel.getModel(item);
+    }
 
-	@Override
-	public String getAttributeValue(String attributeName) {
-		if (attributeName.equals("ID")) {
-			return Long.toString(item.getItemId());
-		}
-		try {
-			return model.getAttribute(attributeName).getValue(item);
-		} catch (InvocationTargetException e) {
-			// Ignore
-		} catch (IllegalAccessException e) {
-			// Ignore
-		} catch (ModelException e) {
-			// Ignore
-		}
-		return "";
-	}
+    @Override
+    public String getAttributeValue(String attributeName) {
+        if (attributeName.equals("ID")) {
+            return Long.toString(item.getItemId());
+        }
+        try {
+            return model.getAttribute(attributeName).getValue(item);
+        } catch (InvocationTargetException e) {
+            // Ignore
+        } catch (IllegalAccessException e) {
+            // Ignore
+        } catch (ModelException e) {
+            // Ignore
+        }
+        return "";
+    }
 
-	@Override
-	public List<Attribute> getAttributeValues() {
-		List<Attribute> result = new ArrayList<Attribute>();
+    @Override
+    public List<Attribute> getAttributeValues() {
+        List<Attribute> result = new ArrayList<Attribute>();
 
-		for (AttributeModel attributeModel : model.getAttributes()) {
-			result.add(new ModelAttribute(getAttributeValue(attributeModel.getName()), attributeModel));
-		}
-		return result;
-	}
+        for (AttributeModel attributeModel : model.getAttributes()) {
+            result.add(new ModelAttribute(getAttributeValue(attributeModel.getName()), attributeModel));
+        }
+        return result;
+    }
 
-	@Override
-	public boolean setAttributeValue(String attributeName, String attributeValue) throws IllegalValueException {
-		try {
-			return setAttributeValue(attributeName, attributeValue, isItemActivated());
-		} catch (InvocationTargetException e) {
-			if (e.getCause() instanceof IllegalValueException) {
-				throw (IllegalValueException) e.getCause();
-			}
-		} catch (IllegalAccessException e) {
-			// Ignore
-		} catch (ModelException e) {
-			// Ignore
-		}
-		return false;
-	}
+    @Override
+    public boolean setAttributeValue(String attributeName, String attributeValue) throws IllegalValueException {
+        try {
+            return setAttributeValue(attributeName, attributeValue, isItemActivated());
+        } catch (InvocationTargetException e) {
+            if (e.getCause() instanceof IllegalValueException) {
+                throw (IllegalValueException) e.getCause();
+            }
+        } catch (IllegalAccessException e) {
+            // Ignore
+        } catch (ModelException e) {
+            // Ignore
+        }
+        return false;
+    }
 
-	public boolean setAttributeValue(String attributeName, String attributeValue, boolean isActivated)
-			throws IllegalValueException, ModelException, InvocationTargetException, IllegalAccessException {
-		if (isActivated) {
-			model.getAttribute(attributeName).setValue(item, attributeValue);
-		} else {
-			model.getAttribute(attributeName).initValue(item, attributeValue);
-		}
-		return true;
-	}
+    public boolean setAttributeValue(String attributeName, String attributeValue, boolean isActivated) throws IllegalValueException, ModelException, InvocationTargetException, IllegalAccessException {
+        if (isActivated) {
+            model.getAttribute(attributeName).setValue(item, attributeValue);
+        } else {
+            model.getAttribute(attributeName).initValue(item, attributeValue);
+        }
+        return true;
+    }
 
-	private boolean isItemActivated() {
-		return !item.getName().startsWith("#");
-	}
+    private boolean isItemActivated() {
+        return !item.getName().startsWith("#");
+    }
 
-	@Override
-	public String callAction(String actionName) throws ExecutionFailure {
-		if (actionName.equals("activate")) {
-			item.activate(server);
-			return "";
-		}
-		try {
-			return model.getAction(actionName).call(item);
-		} catch (InvocationTargetException e) {
-			// Ignore
-		} catch (IllegalAccessException e) {
-			// Ignore
-		} catch (ModelException e) {
-			// Ignore
-		}
-		return "";
-	}
+    @Override
+    public String callAction(String actionName) throws ExecutionFailure {
+        if (actionName.equals("activate")) {
+            item.activate(server);
+            return "";
+        }
+        try {
+            return model.getAction(actionName).call(item);
+        } catch (InvocationTargetException e) {
+            // Ignore
+        } catch (IllegalAccessException e) {
+            // Ignore
+        } catch (ModelException e) {
+            // Ignore
+        }
+        return "";
+    }
 
-	@Override
-	public HomeItemModel getModel() {
-		return model;
-	}
+    @Override
+    public HomeItemModel getModel() {
+        return model;
+    }
 
-	@Override
-	public Object getInternalRepresentation() {
-		return item;
-	}
+    @Override
+    public Object getInternalRepresentation() {
+        return item;
+    }
 
-	@Override
-	public ExtendedLoggerComponent getLoggerComponent() {
-
-		ExtendedLoggerComponent elc = null;
-		Class<?> clz = item.getClass();
-		do {
-			for (Field field : clz.getDeclaredFields()) {
-				field.setAccessible(true);
-				Class<?> classType = field.getType();
-				if (classType.getName().contains("ExtendedLoggerComponent")) {
-					try {
-						elc = (ExtendedLoggerComponent) field.get(item);
-					} catch (IllegalArgumentException | IllegalAccessException e) {
-						// Eat!
-					}
-					break;
-				}
-			}
-			clz = clz.getSuperclass();
-		} while (null != clz);
-
-		return elc;
-	}
 }

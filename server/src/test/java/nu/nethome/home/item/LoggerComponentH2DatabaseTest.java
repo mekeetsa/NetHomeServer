@@ -65,7 +65,7 @@ public class LoggerComponentH2DatabaseTest {
 		String homeItemId = "1";
 
 		// First save some values
-		LoggerComponentH2Database instance = new LoggerComponentH2Database();
+		ValueItemLoggerH2Database instance = new ValueItemLoggerH2Database();
 		assertTrue(instance.store(connectionString, homeItemId, "1,0"));
 		assertTrue(instance.store(connectionString, homeItemId, "10,25"));
 

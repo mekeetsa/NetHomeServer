@@ -36,8 +36,7 @@ public interface HomeItemModel {
         "Gauges",
         "Thermometers",
         "Infrastructure",
-        "Actuators",
-        "Database"
+        "Actuators"
     };
 
     static final String STRING_LIST_TYPE = "StringList";
