@@ -81,11 +81,11 @@ import nu.nethome.home.system.ServiceConfiguration;
  * 
  * <pre>
  * public String getLogFile() {
- * 	return m_TempLogger.getFileName();
+ *     return m_TempLogger.getFileName();
  * }
  * 
  * public void setLogFile(String LogFile) {
- * 	m_TempLogger.setFileName(LogFile);
+ *     m_TempLogger.setFileName(LogFile);
  * }
  * </pre>
  *
@@ -100,19 +100,19 @@ public class LoggerComponent extends TimerTask {
     private boolean loggerIsActivated = false;
     private boolean loggerIsRunning = false;
     private String logDirectoryPath = "";
-	// Public attributes
-	private String logFileName = "";
-	private int logInterval = 15;
+    // Public attributes
+    private String logFileName = "";
+    private int logInterval = 15;
 
-	private ValueItem loggedItem = null;
-	protected String homeItemId;
-	protected HomeService service;
-	protected ServiceConfiguration config;
+    private ValueItem loggedItem = null;
+    protected String homeItemId;
+    protected HomeService service;
+    protected ServiceConfiguration config;
 
     public LoggerComponent(ValueItem logged) {
         loggedItem = logged;
     }
-    
+
     public void activate() {
         loggerIsActivated = true;
         if (logFileName.length() == 0) {
@@ -126,11 +126,7 @@ public class LoggerComponent extends TimerTask {
         date.set(Calendar.SECOND, 0);
         date.set(Calendar.MILLISECOND, 0);
         // Schedule the job at m_Interval minutes interval
-        logTimer.schedule(
-                this,
-                date.getTime(),
-                1000L * 60 * logInterval
-        );
+        logTimer.schedule(this, date.getTime(), 1000L * 60 * logInterval);
         loggerIsRunning = true;
     }
 
@@ -148,39 +144,40 @@ public class LoggerComponent extends TimerTask {
         loggerIsActivated = false;
     }
 
-	public void run() {
-		logger.fine("Value Log Timer Fired");
-		String value = loggedItem.getValue();
-		if (value.length() > 0) {
-			storeValue(value);
-		}
-	}
+    public void run() {
+        logger.fine("Value Log Timer Fired");
+        String value = loggedItem.getValue();
+        if (value.length() > 0) {
+            storeValue(value);
+        }
+    }
 
-	/**
-	 * Optionally stores to the local logger and optionally to the global logger.
-	 * 
-	 * @param value
-	 */
-	private void storeValue(String value) {
+    /**
+     * Optionally stores to the local logger and optionally to the global
+     * logger.
+     * 
+     * @param value
+     */
+    private void storeValue(String value) {
 
-		if (homeItemId.equals("0")) {
-			// Check if we are missing the home item id value
-			homeItemId = Long.toString(((HomeItem) loggedItem).getItemId());
-			logger.log(Level.INFO, "Was missing home item id, now set to: " + homeItemId);
-		}
-		
-		// Check and log to global logger
-		ValueItemLogger logger = ValueItemLoggerFactory.createValueItemLogger(config.getValueItemLoggerDescriptor());
-		if (logger != null) {
-			logger.store(config.getValueItemLoggerDescriptor(), homeItemId, value);
-		}
-		
-		// Check and log to local logger
-		logger = ValueItemLoggerFactory.createValueItemLogger(logFileName);
-		if (logger != null) {
-			logger.store(getFullFileName(), homeItemId, value);
-		}
-	}
+        if (homeItemId.equals("0")) {
+            // Check if we are missing the home item id value
+            homeItemId = Long.toString(((HomeItem) loggedItem).getItemId());
+            logger.log(Level.INFO, "Was missing home item id, now set to: " + homeItemId);
+        }
+
+        // Check and log to global logger
+        ValueItemLogger logger = ValueItemLoggerFactory.createValueItemLogger(config.getValueItemLoggerDescriptor());
+        if (logger != null) {
+            logger.store(config.getValueItemLoggerDescriptor(), homeItemId, value);
+        }
+
+        // Check and log to local logger
+        logger = ValueItemLoggerFactory.createValueItemLogger(logFileName);
+        if (logger != null) {
+            logger.store(getFullFileName(), homeItemId, value);
+        }
+    }
 
     private String getFullFileName() {
         if (logFileName.contains(File.separator) || logFileName.contains("/")) {
@@ -189,16 +186,17 @@ public class LoggerComponent extends TimerTask {
             return logDirectoryPath + logFileName;
         }
     }
-    
-	/**
-	 * @return Returns the FileName.
-	 */
-	public String getFileName() {
-		return logFileName;
-	}
 
     /**
-     * @param fileName The FileName to set.
+     * @return Returns the FileName.
+     */
+    public String getFileName() {
+        return logFileName;
+    }
+
+    /**
+     * @param fileName
+     *            The FileName to set.
      */
     public void setFileName(String fileName) {
         logFileName = fileName;
@@ -216,7 +214,8 @@ public class LoggerComponent extends TimerTask {
     }
 
     /**
-     * @param interval The Interval to set.
+     * @param interval
+     *            The Interval to set.
      */
     public void setInterval(String interval) {
         logInterval = Integer.parseInt(interval);

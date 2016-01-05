@@ -42,102 +42,101 @@ import nu.nethome.home.system.ServiceConfiguration;
 
 public class LogReader {
 
-	private static Logger logger = Logger.getLogger(LogReader.class.getName());
-	private static final SimpleDateFormat inputDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-	private HomeService service;
-	private ServiceConfiguration config;
-	private ValueItemLogger valueItemLogger;
-	private String currentLoggerComponentDescriptor = "";
+    private static Logger logger = Logger.getLogger(LogReader.class.getName());
+    private static final SimpleDateFormat inputDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+    private HomeService service;
+    private ServiceConfiguration config;
+    private ValueItemLogger valueItemLogger;
+    private String currentLoggerComponentDescriptor = "";
 
-	public LogReader(HomeService server) {
-		this.service = server;
-		this.config = service.getConfiguration();
-	}
+    public LogReader(HomeService server) {
+        this.service = server;
+        this.config = service.getConfiguration();
+    }
 
-	/**
-	 * Returns the component logger that should be used for reading logs. The
-	 * current selected component logger is defined in the service
-	 * configuration.
-	 * 
-	 * @return ValueItemLogger
-	 */
-	public ValueItemLogger getLoggerComponent(String loggerComponentDescriptor, String itemId) {
-		if (StringUtils.isBlank(loggerComponentDescriptor)) {
-			// No logging is wanted - check and delete previous logger component
-			if (valueItemLogger != null) {
-				valueItemLogger = null;
-				currentLoggerComponentDescriptor = "";
-				logger.log(Level.INFO, "Disabled global logging");
-			}
-			return null;
-		}
+    /**
+     * Returns the component logger that should be used for reading logs. The
+     * current selected component logger is defined in the service
+     * configuration.
+     * 
+     * @return ValueItemLogger
+     */
+    public ValueItemLogger getLoggerComponent(String loggerComponentDescriptor, String itemId) {
+        if (StringUtils.isBlank(loggerComponentDescriptor)) {
+            // No logging is wanted - check and delete previous logger component
+            if (valueItemLogger != null) {
+                valueItemLogger = null;
+                currentLoggerComponentDescriptor = "";
+                logger.log(Level.INFO, "Disabled global logging");
+            }
+            return null;
+        }
 
-		if (loggerComponentDescriptor.compareToIgnoreCase(this.currentLoggerComponentDescriptor) == 0) {
-			// Has not been updated, return current logger component.
-			return valueItemLogger;
-		}
+        if (loggerComponentDescriptor.compareToIgnoreCase(this.currentLoggerComponentDescriptor) == 0) {
+            // Has not been updated, return current logger component.
+            return valueItemLogger;
+        }
 
-		ValueItemLogger newValueItemLogger = ValueItemLoggerFactory.createValueItemLogger(loggerComponentDescriptor);
-		if (newValueItemLogger == null) {
-			logger.log(Level.SEVERE,
-					"Can't create ValueItemLogger for " + loggerComponentDescriptor + " and " + itemId);
-			return null;
-		}
+        ValueItemLogger newValueItemLogger = ValueItemLoggerFactory.createValueItemLogger(loggerComponentDescriptor);
+        if (newValueItemLogger == null) {
+            logger.log(Level.SEVERE,
+                    "Can't create ValueItemLogger for " + loggerComponentDescriptor + " and " + itemId);
+            return null;
+        }
 
-		logger.log(Level.INFO, "Enabled global logging of type: " + newValueItemLogger.getClass().getName() + " with descriptor: " + loggerComponentDescriptor);
+        logger.log(Level.INFO, "Enabled global logging of type: " + newValueItemLogger.getClass().getName()
+                + " with descriptor: " + loggerComponentDescriptor);
 
-		valueItemLogger = newValueItemLogger;
-		currentLoggerComponentDescriptor = loggerComponentDescriptor;
+        valueItemLogger = newValueItemLogger;
+        currentLoggerComponentDescriptor = loggerComponentDescriptor;
 
-		return valueItemLogger;
-	}
+        return valueItemLogger;
+    }
 
-	public List<Object[]> getLog(String startTimeString, String stopTimeString, HomeItemProxy item) throws IOException {
-		// List<Object[]> result = new ArrayList<Object[]>();
-		Date startTime = parseParameterDate(startTimeString);
-		Date stopTime = parseParameterDate(stopTimeString);
+    public List<Object[]> getLog(String startTimeString, String stopTimeString, HomeItemProxy item) throws IOException {
+        Date startTime = parseParameterDate(startTimeString);
+        Date stopTime = parseParameterDate(stopTimeString);
 
-		if (stopTime == null) {
-			stopTime = new Date();
-		}
-		if (startTime == null) {
-			startTime = oneWeekBack(stopTime);
-		}
-		
-		String fileName = null;
-		if (item != null) {
+        if (stopTime == null) {
+            stopTime = new Date();
+        }
+        if (startTime == null) {
+            startTime = oneWeekBack(stopTime);
+        }
 
-			// Global logger wins if exists!
-			fileName = config.getValueItemLoggerDescriptor();
+        String fileName = null;
+        if (item != null) {
 
-			if (StringUtils.isBlank(fileName)) {
-				fileName = item.getAttributeValue("LogFile");
-				if (fileName != null) {
-					// TODO: WHY THIS?
-					fileName = fromURL(fileName);
-				}
-			}
-		}
+            // Global logger wins if exists!
+            fileName = config.getValueItemLoggerDescriptor();
 
-		String itemId = item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE);
-		if (StringUtils.isBlank(fileName) || StringUtils.isBlank(itemId)) {
-			return Collections.<Object[]> emptyList();
-		}
-		
-		ValueItemLogger logger = ValueItemLoggerFactory.createValueItemLogger(fileName);
-		
-		// Must handle LoggerComponentFileBased specially
-		if (logger instanceof ValueItemLoggerFileBased) {
-			fileName = getFullFileName(fileName);
-		}
+            if (StringUtils.isBlank(fileName)) {
+                fileName = item.getAttributeValue("LogFile");
+                if (fileName != null) {
+                    // TODO: WHY THIS?
+                    fileName = fromURL(fileName);
+                }
+            }
+        }
 
-		if (logger == null) {
-			return Collections.<Object[]> emptyList();
-		}
-		return logger.loadBetweenDates(fileName, itemId, startTime, stopTime);
-	}
+        String itemId = item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE);
+        if (StringUtils.isBlank(fileName) || StringUtils.isBlank(itemId)) {
+            return Collections.<Object[]> emptyList();
+        }
 
-	
+        ValueItemLogger logger = ValueItemLoggerFactory.createValueItemLogger(fileName);
+
+        // Must handle LoggerComponentFileBased specially
+        if (logger instanceof ValueItemLoggerFileBased) {
+            fileName = getFullFileName(fileName);
+        }
+
+        if (logger == null) {
+            return Collections.<Object[]> emptyList();
+        }
+        return logger.loadBetweenDates(fileName, itemId, startTime, stopTime);
+    }
+
     private String getFullFileName(String fileName) {
         if (fileName.contains(File.separator) || fileName.contains("/")) {
             return fileName;
@@ -145,31 +144,31 @@ public class LogReader {
             return service.getConfiguration().getLogDirectory() + fileName;
         }
     }
-    
+
     private static Date oneWeekBack(Date stopTime) {
-		return new Date(stopTime.getTime() - 1000L * 60L * 60L * 24L * 7L);
-	}
+        return new Date(stopTime.getTime() - 1000L * 60L * 60L * 24L * 7L);
+    }
 
-	private static Date parseParameterDate(String timeString) {
-		Date result = null;
-		try {
-			if (timeString != null) {
-				result = inputDateFormat.parse(timeString);
-			}
-		} catch (ParseException e1) {
-			// Silently ignore
-		}
-		return result;
-	}
+    private static Date parseParameterDate(String timeString) {
+        Date result = null;
+        try {
+            if (timeString != null) {
+                result = inputDateFormat.parse(timeString);
+            }
+        } catch (ParseException e1) {
+            // Silently ignore
+        }
+        return result;
+    }
 
-	public static String fromURL(String aURLFragment) {
-		String result = null;
-		try {
-			result = URLDecoder.decode(aURLFragment, "UTF-8");
-		} catch (UnsupportedEncodingException ex) {
-			throw new RuntimeException("UTF-8 not supported", ex);
-		}
-		return result;
-	}
+    public static String fromURL(String aURLFragment) {
+        String result = null;
+        try {
+            result = URLDecoder.decode(aURLFragment, "UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+            throw new RuntimeException("UTF-8 not supported", ex);
+        }
+        return result;
+    }
 
 }
