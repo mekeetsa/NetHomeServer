@@ -22,8 +22,15 @@ package nu.nethome.home.item;
 public interface ValueItem {
 
 	/**
-	 * @return Returns the m_Temp.
+	 * @return Returns the value.
 	 */
-	public abstract String getValue();
+	String getValue();
 
+    /**
+     * Get the unique identity of the ValueItem. This identity is unique within
+     * one server instance and does never change.
+     *
+     * @return Identity
+     */
+    long getItemId();
 }
