@@ -1,22 +1,31 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * Copyright (C) 2005-2016, Stefan Strömberg <stefangs@nethome.nu>
+ *
+ * This file is part of OpenNetHome  (http://www.nethome.nu)
+ *
+ * OpenNetHome is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * OpenNetHome is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package nu.nethome.home.item;
 
-import static org.junit.Assert.assertTrue;
+import org.h2.tools.DeleteDbFiles;
+import org.junit.*;
+import org.python.icu.util.Calendar;
 
-import java.util.Iterator;
 import java.util.List;
 
-import org.h2.tools.DeleteDbFiles;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.python.icu.util.Calendar;
+import static org.junit.Assert.assertTrue;
 
 /**
  * This junit test will create a temporary database on disk. The database is
@@ -73,15 +82,11 @@ public class LoggerComponentH2DatabaseTest {
 		List<Object[]> result = instance.loadBetweenDates(connectionString, homeItemId, now.getTime(), then.getTime());
 		System.out.println("Size of result: " + result.size());
 
-		Iterator<Object[]> iter = result.iterator();
-		while (iter.hasNext()) {
-			Object[] o = iter.next();
-			for (int i = 0; i < o.length; i++) {
-				System.out.println(o[i].toString());
-			}
-		}
-
+        for (Object[] o : result) {
+            for (Object anO : o) {
+                System.out.println(anO.toString());
+            }
+        }
 		assertTrue(result.size() == 2);
 	}
-
 }

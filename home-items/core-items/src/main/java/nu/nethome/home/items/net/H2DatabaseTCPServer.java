@@ -1,3 +1,22 @@
+/**
+ * Copyright (C) 2005-2016, Stefan Strömberg <stefangs@nethome.nu>
+ *
+ * This file is part of OpenNetHome  (http://www.nethome.nu)
+ *
+ * OpenNetHome is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * OpenNetHome is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package nu.nethome.home.items.net;
 
 import java.sql.SQLException;
@@ -17,11 +36,12 @@ import nu.nethome.util.plugin.Plugin;
  * 
  * @author Peter Lagerhem 2016-01-03
  */
+@SuppressWarnings("UnusedDeclaration")
 @Plugin
 @HomeItemType("Ports")
 public class H2DatabaseTCPServer extends HomeItemAdapter implements HomeItem {
 
-	private final String m_Model = ("<?xml version = \"1.0\"?> \n"
+	private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
 			+ "<HomeItem Class=\"H2DatabaseTCPServer\" Category=\"Ports\" >"
 			+ "  <Attribute Name=\"ConnectionString\" Type=\"String\" Get=\"getConnectionString\" />"
 			+ "  <Attribute Name=\"TCPPort\" Type=\"String\" Get=\"getTcpPort\" Set=\"setTcpPort\" Default=\"9092\" />"
@@ -33,15 +53,15 @@ public class H2DatabaseTCPServer extends HomeItemAdapter implements HomeItem {
 	private String tcpPort = null;
 	private Server server = null;
 	private String password = "";
-	private boolean all = true;;
-	private boolean force = false;
+	private boolean all = true;
+    private boolean force = false;
 	private String connectionString = "";
 
 	private static Logger logger = Logger.getLogger(H2DatabaseTCPServer.class.getName());
 
 	@Override
 	public String getModel() {
-		return m_Model;
+		return MODEL;
 	}
 
 	@Override
@@ -54,7 +74,7 @@ public class H2DatabaseTCPServer extends HomeItemAdapter implements HomeItem {
 	 */
 
 	public String getConnectionString() {
-		return connectionString;
+		return "jdbc:h2:" + connectionString + "/[data file name]";
 	}
 
 	public String getTcpPort() {

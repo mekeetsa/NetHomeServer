@@ -21,8 +21,6 @@ package nu.nethome.home.impl;
 
 import nu.nethome.home.item.*;
 import nu.nethome.home.system.HomeService;
-
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,11 +48,7 @@ public class LocalHomeItemProxy implements HomeItemProxy {
         }
         try {
             return model.getAttribute(attributeName).getValue(item);
-        } catch (InvocationTargetException e) {
-            // Ignore
-        } catch (IllegalAccessException e) {
-            // Ignore
-        } catch (ModelException e) {
+        } catch (InvocationTargetException | IllegalAccessException | ModelException e) {
             // Ignore
         }
         return "";
@@ -62,7 +56,7 @@ public class LocalHomeItemProxy implements HomeItemProxy {
 
     @Override
     public List<Attribute> getAttributeValues() {
-        List<Attribute> result = new ArrayList<Attribute>();
+        List<Attribute> result = new ArrayList<>();
 
         for (AttributeModel attributeModel : model.getAttributes()) {
             result.add(new ModelAttribute(getAttributeValue(attributeModel.getName()), attributeModel));
@@ -78,9 +72,7 @@ public class LocalHomeItemProxy implements HomeItemProxy {
             if (e.getCause() instanceof IllegalValueException) {
                 throw (IllegalValueException) e.getCause();
             }
-        } catch (IllegalAccessException e) {
-            // Ignore
-        } catch (ModelException e) {
+        } catch (IllegalAccessException | ModelException e) {
             // Ignore
         }
         return false;
@@ -107,11 +99,7 @@ public class LocalHomeItemProxy implements HomeItemProxy {
         }
         try {
             return model.getAction(actionName).call(item);
-        } catch (InvocationTargetException e) {
-            // Ignore
-        } catch (IllegalAccessException e) {
-            // Ignore
-        } catch (ModelException e) {
+        } catch (InvocationTargetException | IllegalAccessException | ModelException e) {
             // Ignore
         }
         return "";

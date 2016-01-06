@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005-2013, Stefan Strömberg <stefangs@nethome.nu>
+ * Copyright (C) 2005-2016, Stefan Strömberg <stefangs@nethome.nu>
  *
  * This file is part of OpenNetHome  (http://www.nethome.nu)
  *
@@ -77,7 +77,7 @@ public abstract class ValueItemLogger {
 	 *            a destination parameter used locally by the descendant classes
 	 * @param itemId
 	 *            a unique id associated with values stored to the destination
-	 * @return
+	 * @return If import succeeded
 	 */
 	public abstract boolean importCsvFile(String csvFileName, String destination, String itemId);
 
