@@ -76,6 +76,9 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
             createStatement.close();
 
             connection.commit();
+
+            Logger.getLogger(ValueItemLoggerH2Database.class.getName()).log(Level.INFO, "VALUELOGGER table has been created.");
+            
         } catch (Exception e) {
             Logger.getLogger(ValueItemLoggerH2Database.class.getName()).log(Level.WARNING, null, e);
         }
