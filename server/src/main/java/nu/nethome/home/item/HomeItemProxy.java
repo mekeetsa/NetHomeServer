@@ -95,5 +95,4 @@ public interface HomeItemProxy {
      * @return The representation class or null if the representation is not currently available
      */
     Object getInternalRepresentation();
-
 }

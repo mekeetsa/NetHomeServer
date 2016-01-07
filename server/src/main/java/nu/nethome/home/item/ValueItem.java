@@ -22,7 +22,7 @@ package nu.nethome.home.item;
 public interface ValueItem {
 
 	/**
-	 * @return Returns the m_Temp.
+	 * @return Returns the value.
 	 */
 	String getValue();
 
