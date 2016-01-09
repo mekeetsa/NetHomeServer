@@ -215,7 +215,6 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
         BufferedReader br;
         int importCount = 0;
         int lineCount = 0;
-        int linesInBatch = 0;
         boolean success = true;
 
         try {
@@ -261,12 +260,11 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
                             preparedStatement.setString(3, valueS);
                             preparedStatement.setTimestamp(4, sqlDate);
                             preparedStatement.addBatch();
-                            linesInBatch++;
-
                             if (lineCount % batchSize == 0) {
-                                preparedStatement.executeBatch();
-                                importCount += preparedStatement.getUpdateCount() * batchSize;
-                                linesInBatch = 0;
+                                int[] updated = preparedStatement.executeBatch();
+                                for (int i : updated) {                        
+                                    importCount += i;
+                                }
                             }
 
                         }
@@ -300,9 +298,10 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
 
             } finally {
                 try {
-                    preparedStatement.executeBatch(); // insert remaining
-                                                      // records
-                    importCount += linesInBatch;
+                    int[] updated = preparedStatement.executeBatch();
+                    for (int i : updated) {                        
+                        importCount += i;
+                    }
 
                     br.close();
                     preparedStatement.close();
