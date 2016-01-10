@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 public class ZWaveRemapButton extends HomeItemAdapter implements HomeItem {
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
-            + "<HomeItem Class=\"NexaLCRemapButton\" Category=\"Controls\" >"
+            + "<HomeItem Class=\"ZWaveRemapButton\" Category=\"Controls\" >"
             + "  <Attribute Name=\"State\" 	Type=\"String\" Get=\"getState\" Init=\"setState\" Default=\"true\" />"
             + "  <Attribute Name=\"InstanceId\" 	Type=\"String\" Get=\"getInstanceId\" 	Set=\"setInstanceId\" />"
             + "  <Attribute Name=\"OnCommand\" Type=\"Command\" Get=\"getOnCommand\" 	Set=\"setOnCommand\" />"
