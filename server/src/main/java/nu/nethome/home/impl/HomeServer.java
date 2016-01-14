@@ -110,7 +110,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 	private long totalLogRecordCount = 0;
 	private int currentWarningCount = 0;
 	private boolean activated = false;
-	private List<FinalEventListener> finalEventListeners = new LinkedList<FinalEventListener>();
+	private List<FinalEventListener> finalEventListeners = new LinkedList<>();
 	private ExtendedLoggerComponent eventCountlogger = new ExtendedLoggerComponent(this);
 	private long eventsCount = 0;
 	private long eventsCountPerPeriod = 0;
@@ -118,14 +118,14 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 	private int minutesBetweenItemSave = 60;
 	private String logDirectory = "";
 	private Python python;
-	private String loggerComponentDescriptor;
+	private String loggerComponentDescriptor = "";
     private CommandLineExecutor commandLineExecutor;
     private String warningAction = "";
     private String errorAction = "";
 
 	public HomeServer() {
-		eventQueue = new LinkedBlockingQueue<Event>(MAX_QUEUE_SIZE);
-		logRecords = new LinkedBlockingDeque<LogRecord>(LOG_RECORD_CAPACITY);
+		eventQueue = new LinkedBlockingQueue<>(MAX_QUEUE_SIZE);
+		logRecords = new LinkedBlockingDeque<>(LOG_RECORD_CAPACITY);
 		setupLogger();
 		eventCountlogger.activate(this);
 		python = new Python(this);
@@ -557,7 +557,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 	}
 
 	public void saveItems() {
-		List<HomeItem> items = new LinkedList<HomeItem>();
+		List<HomeItem> items = new LinkedList<>();
 		Iterator<HomeItem> i = itemDirectory.iterator();
 		while (i.hasNext()) {
 			items.add(i.next());
@@ -715,7 +715,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 	}
 
 	public Collection<LogRecord> getCurrentLogRecords() {
-		return new ArrayList<LogRecord>(logRecords);
+		return new ArrayList<>(logRecords);
 	}
 
 	public int getCurrentAlarmCount() {
@@ -874,8 +874,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 	 * logger or not. This method will try to find one in its private members by
 	 * using introspection.
 	 * 
-	 * @param HomeItemProxy
-	 *            the home item proxy
+	 * @param proxy the home item proxy
 	 * 
 	 * @return an ExtendedLoggerComponent object, or null if none is found.
 	 */
