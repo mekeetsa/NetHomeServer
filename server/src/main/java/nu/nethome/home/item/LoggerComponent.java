@@ -52,38 +52,38 @@ import nu.nethome.home.system.ServiceConfiguration;
  * </ul>
  * To add this component, add the following lines to a Value-Item:<br>
  * In Model: <br>
- * 
+ * <p/>
  * <pre>
  * {@code
  * +"  <Attribute Name=\"LogFile\" Type=\"String\" Get=\"getLogFile\" 	Set=\"setLogFile\" />"
  * }
  * </pre>
- * 
+ * <p/>
  * As attribute:<br>
- * 
+ * <p/>
  * <pre>
  * protected LoggerComponent m_TempLogger = new LoggerComponent(this);
  * </pre>
- * 
+ * <p/>
  * In Activate:<br>
- * 
+ * <p/>
  * <pre>
  * m_TempLogger.activate();
  * </pre>
- * 
+ * <p/>
  * In stop:<br>
- * 
+ * <p/>
  * <pre>
  * m_TempLogger.stop();
  * </pre>
- * 
+ * <p/>
  * For access:<br>
- * 
+ * <p/>
  * <pre>
  * public String getLogFile() {
  *     return m_TempLogger.getFileName();
  * }
- * 
+ *
  * public void setLogFile(String LogFile) {
  *     m_TempLogger.setFileName(LogFile);
  * }
@@ -155,27 +155,32 @@ public class LoggerComponent extends TimerTask {
     /**
      * Optionally stores to the local logger and optionally to the global
      * logger.
-     * 
+     *
      * @param value
      */
     private void storeValue(String value) {
 
         if (homeItemId.equals("0")) {
             // Check if we are missing the home item id value
-            homeItemId = Long.toString(((HomeItem) loggedItem).getItemId());
+            homeItemId = Long.toString(loggedItem.getItemId());
             logger.log(Level.INFO, "Was missing home item id, now set to: " + homeItemId);
         }
 
         // Check and log to global logger
-        ValueItemLogger logger = ValueItemLoggerFactory.createValueItemLogger(config.getValueItemLoggerDescriptor());
-        if (logger != null) {
-            logger.store(config.getValueItemLoggerDescriptor(), homeItemId, value);
+        String valueItemLoggerDescriptor = config.getValueItemLoggerDescriptor();
+        if (!valueItemLoggerDescriptor.isEmpty()) {
+            ValueItemLogger logger = ValueItemLoggerFactory.createValueItemLogger(valueItemLoggerDescriptor);
+            if (logger != null) {
+                logger.store(valueItemLoggerDescriptor, homeItemId, value);
+            }
         }
 
         // Check and log to local logger
-        logger = ValueItemLoggerFactory.createValueItemLogger(logFileName);
-        if (logger != null) {
-            logger.store(getFullFileName(), homeItemId, value);
+        if (!logFileName.isEmpty()) {
+            ValueItemLogger logger = ValueItemLoggerFactory.createValueItemLogger(logFileName);
+            if (logger != null) {
+                logger.store(getFullFileName(), homeItemId, value);
+            }
         }
     }
 
@@ -195,8 +200,7 @@ public class LoggerComponent extends TimerTask {
     }
 
     /**
-     * @param fileName
-     *            The FileName to set.
+     * @param fileName The FileName to set.
      */
     public void setFileName(String fileName) {
         logFileName = fileName;
@@ -214,8 +218,7 @@ public class LoggerComponent extends TimerTask {
     }
 
     /**
-     * @param interval
-     *            The Interval to set.
+     * @param interval The Interval to set.
      */
     public void setInterval(String interval) {
         logInterval = Integer.parseInt(interval);
