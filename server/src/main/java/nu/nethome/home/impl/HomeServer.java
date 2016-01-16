@@ -28,6 +28,7 @@ import nu.nethome.util.plugin.PluginProvider;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -110,7 +111,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 	private long totalLogRecordCount = 0;
 	private int currentWarningCount = 0;
 	private boolean activated = false;
-	private List<FinalEventListener> finalEventListeners = new LinkedList<FinalEventListener>();
+	private List<FinalEventListener> finalEventListeners = new LinkedList<>();
 	private ExtendedLoggerComponent eventCountlogger = new ExtendedLoggerComponent(this);
 	private long eventsCount = 0;
 	private long eventsCountPerPeriod = 0;
@@ -118,14 +119,14 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 	private int minutesBetweenItemSave = 60;
 	private String logDirectory = "";
 	private Python python;
-	private String loggerComponentDescriptor;
+	private String loggerComponentDescriptor = "";
     private CommandLineExecutor commandLineExecutor;
     private String warningAction = "";
     private String errorAction = "";
 
 	public HomeServer() {
-		eventQueue = new LinkedBlockingQueue<Event>(MAX_QUEUE_SIZE);
-		logRecords = new LinkedBlockingDeque<LogRecord>(LOG_RECORD_CAPACITY);
+		eventQueue = new LinkedBlockingQueue<>(MAX_QUEUE_SIZE);
+		logRecords = new LinkedBlockingDeque<>(LOG_RECORD_CAPACITY);
 		setupLogger();
 		eventCountlogger.activate(this);
 		python = new Python(this);
@@ -557,7 +558,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 	}
 
 	public void saveItems() {
-		List<HomeItem> items = new LinkedList<HomeItem>();
+		List<HomeItem> items = new LinkedList<>();
 		Iterator<HomeItem> i = itemDirectory.iterator();
 		while (i.hasNext()) {
 			items.add(i.next());
@@ -715,7 +716,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 	}
 
 	public Collection<LogRecord> getCurrentLogRecords() {
-		return new ArrayList<LogRecord>(logRecords);
+		return new ArrayList<>(logRecords);
 	}
 
 	public int getCurrentAlarmCount() {
@@ -845,10 +846,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 				// Read the HomeItem file LogFile field
 				if (!StringUtils.isBlank(proxy.getAttributeValue("LogFile"))) {
 
-					String logFile = proxy.getAttributeValue("LogFile");
-					if (!logFile.toLowerCase().startsWith(getLogDirectory().toLowerCase())) {
-						logFile = getLogDirectory() + logFile;
-					}
+					String logFile = getCompletePathName(getLogDirectory(), proxy.getAttributeValue("LogFile"));
 					String homeItemId = Long.toString(home.getItemId());
 
 					logger.log(Level.INFO, itemName + " with id " + homeItemId + " has a private logfile ('" + logFile
@@ -868,14 +866,23 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 		return "";
 	}
 	
+	public static String getCompletePathName(String path, String file)
+	{
+        String fileName = file == null ? "" : file;
+        String pathName = path == null ? "" : path;
+        if (fileName != null && !fileName.toLowerCase().startsWith(pathName.toLowerCase())) {
+            fileName = Paths.get(pathName).resolve(fileName).toString();
+        }
+        return fileName;
+	}
+	
 	/**
 	 * Gets an associated extended logger component of the HomeItem. Note that
 	 * it is up to the HomeItem implementation to actually use a component
 	 * logger or not. This method will try to find one in its private members by
 	 * using introspection.
 	 * 
-	 * @param HomeItemProxy
-	 *            the home item proxy
+	 * @param proxy the home item proxy
 	 * 
 	 * @return an ExtendedLoggerComponent object, or null if none is found.
 	 */

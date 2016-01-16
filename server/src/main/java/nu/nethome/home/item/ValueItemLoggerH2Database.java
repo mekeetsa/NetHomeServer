@@ -76,6 +76,10 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
             createStatement.close();
 
             connection.commit();
+
+            Logger.getLogger(ValueItemLoggerH2Database.class.getName()).log(Level.INFO,
+                    "VALUELOGGER table has been created.");
+
         } catch (Exception e) {
             Logger.getLogger(ValueItemLoggerH2Database.class.getName()).log(Level.WARNING, null, e);
         }
@@ -114,7 +118,7 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
             ResultSet rs = selectPreparedStatement.executeQuery();
             while (rs.next()) {
                 Double value = Double.valueOf(rs.getString("value"));
-                Object[] row = {DATEFORMAT.format(rs.getTimestamp("lastupdate")), value};
+                Object[] row = { DATEFORMAT.format(rs.getTimestamp("lastupdate")), value };
                 result.add(row);
             }
             selectPreparedStatement.close();
@@ -160,9 +164,12 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
      * a check is made if the database is not yet created and return
      * MISSING_TABLE error.
      *
-     * @param connectionString connectionString
-     * @param itemId           a unique id associated with values stored to the destination
-     * @param value            the value to try to store into the H2 database.
+     * @param connectionString
+     *            connectionString
+     * @param itemId
+     *            a unique id associated with values stored to the destination
+     * @param value
+     *            the value to try to store into the H2 database.
      * @return Any of the STORE_ERROR internal error codes.
      */
     private STORE_ERROR tryStore(String connectionString, String itemId, String value, Date aDate) {
@@ -226,11 +233,16 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
             preparedStatement.setString(1, itemId);
             preparedStatement.setString(5, itemId);
 
+            final int batchSize = 500;
+
+            logger.log(Level.INFO, "Begin import of data from file: " + csvFileName);
+
             try {
                 while ((line = br.readLine()) != null) {
                     success = true;
                     try {
                         lineCount++;
+
                         // Get next log entry
                         if (line.length() > 21) {
                             // Adapt the time format
@@ -247,17 +259,25 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
                             preparedStatement.setTimestamp(2, sqlDate);
                             preparedStatement.setString(3, valueS);
                             preparedStatement.setTimestamp(4, sqlDate);
-                            preparedStatement.execute();
-                            importCount += preparedStatement.getUpdateCount();
+                            preparedStatement.addBatch();
+                            if (lineCount % batchSize == 0) {
+                                int[] updated = preparedStatement.executeBatch();
+                                for (int i : updated) {                        
+                                    importCount += i;
+                                }
+                            }
+
                         }
                     } catch (NumberFormatException nfe) {
-                        // Bad number format in a line, ignore and try to continue
+                        // Bad number format in a line, ignore and try to
+                        // continue
                     } catch (JdbcSQLException e) {
                         if (e.getOriginalMessage().compareToIgnoreCase("Table \"VALUELOGGER\" not found") == 0) {
                             Logger.getLogger(ValueItemLoggerH2Database.class.getName()).log(Level.INFO,
                                     "Table is missing", e);
                             System.out.println("Can't continue...");
-                            // Could create the table automatically, but since the view graph does this
+                            // Could create the table automatically, but since
+                            // the view graph does this
                             // for us anyways, we will skip it here.
                             // if (autoCreateTables) { createTable(); }
                         }
@@ -278,6 +298,11 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
 
             } finally {
                 try {
+                    int[] updated = preparedStatement.executeBatch();
+                    for (int i : updated) {                        
+                        importCount += i;
+                    }
+
                     br.close();
                     preparedStatement.close();
                     connection.commit();
@@ -297,10 +322,10 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
         if (success) {
             if (importCount > 0) {
                 logger.log(Level.INFO, "Successfully imported " + importCount + " log entries for item id: " + itemId
-                        + " from " + csvFileName + " containing " + lineCount + " rows.");
-            } else {
-                logger.log(Level.INFO, "No entries were imported for item id: " + itemId + " from " + csvFileName
                         + " containing " + lineCount + " rows.");
+            } else {
+                logger.log(Level.INFO,
+                        "No entries were imported for item id: " + itemId + " containing " + lineCount + " rows.");
             }
         }
 

@@ -41,76 +41,83 @@ import nu.nethome.util.plugin.Plugin;
 @HomeItemType("Ports")
 public class H2DatabaseTCPServer extends HomeItemAdapter implements HomeItem {
 
-	private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
-			+ "<HomeItem Class=\"H2DatabaseTCPServer\" Category=\"Ports\" >"
-			+ "  <Attribute Name=\"ConnectionString\" Type=\"String\" Get=\"getConnectionString\" />"
-			+ "  <Attribute Name=\"TCPPort\" Type=\"String\" Get=\"getTcpPort\" Set=\"setTcpPort\" Default=\"9092\" />"
-			+ "</HomeItem> ");
+    private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
+            + "<HomeItem Class=\"H2DatabaseTCPServer\" Category=\"Ports\" >"
+            + "  <Attribute Name=\"ConnectionString\" Type=\"String\" Get=\"getConnectionString\" />"
+            + "  <Attribute Name=\"TCPPort\" Type=\"String\" Get=\"getTcpPort\" Set=\"setTcpPort\" Default=\"9092\" />"
+            + "  <Attribute Name=\"Status\" Type=\"String\" Get=\"getActivated\" />" 
+            + "</HomeItem> ");
 
-	/*
-	 * Internal attributes
-	 */
-	private String tcpPort = null;
-	private Server server = null;
-	private String password = "";
-	private boolean all = true;
+    /*
+     * Internal attributes
+     */
+    private String tcpPort = null;
+    private Server server = null;
+    private String password = "";
+    private boolean all = true;;
     private boolean force = false;
-	private String connectionString = "";
+    private String connectionString = "";
 
-	private static Logger logger = Logger.getLogger(H2DatabaseTCPServer.class.getName());
+    private static Logger logger = Logger.getLogger(H2DatabaseTCPServer.class.getName());
 
-	@Override
-	public String getModel() {
-		return MODEL;
-	}
+    @Override
+    public String getModel() {
+        return MODEL;
+    }
 
-	@Override
-	protected boolean isActivated() {
-		return (server != null && server.isRunning(true));
-	}
+    @Override
+    protected boolean isActivated() {
+        return (server != null && server.isRunning(true));
+    }
 
-	/*
-	 * Internal implementation methods
-	 */
+    public String getActivated() {
+        return isActivated() ? "Running" : "Not running - check logs";
+    }
 
-	public String getConnectionString() {
-		return "jdbc:h2:" + connectionString + "/[data file name]";
-	}
+    /*
+     * Internal implementation methods
+     */
 
-	public String getTcpPort() {
-		return tcpPort;
-	}
+    public String getConnectionString() {
+        return "jdbc:h2:" + connectionString + "/[data file name]";
+    }
 
-	public void setTcpPort(String tcpPort) {
-		this.tcpPort = tcpPort;
-	}
+    public String getTcpPort() {
+        return tcpPort;
+    }
 
-	public void activate(HomeService service) {
-		// Start the H2 database server
-		try {
-			if (StringUtils.isBlank(tcpPort)) {
-				server = Server.createTcpServer("-tcpAllowOthers", "-baseDir", service.getConfiguration().getLogDirectory());
-			} else {				
-				server = Server.createTcpServer("-tcpPort", tcpPort, "-tcpAllowOthers", "-baseDir", service.getConfiguration().getLogDirectory());
-			}
-			server.start();
-			connectionString = server.getURL();
-			tcpPort = String.valueOf(server.getPort());
-			logger.info("Started the H2 database server at: " + connectionString);
-		} catch (SQLException e) {
-			logger.info("Can't start the H2 database server: " + e.getMessage());
-		}
-		super.activate(service);
-	}
+    public void setTcpPort(String tcpPort) {
+        this.tcpPort = tcpPort;
+    }
 
-	public void stop() {
-		// Close H2 database server
-		try {
-			Server.shutdownTcpServer(connectionString, password, force, all);
-		} catch (SQLException e) {
-			logger.info("Can't shutdown the H2 database server: " + e.getMessage());
-		}
-		super.stop();
-	}
+    public void activate(HomeService service) {
+        // Start the H2 database server
+        try {
+            if (StringUtils.isBlank(tcpPort)) {
+                server = Server.createTcpServer("-tcpAllowOthers", "-baseDir",
+                        service.getConfiguration().getLogDirectory());
+            } else {
+                server = Server.createTcpServer("-tcpPort", tcpPort, "-tcpAllowOthers", "-baseDir",
+                        service.getConfiguration().getLogDirectory());
+            }
+            server.start();
+            connectionString = server.getURL();
+            tcpPort = String.valueOf(server.getPort());
+            logger.info("Started the H2 database server at: " + connectionString);
+        } catch (SQLException e) {
+            logger.info("Can't start the H2 database server: " + e.getMessage());
+        }
+        super.activate(service);
+    }
+
+    public void stop() {
+        // Close H2 database server
+        try {
+            Server.shutdownTcpServer(connectionString, password, force, all);
+        } catch (SQLException e) {
+            logger.info("Can't shutdown the H2 database server: " + e.getMessage());
+        }
+        super.stop();
+    }
 
 }
