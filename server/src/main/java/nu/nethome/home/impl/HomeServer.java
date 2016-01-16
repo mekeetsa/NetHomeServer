@@ -28,6 +28,7 @@ import nu.nethome.util.plugin.PluginProvider;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -845,10 +846,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 				// Read the HomeItem file LogFile field
 				if (!StringUtils.isBlank(proxy.getAttributeValue("LogFile"))) {
 
-					String logFile = proxy.getAttributeValue("LogFile");
-					if (!logFile.toLowerCase().startsWith(getLogDirectory().toLowerCase())) {
-						logFile = getLogDirectory() + logFile;
-					}
+					String logFile = getCompletePathName(getLogDirectory(), proxy.getAttributeValue("LogFile"));
 					String homeItemId = Long.toString(home.getItemId());
 
 					logger.log(Level.INFO, itemName + " with id " + homeItemId + " has a private logfile ('" + logFile
@@ -866,6 +864,16 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 		}
 
 		return "";
+	}
+	
+	public static String getCompletePathName(String path, String file)
+	{
+        String fileName = file == null ? "" : file;
+        String pathName = path == null ? "" : path;
+        if (fileName != null && !fileName.toLowerCase().startsWith(pathName.toLowerCase())) {
+            fileName = Paths.get(pathName).resolve(fileName).toString();
+        }
+        return fileName;
 	}
 	
 	/**
