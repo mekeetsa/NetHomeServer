@@ -59,6 +59,30 @@ public class HomeServerTest {
     }
 
     @Test
+    public void testGetCompletePathNameUnixPathValidFilenameWithOtherAbsolutePath() {
+        String actual = HomeServer.getCompletePathName("/var/log/nethome/", "/home/nethome/Termometer700.Log");
+        Assert.assertEquals("/home/nethome/Termometer700.Log", actual);
+    }
+
+    @Test
+    public void testGetCompletePathNameUnixPathValidFilenameWithoutPath() {
+        String actual = HomeServer.getCompletePathName("/var/log/nethome/", "Termometer700.Log");
+        Assert.assertEquals("/var/log/nethome/Termometer700.Log", actual);
+    }
+
+    @Test
+    public void testGetCompletePathNameUnixPathAndFilenameSamePaths() {
+        String actual = HomeServer.getCompletePathName("/var/log/nethome/", "/var/log/nethome/Termometer700.Log");
+        Assert.assertEquals("/var/log/nethome/Termometer700.Log", actual);
+    }
+
+    @Test
+    public void testGetCompletePathNameUnixPathAndFilenameSameRootPaths() {
+        String actual = HomeServer.getCompletePathName("/", "/Termometer700.Log");
+        Assert.assertEquals("/Termometer700.Log", actual);
+    }
+
+    @Test
     public void testGetCompletePathNameWinPathNullFilename() {
         String actual = HomeServer.getCompletePathName("\\", null);
         Assert.assertEquals("\\", actual);
@@ -80,6 +104,18 @@ public class HomeServerTest {
     public void testGetCompletePathNameWinEmptyPathValidFilename() {
         String actual = HomeServer.getCompletePathName("", "C:\\var\\log\\file.log");
         Assert.assertEquals("C:\\var\\log\\file.log", actual);
+    }
+
+    @Test
+    public void testGetCompletePathNameWinPathAndFilenameSamePaths() {
+        String actual = HomeServer.getCompletePathName("C:\\var\\log\\", "C:\\var\\log\\file.log");
+        Assert.assertEquals("C:\\var\\log\\file.log", actual);
+    }
+
+    @Test
+    public void testGetCompletePathNameWinPathAndFilenameSameRootPaths() {
+        String actual = HomeServer.getCompletePathName("C:\\", "C:\\file.log");
+        Assert.assertEquals("C:\\file.log", actual);
     }
 
 }
