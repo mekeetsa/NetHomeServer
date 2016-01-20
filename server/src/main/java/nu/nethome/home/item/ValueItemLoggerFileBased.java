@@ -29,6 +29,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -160,7 +161,7 @@ public class ValueItemLoggerFileBased extends ValueItemLogger {
                     }
                 }
             } catch (Exception e) {
-                System.out.println(e.toString());
+                logger.log(Level.WARNING, null, e);
             } finally {
                 try {
                     br.close();
@@ -170,7 +171,7 @@ public class ValueItemLoggerFileBased extends ValueItemLogger {
                 }
             }
         } catch (FileNotFoundException f) {
-            System.out.println(f.toString());
+            logger.log(Level.INFO, f.toString());
         }
         return result;
     }

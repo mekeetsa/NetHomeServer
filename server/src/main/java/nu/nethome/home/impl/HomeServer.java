@@ -826,6 +826,8 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 		}
 		
 		String itemName;
+        ValueItemLogger valueLogger = ValueItemLoggerFactory.createValueItemLogger(getGlobalLogger());
+
 		for (HomeItem home : itemDirectory.getHomeItems()) {
 			try {
 				itemName = home.getName();
@@ -852,9 +854,9 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 					logger.log(Level.INFO, itemName + " with id " + homeItemId + " has a private logfile ('" + logFile
 							+ "') that will be merged with the global database.");
 
-					ValueItemLogger logger = ValueItemLoggerFactory.createValueItemLogger(getGlobalLogger());
-					if (logger != null) {
-						logger.importCsvFile(logFile, getGlobalLogger(), homeItemId);
+					if (valueLogger.importCsvFile(logFile, getGlobalLogger(), homeItemId) == false) {
+					    // Failed, let's get out of here!
+					    return "Failed";
 					}
 				}
 
