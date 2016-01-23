@@ -37,6 +37,7 @@ import java.util.logging.Logger;
 
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.jdbcx.JdbcConnectionPool;
+import org.h2.util.StringUtils;
 
 /**
  * This is an H2 database implementation of the ValueItemLogger.
@@ -53,8 +54,8 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
     private static Logger logger = Logger.getLogger(ValueItemLoggerH2Database.class.getName());
     private static final SimpleDateFormat DATEFORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     private static final String DB_DRIVER = "org.h2.Driver";
-    private static final String DB_PASSWORD = "sa";
-    private static final String DB_USER = "sa";
+    private static final String KEYWORD_USER = "USER";
+    private static final String KEYWORD_PASSWORD = "PASSWORD";
     public static String UNIQUE_IDENTIFIER = "jdbc:h2";
     private final boolean autoCreateTables = true;
 
@@ -62,7 +63,13 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
      * Create H2 table needed for the operation of this component.
      */
     private void createTable(String connectionString) {
-        JdbcConnectionPool jdbcConnectionPool = getConnectionPool(connectionString);
+        JdbcConnectionPool jdbcConnectionPool = null;
+        try {
+            jdbcConnectionPool = getConnectionPool(connectionString);
+        } catch (Exception e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
         Statement createStatement;
 
         try (Connection connection = jdbcConnectionPool.getConnection()) {
@@ -77,8 +84,7 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
 
             connection.commit();
 
-            logger.log(Level.INFO,
-                    "VALUELOGGER table has been created.");
+            logger.log(Level.INFO, "VALUELOGGER table has been created.");
 
         } catch (Exception e) {
             logger.log(Level.WARNING, null, e);
@@ -89,13 +95,36 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
      * Create H2 JdbcConnectionPool
      *
      * @return JdbcConnectionPool
+     * @throws Exception
      */
     private JdbcConnectionPool getConnectionPool(String connectionString) {
         JdbcConnectionPool cp;
         try {
             Class.forName(DB_DRIVER);
         } catch (ClassNotFoundException e) {
-            System.out.println(e.getMessage());
+            logger.log(Level.WARNING, null, e);
+        }
+
+        String DB_PASSWORD = "sa";
+        String DB_USER = "sa";
+
+        String[] list = StringUtils.arraySplit(connectionString, ';', false);
+        for (String setting : list) {
+            if (setting.length() == 0) {
+                continue;
+            }
+            int equal = setting.indexOf('=');
+            if (equal < 0) {
+                continue;
+            }
+            String value = setting.substring(equal + 1);
+            String key = setting.substring(0, equal);
+            key = StringUtils.toUpperEnglish(key);
+            if (key.compareToIgnoreCase(KEYWORD_USER) == 0) {
+                DB_USER = value;
+            } else if (key.compareToIgnoreCase(KEYWORD_PASSWORD) == 0) {
+                DB_PASSWORD = value;
+            }
         }
         cp = JdbcConnectionPool.create(connectionString, DB_USER, DB_PASSWORD);
         return cp;
@@ -128,6 +157,8 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
                 if (autoCreateTables) {
                     createTable(connectionString);
                 }
+            } else {
+                logger.log(Level.INFO, e.toString());
             }
         } catch (Exception e) {
             logger.log(Level.WARNING, null, e);
@@ -154,8 +185,7 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
         if (result == STORE_ERROR.NONE) {
             return true;
         }
-        logger.log(Level.WARNING,
-                "Can't store value to H2 database. (" + result.name() + ")");
+        logger.log(Level.WARNING, "Can't store value to H2 database. (" + result.name() + ")");
         return false;
     }
 
@@ -178,6 +208,7 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
 
         JdbcConnectionPool jdbcConnectionPool = getConnectionPool(connectionString);
         PreparedStatement preparedStatement;
+
         value = value.replace(',', '.');
 
         String Query = "INSERT INTO VALUELOGGER(valueItemId, lastupdate, value) values" + "(?,?,?)";
@@ -215,119 +246,126 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
         BufferedReader br;
         int importCount = 0;
         int lineCount = 0;
-        boolean success = true;
+        boolean success = false;
 
-        try {
-            // Open the data file
-            logger.log(Level.INFO, "Begin import of data from file: " + csvFileName);
-            FileReader reader = new FileReader(csvFileName);
-            br = new BufferedReader(reader);
-            String line;
-
-            // Connect to db
-            JdbcConnectionPool jdbcConnectionPool = getConnectionPool(connectionString);
-            Connection connection = jdbcConnectionPool.getConnection();
-            PreparedStatement preparedStatement;
-            String Query = "INSERT INTO VALUELOGGER (VALUEITEMID, LASTUPDATE, VALUE) SELECT ?,?,? WHERE NOT EXISTS (SELECT 1 FROM VALUELOGGER WHERE LASTUPDATE = ? and VALUEITEMID = ?)";
-            connection.setAutoCommit(false);
-            preparedStatement = connection.prepareStatement(Query);
-            preparedStatement.setString(1, itemId);
-            preparedStatement.setString(5, itemId);
-            final int batchSize = 500;
-
+        boolean retryAfterCreateTable;
+        do {
+            retryAfterCreateTable = false;
             try {
-                while ((line = br.readLine()) != null) {
-                    success = true;
-                    try {
-                        lineCount++;
+                // Open the data file
+                logger.log(Level.INFO, "Begin import of data from file: " + csvFileName);
+                FileReader reader = new FileReader(csvFileName);
+                br = new BufferedReader(reader);
+                String line;
 
-                        // Get next log entry
-                        if (line.length() > 21) {
-                            // Adapt the time format
-                            String minuteTime = line.substring(0, 16).replace('.', '-');
-                            // Parse the time stamp
-                            Date min = fileDateFormat.parse(minuteTime);
+                // Connect to db
+                JdbcConnectionPool jdbcConnectionPool = getConnectionPool(connectionString);
+                Connection connection = jdbcConnectionPool.getConnection();
+                PreparedStatement preparedStatement;
+                String Query = "INSERT INTO VALUELOGGER (VALUEITEMID, LASTUPDATE, VALUE) SELECT ?,?,? WHERE NOT EXISTS (SELECT 1 FROM VALUELOGGER WHERE LASTUPDATE = ? and VALUEITEMID = ?)";
+                connection.setAutoCommit(false);
+                preparedStatement = connection.prepareStatement(Query);
+                preparedStatement.setString(1, itemId);
+                preparedStatement.setString(5, itemId);
+                final int batchSize = 500;
 
-                            // Check if value is within time window
-                            double value = Double.parseDouble((line.substring(20)).replace(',', '.'));
-                            String valueS = String.valueOf(value);
-
-                            java.sql.Timestamp sqlDate = new java.sql.Timestamp(min.getTime());
-
-                            preparedStatement.setTimestamp(2, sqlDate);
-                            preparedStatement.setString(3, valueS);
-                            preparedStatement.setTimestamp(4, sqlDate);
-                            preparedStatement.addBatch();
-                            if (lineCount % batchSize == 0) {
-                                int[] updated = preparedStatement.executeBatch();
-                                for (int i : updated) {                        
-                                    importCount += i;
-                                }
-                            }
-
-                        }
-                    } catch (NumberFormatException nfe) {
-                        // Bad number format in a line, ignore and try to
-                        // continue
-                        logger.info("Bad number format in log row");
-                    } catch (JdbcSQLException e) {
-                        if (e.getOriginalMessage().compareToIgnoreCase("Table \"VALUELOGGER\" not found") == 0) {
-                            logger.log(Level.INFO,
-                                    "Table is missing", e);
-                            System.out.println("Can't continue...");
-                            // Could create the table automatically, but since
-                            // the view graph does this
-                            // for us anyways, we will skip it here.
-                            // if (autoCreateTables) { createTable(); }
-                        }
-                        logger.log(Level.WARNING, "Failed to import log", e);
-                        break;
-                    } catch (SQLException ex) {
-                        logger.log(Level.WARNING, "Failed to import log", ex);
-                        System.out.println("Can't continue...");
-                        break;
-                    } catch (Exception e) {
-                        logger.log(Level.WARNING,
-                                "Connecting with: " + connectionString, e);
-                        break;
-                    }
-                }
-            } catch (Exception e) {
-                logger.log(Level.WARNING, "Failed to import file", e);
-
-            } finally {
                 try {
-                    int[] updated = preparedStatement.executeBatch();
-                    for (int i : updated) {                        
-                        importCount += i;
-                    }
+                    while ((line = br.readLine()) != null) {
+                        success = true;
+                        try {
+                            lineCount++;
 
-                    br.close();
-                    preparedStatement.close();
-                    connection.commit();
-                    connection.close();
-                    jdbcConnectionPool.dispose();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                            // Get next log entry
+                            if (line.length() > 21) {
+                                // Adapt the time format
+                                String minuteTime = line.substring(0, 16).replace('.', '-');
+                                // Parse the time stamp
+                                Date min = fileDateFormat.parse(minuteTime);
+
+                                // Check if value is within time window
+                                double value = Double.parseDouble((line.substring(20)).replace(',', '.'));
+                                String valueS = String.valueOf(value);
+
+                                java.sql.Timestamp sqlDate = new java.sql.Timestamp(min.getTime());
+
+                                preparedStatement.setTimestamp(2, sqlDate);
+                                preparedStatement.setString(3, valueS);
+                                preparedStatement.setTimestamp(4, sqlDate);
+                                preparedStatement.addBatch();
+                                if (lineCount % batchSize == 0) {
+                                    int[] updated = preparedStatement.executeBatch();
+                                    for (int i : updated) {
+                                        importCount += i;
+                                    }
+                                }
+
+                            }
+                        } catch (NumberFormatException nfe) {
+                            // Bad number format in a line, ignore and try to
+                            // continue
+                            logger.info("Bad number format in log row");
+                        } catch (JdbcSQLException e) {
+                            logger.log(Level.WARNING, "Failed to import log", e);
+                            break;
+                        } catch (SQLException ex) {
+                            logger.log(Level.WARNING, "Failed to import log", ex);
+                            break;
+                        } catch (Exception e) {
+                            logger.log(Level.WARNING, "Connecting with: " + connectionString, e);
+                            break;
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "Failed to import file", e);
+                } finally {
+                    try {
+                        int[] updated = preparedStatement.executeBatch();
+                        for (int i : updated) {
+                            importCount += i;
+                        }
+
+                        br.close();
+                        preparedStatement.close();
+                        connection.commit();
+                        connection.close();
+                        jdbcConnectionPool.dispose();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (JdbcSQLException e) {
+                if (e.getOriginalMessage().compareToIgnoreCase("Table \"VALUELOGGER\" not found") == 0) {
+                    logger.log(Level.INFO, "Table is missing - will try to create");
+                    if (autoCreateTables && retryAfterCreateTable == false) {
+                        createTable(connectionString);
+                        // A graceful one-time retry is hereby permitted
+                        retryAfterCreateTable = true;
+                    }
+                } else {
+                    logger.log(Level.WARNING, "Failed to import", e);
+                }
+            } catch (FileNotFoundException f) {
+                logger.log(Level.INFO, f.toString());
+                // Although missing file, this was successful!
+                success = true;
+            } catch (SQLException e1) {
+                logger.log(Level.WARNING, "Failed to import", e1);
+            } catch (Exception e1) {
+                logger.log(Level.WARNING, "Failed to import", e1);
+            }
+
+            if (success) {
+                if (importCount > 0) {
+                    logger.log(Level.INFO, "Successfully imported " + importCount + " log entries for item id: "
+                            + itemId + " containing " + lineCount + " rows.");
+                } else {
+                    logger.log(Level.INFO,
+                            "No entries were imported for item id: " + itemId + " containing " + lineCount + " rows.");
                 }
             }
-        } catch (FileNotFoundException f) {
-            logger.log(Level.INFO, f.toString());
-        } catch (SQLException e1) {
-            logger.log(Level.WARNING, "Failed to import", e1);
-        }
+        } while (retryAfterCreateTable);
 
-        if (success) {
-            if (importCount > 0) {
-                logger.log(Level.INFO, "Successfully imported " + importCount + " log entries for item id: " + itemId
-                        + " containing " + lineCount + " rows.");
-            } else {
-                logger.log(Level.INFO,
-                        "No entries were imported for item id: " + itemId + " containing " + lineCount + " rows.");
-            }
-        }
-
-        return true;
+        return success;
     }
 
 }

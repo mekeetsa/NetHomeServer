@@ -43,20 +43,38 @@ public class H2DatabaseTCPServer extends HomeItemAdapter implements HomeItem {
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"H2DatabaseTCPServer\" Category=\"Ports\" >"
-            + "  <Attribute Name=\"ConnectionString\" Type=\"String\" Get=\"getConnectionString\" />"
-            + "  <Attribute Name=\"TCPPort\" Type=\"String\" Get=\"getTcpPort\" Set=\"setTcpPort\" Default=\"9092\" />"
-            + "  <Attribute Name=\"Status\" Type=\"String\" Get=\"getActivated\" />" 
+            + "  <Attribute Name=\"TCP ConnectionString\" Type=\"String\" Get=\"getTCPConnectionString\" />"
+            + "  <Attribute Name=\"TCP Port\" Type=\"String\" Get=\"getTcpPort\" Set=\"setTcpPort\" Default=\"9092\" />"
+            + "  <Attribute Name=\"TCP Status\" Type=\"String\" Get=\"getTcpActivated\" />"
+            + "  <Attribute Name=\"WEB ConnectionString\" Type=\"String\" Get=\"getWEBConnectionString\" />"
+            + "  <Attribute Name=\"WEB Port\" Type=\"String\" Get=\"getWebPort\" Set=\"setWebPort\" Default=\"8082\" />"
+            + "  <Attribute Name=\"WEB Status\" Type=\"String\" Get=\"getWebActivated\" />"
+            + "  <Attribute Name=\"DatabasePath\" Type=\"String\" Get=\"getDatabasePath\" Set=\"setDatabasePath\" />"
+            + "  <Action Name=\"Start TCP Service\"     Method=\"activateTcpServer\" />"
+            + "  <Action Name=\"Stop TCP Service\"      Method=\"deactivateTcpServer\" />"
+            + "  <Action Name=\"Start WEB Service\"     Method=\"activateWebServer\" />"
+            + "  <Action Name=\"Stop WEB Service\"      Method=\"deactivateWebServer\" />"
             + "</HomeItem> ");
 
     /*
      * Internal attributes
      */
-    private String tcpPort = null;
-    private Server server = null;
-    private String password = "";
+    
+    // Console
+    private String tcpPort = "9092";
+    private Server tcpServer = null;
+    private String tcpConnectionString = "";
     private boolean all = true;;
-    private boolean force = false;
-    private String connectionString = "";
+    private boolean force = true;
+
+    // Web
+    private String webPort = "8082";
+    private Server webServer = null;
+    private String webConnectionString = "";
+
+    // Default is the user's home directory, please see reference:
+    // http://www.h2database.com/html/advanced.html?highlight=baseDir&search=basedir#firstFound
+    private String databasePath = "~";
 
     private static Logger logger = Logger.getLogger(H2DatabaseTCPServer.class.getName());
 
@@ -67,19 +85,64 @@ public class H2DatabaseTCPServer extends HomeItemAdapter implements HomeItem {
 
     @Override
     protected boolean isActivated() {
-        return (server != null && server.isRunning(true));
+        return isTcpActivated() || isWebActivated();
     }
 
-    public String getActivated() {
-        return isActivated() ? "Running" : "Not running - check logs";
+    @Override
+    public void activate(HomeService service) {
+        activateTcpServer();
+        activateWebServer();
+        super.activate(service);
+    }
+
+    @Override
+    public void stop() {
+        deactivateTcpServer();
+        deactivateWebServer();
+        super.stop();
     }
 
     /*
      * Internal implementation methods
      */
 
-    public String getConnectionString() {
-        return "jdbc:h2:" + connectionString + "/[data file name]";
+    public void deactivateTcpServer() {
+        // Close H2 console server
+        try {
+            // We don't use password (param #2) for shutting down the server
+            Server.shutdownTcpServer(tcpConnectionString, "", force, all);
+        } catch (SQLException e) {
+            logger.info("Can't shutdown the H2 database server: " + e.getMessage());
+        }
+    }
+
+    public void deactivateWebServer() {
+        // Close H2 web server
+        webServer.stop();
+    }
+
+    private boolean isTcpActivated() {
+        return (tcpServer != null && tcpServer.isRunning(true));
+    }
+
+    private boolean isWebActivated() {
+        return (webServer != null && webServer.isRunning(true));
+    }
+
+    public String getTcpActivated() {
+        return isTcpActivated() ? "Running" : "Not running - check logs";
+    }
+
+    public String getWebActivated() {
+        return isWebActivated() ? "Running" : "Not running - check logs";
+    }
+
+    public String getTCPConnectionString() {
+        return "jdbc:h2:" + tcpConnectionString + "/[data file name]";
+    }
+
+    public String getWEBConnectionString() {
+        return webConnectionString;
     }
 
     public String getTcpPort() {
@@ -90,34 +153,58 @@ public class H2DatabaseTCPServer extends HomeItemAdapter implements HomeItem {
         this.tcpPort = tcpPort;
     }
 
-    public void activate(HomeService service) {
-        // Start the H2 database server
+    public String getWebPort() {
+        return webPort;
+    }
+
+    public void setWebPort(String webPort) {
+        this.webPort = webPort;
+    }
+
+    public void activateTcpServer() {
+        // Start the H2 web server
         try {
             if (StringUtils.isBlank(tcpPort)) {
-                server = Server.createTcpServer("-tcpAllowOthers", "-baseDir",
-                        service.getConfiguration().getLogDirectory());
+                tcpServer = Server.createTcpServer("-tcpAllowOthers", "-baseDir", getDatabasePath());
             } else {
-                server = Server.createTcpServer("-tcpPort", tcpPort, "-tcpAllowOthers", "-baseDir",
-                        service.getConfiguration().getLogDirectory());
+                tcpServer = Server.createTcpServer("-tcpPort", tcpPort, "-tcpAllowOthers", "-baseDir", getDatabasePath());
             }
-            server.start();
-            connectionString = server.getURL();
-            tcpPort = String.valueOf(server.getPort());
-            logger.info("Started the H2 database server at: " + connectionString);
+            tcpServer.start();
+            tcpConnectionString = tcpServer.getURL();
+            tcpPort = String.valueOf(tcpServer.getPort());
+            logger.info("Started the H2 database server at: " + tcpConnectionString);
         } catch (SQLException e) {
             logger.info("Can't start the H2 database server: " + e.getMessage());
         }
-        super.activate(service);
     }
 
-    public void stop() {
-        // Close H2 database server
+    public void activateWebServer() {
+        // Start the H2 web server
         try {
-            Server.shutdownTcpServer(connectionString, password, force, all);
+            if (StringUtils.isBlank(webPort)) {
+                webServer = Server.createWebServer("-baseDir", getDatabasePath());
+                // , "-webSSL", useWebSSL -webAllowOthers, -webDaemon, -trace,
+                // -ifExists, -baseDir, -properties)
+            } else {
+                webServer = Server.createWebServer("-webPort", webPort, "-ifExists", "-baseDir", getDatabasePath());
+            }
+            webServer.start();
+            webConnectionString = webServer.getURL();
+            webPort = String.valueOf(webServer.getPort());
+            logger.info("Started the H2 web server at: " + tcpConnectionString);
         } catch (SQLException e) {
-            logger.info("Can't shutdown the H2 database server: " + e.getMessage());
+            logger.info("Can't start the H2 web server: " + e.getMessage());
         }
-        super.stop();
+    }
+
+    public String getDatabasePath() {
+        // service.getConfiguration().getLogDirectory()
+        return databasePath;
+    }
+
+    public void setDatabasePath(String path) {
+        // service.getConfiguration().getLogDirectory()
+        databasePath = path;
     }
 
 }
