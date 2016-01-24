@@ -87,7 +87,7 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
             logger.log(Level.INFO, "VALUELOGGER table has been created.");
 
         } catch (Exception e) {
-            logger.log(Level.WARNING, null, e);
+            logger.log(Level.WARNING, "Reason :" + e.getMessage(), e);
         }
     }
 
@@ -158,10 +158,10 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
                     createTable(connectionString);
                 }
             } else {
-                logger.log(Level.INFO, e.toString());
+                logger.log(Level.INFO, e.getMessage());
             }
         } catch (Exception e) {
-            logger.log(Level.WARNING, null, e);
+            logger.log(Level.WARNING, "Reason :" + e.getMessage(), e);
         } finally {
             jdbcConnectionPool.dispose();
         }
@@ -226,9 +226,11 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
             if (e.getOriginalMessage().compareToIgnoreCase("Table \"VALUELOGGER\" not found") == 0) {
                 logger.log(Level.INFO, "Table is missing", e);
                 result = STORE_ERROR.MISSING_TABLE;
+            } else {
+                logger.log(Level.INFO, e.getMessage());
             }
         } catch (Exception e) {
-            logger.log(Level.WARNING, null, e);
+            logger.log(Level.WARNING, "Reason: " + e.getMessage(), e);
             result = STORE_ERROR.JDBC_EXCEPTION;
         } finally {
             jdbcConnectionPool.dispose();
@@ -305,18 +307,18 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
                             // continue
                             logger.info("Bad number format in log row");
                         } catch (JdbcSQLException e) {
-                            logger.log(Level.WARNING, "Failed to import log", e);
+                            logger.log(Level.WARNING, "Failed to import log:" + e.getMessage(), e);
                             break;
                         } catch (SQLException ex) {
-                            logger.log(Level.WARNING, "Failed to import log", ex);
+                            logger.log(Level.WARNING, "Failed to import log:" + ex.getMessage(), ex);
                             break;
                         } catch (Exception e) {
-                            logger.log(Level.WARNING, "Connecting with: " + connectionString, e);
+                            logger.log(Level.WARNING, "Connecting with: " + connectionString + ", reason: " + e.getMessage(), e);
                             break;
                         }
                     }
                 } catch (Exception e) {
-                    logger.log(Level.WARNING, "Failed to import file", e);
+                    logger.log(Level.WARNING, "Failed to import file:" + e.getMessage(), e);
                 } finally {
                     try {
                         int[] updated = preparedStatement.executeBatch();
@@ -342,16 +344,16 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
                         retryAfterCreateTable = true;
                     }
                 } else {
-                    logger.log(Level.WARNING, "Failed to import", e);
+                    logger.log(Level.WARNING, "Failed to import:" + e.getMessage(), e);
                 }
             } catch (FileNotFoundException f) {
                 logger.log(Level.INFO, f.toString());
                 // Although missing file, this was successful!
                 success = true;
             } catch (SQLException e1) {
-                logger.log(Level.WARNING, "Failed to import", e1);
+                logger.log(Level.WARNING, "Failed to import:" + e1.getMessage(), e1);
             } catch (Exception e1) {
-                logger.log(Level.WARNING, "Failed to import", e1);
+                logger.log(Level.WARNING, "Failed to import:" + e1.getMessage(), e1);
             }
 
             if (success) {
