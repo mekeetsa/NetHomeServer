@@ -40,7 +40,7 @@ public class SettingsBasePage extends PortletPage {
         subpages.add(new EditSettingsPage(mLocalURL, server, editPermission));
         subpages.add(new LogPage(mLocalURL, server));
         subpages.add(new CodersPage(mLocalURL, server));
-        // subpages.add(new MediaPage(mLocalURL + "?page=" + getPageName(), server, mediaFileDirectory));
+        subpages.add(new MediaPage(mLocalURL + "?page=" + getPageName(), server, mediaFileDirectory));
     }
 
     @Override
