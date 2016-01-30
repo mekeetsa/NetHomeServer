@@ -20,6 +20,11 @@
 package nu.nethome.home.items.web.servergui;
 
 import nu.nethome.home.system.HomeService;
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemFactory;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -30,12 +35,15 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 public class MediaPage extends PortletPage {
 
+    private static Logger logger = Logger.getLogger(MediaPage.class.getName());
     private final HomeService server;
     private final SimpleDateFormat dateFormat;
     private final String mediaFileDirectory;
@@ -58,7 +66,7 @@ public class MediaPage extends PortletPage {
 
     @Override
     public String getIconUrl() {
-        return "web/home/log32.png";
+        return "web/home/image32.png";
     }
 
     /**
@@ -71,7 +79,9 @@ public class MediaPage extends PortletPage {
         res.setContentType("text/html");
         PrintWriter p = res.getWriter();
         HomeGUIArguments pageArguments = new HomeGUIArguments(req);
-
+        if (ServletFileUpload.isMultipartContent(req)) {
+            handleFileUpload(req, p);
+        }
         printMediaHeading(p);
 
         printMediaFiles(p);
@@ -80,19 +90,39 @@ public class MediaPage extends PortletPage {
         printMediaFooter(p);
     }
 
+    private void handleFileUpload(HttpServletRequest req, PrintWriter p) {
+
+        FileItemFactory factory = new DiskFileItemFactory();
+        ServletFileUpload upload = new ServletFileUpload(factory);
+        try {
+            List<FileItem> fields = upload.parseRequest(req);
+            for (FileItem field : fields) {
+                if (!field.isFormField()) {
+                    String fileName = field.getName();
+                    File uploadedFile = new File(mediaFileDirectory + File.separator + fileName);
+                    if (!uploadedFile.exists()) {
+                        field.write(uploadedFile);
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Failed to upload file", e);
+        }
+    }
+
     private void printMediaFiles(PrintWriter p) {
-        p.println("<div class=\"logrows\">");
+        p.println("<div class=\"medialist\">");
         p.println(" <table>");
         File folder = new File(mediaFileDirectory);
         File[] listOfFiles = folder.listFiles();
-        p.println("  <tr class=\"logrowsheader\"><td></td><td>Time</td><td>Source</td><td>Message</td></tr>");
+        p.println("  <tr class=\"logrowsheader\"><td></td><td>Name</td><td>Time</td></tr>");
         for (File file : listOfFiles) {
             if (file.isFile()) {
                 p.println("  <tr>");
-                p.println("   <td><img src=\"web/home/info.png\" /></td>");
-                p.println("   <td>" + dateFormat.format(new Date(file.lastModified())) + "</td>");
+                p.println("   <td><img src=\"media/" + file.getName() + "\" height=\"32\" width=\"32\" /></td>");
                 p.println("   <td>" + file.getName() + "</td>");
-                p.println("   <td>" + "" + "</td>");
+                p.println("   <td>" + dateFormat.format(new Date(file.lastModified())) + "</td>");
                 p.println("  </tr>");
             }
         }
@@ -113,8 +143,8 @@ public class MediaPage extends PortletPage {
     }
 
     private void printFileSelector(PrintWriter p) {
-        p.println("<form action=\"" + localURL +  "\" method=\"post\" enctype=\"multipart/form-data\">\n" +
-                "    Select image to upload:\n" +
+        p.println("<form class=\"uploadPanel\"action=\"" + localURL + "\" method=\"post\" enctype=\"multipart/form-data\">\n" +
+                "    Select a new image to upload:\n" +
                 "    <input type=\"file\" name=\"fileToUpload\" id=\"fileToUpload\">\n" +
                 "    <input type=\"submit\" value=\"Upload Image\" name=\"submit\">\n" +
                 "</form>");

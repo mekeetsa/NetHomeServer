@@ -15,6 +15,12 @@ NetHomeServer uses a number of external libraries in source or jar-form.
 Here is a list of the terms and conditions under which these external
 libraries are used and may be distributed:
 
+* Apache Commons
+
+OpenNetHome uses the FileUpload component from Apache Commons. Apache Commons is released under
+Apache License Version 2.0. See https://commons.apache.org/proper/commons-fileupload/index.html
+for details.
+
 * babbler (xmpp-core-client.jar)
 
 A great client API for accessing the XMPP- (Jabber) protocol. Written by
