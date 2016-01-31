@@ -776,7 +776,7 @@ textarea.iteminput {
     font-weight: bold;
 }
 
-.medialist tr td:first-child {
+.medialist tr td:first-child, .medialist tr td:nth-child(2) {
     width: 1%;
 }
 

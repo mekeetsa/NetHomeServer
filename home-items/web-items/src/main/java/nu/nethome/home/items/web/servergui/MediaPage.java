@@ -26,9 +26,12 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
+import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -116,18 +119,31 @@ public class MediaPage extends PortletPage {
         p.println(" <table>");
         File folder = new File(mediaFileDirectory);
         File[] listOfFiles = folder.listFiles();
-        p.println("  <tr class=\"logrowsheader\"><td></td><td>Name</td><td>Time</td></tr>");
+        p.println("  <tr class=\"logrowsheader\"><td></td><td>Name</td><td>Size</td><td>Time</td></tr>");
         for (File file : listOfFiles) {
             if (file.isFile()) {
                 p.println("  <tr>");
                 p.println("   <td><img src=\"media/" + file.getName() + "\" height=\"32\" width=\"32\" /></td>");
                 p.println("   <td>" + file.getName() + "</td>");
+                p.println("   <td>" + getImageSize(file) + "</td>");
                 p.println("   <td>" + dateFormat.format(new Date(file.lastModified())) + "</td>");
                 p.println("  </tr>");
             }
         }
         p.println(" </table>");
         p.println("</div>");
+    }
+
+    private String getImageSize(File file) {
+        try {
+            BufferedImage image = ImageIO.read(file);
+            if (image != null) {
+                return "" + image.getWidth() + " x " + image.getHeight();
+            }
+        } catch (IOException e) {
+            // Ignore
+        }
+        return "No image";
     }
 
     private String getIconName(int level) {
