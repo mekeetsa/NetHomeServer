@@ -37,8 +37,8 @@ public class SettingsBasePage extends PortletPage {
     public SettingsBasePage(String mLocalURL, HomeService server, String mediaFileDirectory, EditPermission editPermission) {
         super(mLocalURL);
         this.server = server;
-        subpages.add(new MediaPage(mLocalURL + "?page=" + getPageName(), server, mediaFileDirectory));
         subpages.add(new EditSettingsPage(mLocalURL, server, editPermission));
+        subpages.add(new MediaPage(mLocalURL + "?page=" + getPageName(), server, mediaFileDirectory));
         subpages.add(new LogPage(mLocalURL, server));
         subpages.add(new CodersPage(mLocalURL, server));
     }

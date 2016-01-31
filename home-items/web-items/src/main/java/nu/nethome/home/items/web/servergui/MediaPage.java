@@ -81,7 +81,6 @@ public class MediaPage extends PortletPage {
         res.setStatus(HttpServletResponse.SC_OK);
         res.setContentType("text/html");
         PrintWriter p = res.getWriter();
-        HomeGUIArguments pageArguments = new HomeGUIArguments(req);
         if (ServletFileUpload.isMultipartContent(req)) {
             handleFileUpload(req, p);
         }
@@ -94,7 +93,6 @@ public class MediaPage extends PortletPage {
     }
 
     private void handleFileUpload(HttpServletRequest req, PrintWriter p) {
-
         FileItemFactory factory = new DiskFileItemFactory();
         ServletFileUpload upload = new ServletFileUpload(factory);
         try {
@@ -103,12 +101,9 @@ public class MediaPage extends PortletPage {
                 if (!field.isFormField()) {
                     String fileName = field.getName();
                     File uploadedFile = new File(mediaFileDirectory + File.separator + fileName);
-                    if (!uploadedFile.exists()) {
-                        field.write(uploadedFile);
-                    }
+                    field.write(uploadedFile);
                 }
             }
-
         } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to upload file", e);
         }
@@ -154,9 +149,9 @@ public class MediaPage extends PortletPage {
 
     private void printFileSelector(PrintWriter p) {
         p.println("<form class=\"uploadPanel\"action=\"" + localURL + "\" method=\"post\" enctype=\"multipart/form-data\">\n" +
-                "    Select a new image to upload:\n" +
+                "    Select a new image to add:\n" +
                 "    <input type=\"file\" name=\"fileToUpload\" id=\"fileToUpload\">\n" +
-                "    <input type=\"submit\" value=\"Upload Image\" name=\"submit\">\n" +
+                "    <input type=\"submit\" value=\"Add Image\" name=\"submit\">\n" +
                 "</form>");
     }
 
