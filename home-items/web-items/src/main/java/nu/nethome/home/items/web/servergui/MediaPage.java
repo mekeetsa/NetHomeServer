@@ -117,8 +117,8 @@ public class MediaPage extends PortletPage {
         p.println("  <tr class=\"logrowsheader\"><td></td><td>Name</td><td>Size</td><td>Time</td><td></td></tr>");
         for (File file : listOfFiles) {
             if (file.isFile()) {
-                final String imageSize = getImageSize(file);
-                final boolean isImageFile = !imageSize.isEmpty();
+                final String imageSize = "" + file.length();
+                final boolean isImageFile = isImageFile(file);
                 final String iconFile = isImageFile ? "media/" + file.getName() : "web/home/log32.png";
                 final String fileName = isImageFile ? "<a href=\"media/" + file.getName() + "\">" + file.getName() + "</a>" :
                         file.getName();
@@ -133,6 +133,12 @@ public class MediaPage extends PortletPage {
         }
         p.println(" </table>");
         p.println("</div>");
+    }
+
+    boolean isImageFile(File file) {
+        String fileName = file.getName().toLowerCase();
+        return fileName.endsWith(".jpg") || fileName.endsWith(".png") || fileName.endsWith(".gif") ||
+                fileName.endsWith(".bmp") || fileName.endsWith(".jpeg");
     }
 
     private String getImageSize(File file) {
