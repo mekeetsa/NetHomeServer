@@ -776,8 +776,14 @@ textarea.iteminput {
     font-weight: bold;
 }
 
-.medialist tr td:first-child, .medialist tr td:nth-child(2) {
+.medialist tr td {
     width: 1%;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.medialist tr td:last-child {
+    width: 100%;
 }
 
 .categoryheader {

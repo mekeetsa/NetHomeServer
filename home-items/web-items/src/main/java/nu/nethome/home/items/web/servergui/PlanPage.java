@@ -123,7 +123,8 @@ public class PlanPage implements HomePageInterface {
                 "<img src=\"web/home/info16.png\" />&nbsp;Drag and drop to move Items on the page" +
                 "</div>");
         p.println("<div class=\"draggable ui-draggable\" style=\"top:250px;left:41px;\">\n" +
-                "<img src=\"web/home/info16.png\" />&nbsp;Background image file directory: " + mediaDirectory +
+                "<img src=\"web/home/info16.png\" />&nbsp;To add a new background image, go to <a href=\"" +
+                localURL + "?page=settings&subpage=media" + "\">Settings->Media</a>" +
                 "</div>");
     }
 

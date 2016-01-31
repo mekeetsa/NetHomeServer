@@ -119,14 +119,20 @@ public class MediaPage extends PortletPage {
         p.println(" <table>");
         File folder = new File(mediaFileDirectory);
         File[] listOfFiles = folder.listFiles();
-        p.println("  <tr class=\"logrowsheader\"><td></td><td>Name</td><td>Size</td><td>Time</td></tr>");
+        p.println("  <tr class=\"logrowsheader\"><td></td><td>Name</td><td>Size</td><td>Time</td><td></td></tr>");
         for (File file : listOfFiles) {
             if (file.isFile()) {
+                final String imageSize = getImageSize(file);
+                final boolean isImageFile = !imageSize.isEmpty();
+                final String iconFile = isImageFile ? "media/" + file.getName() : "web/home/log32.png";
+                final String fileName = isImageFile ? "<a href=\"media/" + file.getName() + "\">" + file.getName() + "</a>" :
+                        file.getName();
                 p.println("  <tr>");
-                p.println("   <td><img src=\"media/" + file.getName() + "\" height=\"32\" width=\"32\" /></td>");
-                p.println("   <td>" + file.getName() + "</td>");
-                p.println("   <td>" + getImageSize(file) + "</td>");
+                p.println("   <td><img src=\"" + iconFile + "\" height=\"32\" width=\"32\" /></td>");
+                p.println("   <td>" + fileName + "</td>");
+                p.println("   <td>" + imageSize + "</td>");
                 p.println("   <td>" + dateFormat.format(new Date(file.lastModified())) + "</td>");
+                p.println("   <td></td>");
                 p.println("  </tr>");
             }
         }
@@ -138,24 +144,12 @@ public class MediaPage extends PortletPage {
         try {
             BufferedImage image = ImageIO.read(file);
             if (image != null) {
-                return "" + image.getWidth() + " x " + image.getHeight();
+                return "" + image.getWidth() + "&nbsp;x&nbsp;" + image.getHeight();
             }
         } catch (IOException e) {
             // Ignore
         }
-        return "No image";
-    }
-
-    private String getIconName(int level) {
-        String iconName;
-        if (level >= Level.SEVERE.intValue()) {
-            iconName = "critical.png";
-        } else if (level >= Level.WARNING.intValue()) {
-            iconName = "warn.png";
-        } else {
-            iconName = "info.png";
-        }
-        return iconName;
+        return "";
     }
 
     private void printFileSelector(PrintWriter p) {
