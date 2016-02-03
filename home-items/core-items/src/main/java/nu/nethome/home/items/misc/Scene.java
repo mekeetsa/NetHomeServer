@@ -41,6 +41,7 @@ public class Scene extends HomeItemAdapter implements HomeItem {
 
 	private final String m_Model = ("<?xml version = \"1.0\"?> \n"
 			+ "<HomeItem Class=\"Scene\"  Category=\"Controls\" >"
+            + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Init=\"setState\" Default=\"true\" />"
 			+ "  <Attribute Name=\"Delay\" Type=\"String\" Get=\"getDelay\" 	Set=\"setDelay\" />"
 			+ "  <Attribute Name=\"Command1\" Type=\"Command\" Get=\"getCommand1\" 	Set=\"setCommand1\" />"
 			+ "  <Attribute Name=\"Command2\" Type=\"Command\" Get=\"getCommand2\" 	Set=\"setCommand2\" />"
@@ -49,9 +50,12 @@ public class Scene extends HomeItemAdapter implements HomeItem {
 			+ "  <Attribute Name=\"Command5\" Type=\"Command\" Get=\"getCommand5\" 	Set=\"setCommand5\" />"
 			+ "  <Attribute Name=\"Command6\" Type=\"Command\" Get=\"getCommand6\" 	Set=\"setCommand6\" />"
 			+ "  <Action Name=\"Action\" Method=\"action\" Default=\"true\" />"
-			+ "</HomeItem> "); 
+            + "  <Action Name=\"Enable\" 	Method=\"enableScene\" />"
+            + "  <Action Name=\"Disable\" 	Method=\"disableScene\" />"
+			+ "</HomeItem> ");
 
 	private static Logger logger = Logger.getLogger(Scene.class.getName());
+    private boolean activeState = true;
 	protected CommandLineExecutor m_Executor;
 	
 
@@ -87,8 +91,19 @@ public class Scene extends HomeItemAdapter implements HomeItem {
 	 */
 	public void stop() {
 	}
-	
-	public void action() {
+
+    public String getState(){
+        return activeState ? "Enabled" : "Disabled";
+    }
+
+    public void setState(String state) {
+        activeState = state.compareToIgnoreCase("disabled") != 0;
+    }
+
+    public void action() {
+        if (!activeState) {
+            return;
+        }
 		try {
 			performCommand(m_Command1);
 			if (m_Command2.length() != 0) Thread.sleep(m_Delay);
@@ -111,7 +126,17 @@ public class Scene extends HomeItemAdapter implements HomeItem {
 			logger.warning(result);
 		}
 	}
+
+    public String enableScene() {
+        activeState = true;
+        return "";
+    }
 	  
+    public String disableScene() {
+        activeState = false;
+        return "";
+    }
+
 	/**
 	 * @return Returns the m_Delay.
 	 */
