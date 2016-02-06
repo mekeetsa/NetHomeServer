@@ -74,7 +74,7 @@ mkdir $LOG_ROOT
 chown -R $NH_USER $LOG_ROOT
 
 # pid-file
-mkdir $PID_ROOT
+mkdir -p $PID_ROOT
 chown -R $NH_USER $PID_ROOT
 
 # Install daemon

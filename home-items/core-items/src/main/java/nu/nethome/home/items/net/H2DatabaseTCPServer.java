@@ -19,7 +19,11 @@
 
 package nu.nethome.home.items.net;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.sql.SQLException;
+import java.util.Enumeration;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang3.StringUtils;
@@ -43,34 +47,39 @@ public class H2DatabaseTCPServer extends HomeItemAdapter implements HomeItem {
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"H2DatabaseTCPServer\" Category=\"Ports\" >"
+            + "  <Attribute Name=\"DatabasePath\" Type=\"String\" Get=\"getDatabasePath\" Set=\"setDatabasePath\" />"
+            + "  <Attribute Name=\"TCP active on startup\" Type=\"Boolean\" Get=\"getTcpActiveOnStartup\" Set=\"setTcpActiveOnStartup\" />"
             + "  <Attribute Name=\"TCP ConnectionString\" Type=\"String\" Get=\"getTCPConnectionString\" />"
             + "  <Attribute Name=\"TCP Port\" Type=\"String\" Get=\"getTcpPort\" Set=\"setTcpPort\" Default=\"9092\" />"
             + "  <Attribute Name=\"TCP Status\" Type=\"String\" Get=\"getTcpActivated\" />"
             + "  <Attribute Name=\"WEB ConnectionString\" Type=\"String\" Get=\"getWEBConnectionString\" />"
+            + "  <Attribute Name=\"WEB active on startup\" Type=\"Boolean\" Get=\"getWebActiveOnStartup\" Set=\"setWebActiveOnStartup\" />"
             + "  <Attribute Name=\"WEB Port\" Type=\"String\" Get=\"getWebPort\" Set=\"setWebPort\" Default=\"8082\" />"
+            + "  <Attribute Name=\"WEB public\" Type=\"Boolean\" Get=\"getWebIsPublic\" Set=\"setWebIsPublic\" />"
             + "  <Attribute Name=\"WEB Status\" Type=\"String\" Get=\"getWebActivated\" />"
-            + "  <Attribute Name=\"DatabasePath\" Type=\"String\" Get=\"getDatabasePath\" Set=\"setDatabasePath\" />"
             + "  <Action Name=\"Start TCP Service\"     Method=\"activateTcpServer\" />"
             + "  <Action Name=\"Stop TCP Service\"      Method=\"deactivateTcpServer\" />"
             + "  <Action Name=\"Start WEB Service\"     Method=\"activateWebServer\" />"
-            + "  <Action Name=\"Stop WEB Service\"      Method=\"deactivateWebServer\" />"
-            + "</HomeItem> ");
+            + "  <Action Name=\"Stop WEB Service\"      Method=\"deactivateWebServer\" />" + "</HomeItem> ");
 
     /*
      * Internal attributes
      */
-    
+
     // Console
     private String tcpPort = "9092";
     private Server tcpServer = null;
     private String tcpConnectionString = "";
     private boolean all = true;;
     private boolean force = true;
+    private boolean tcpActiveOnStartup = true;
 
     // Web
     private String webPort = "8082";
     private Server webServer = null;
     private String webConnectionString = "";
+    private boolean webIsPublic = false;
+    private boolean webActiveOnStartup = true;
 
     // Default is the user's home directory, please see reference:
     // http://www.h2database.com/html/advanced.html?highlight=baseDir&search=basedir#firstFound
@@ -90,8 +99,12 @@ public class H2DatabaseTCPServer extends HomeItemAdapter implements HomeItem {
 
     @Override
     public void activate(HomeService service) {
-        activateTcpServer();
-        activateWebServer();
+        if (tcpActiveOnStartup) {
+            activateTcpServer();
+        }
+        if (webActiveOnStartup) {
+            activateWebServer();
+        }
         super.activate(service);
     }
 
@@ -114,11 +127,15 @@ public class H2DatabaseTCPServer extends HomeItemAdapter implements HomeItem {
         } catch (SQLException e) {
             logger.info("Can't shutdown the H2 database server: " + e.getMessage());
         }
+        tcpServer = null;
     }
 
     public void deactivateWebServer() {
         // Close H2 web server
-        webServer.stop();
+        if (webServer != null) {
+            webServer.stop();
+            webServer = null;
+        }
     }
 
     private boolean isTcpActivated() {
@@ -130,11 +147,18 @@ public class H2DatabaseTCPServer extends HomeItemAdapter implements HomeItem {
     }
 
     public String getTcpActivated() {
-        return isTcpActivated() ? "Running" : "Not running - check logs";
+        return isTcpActivated() ? "Running, " + allowOthers(tcpServer) : "Not running - check logs";
     }
 
     public String getWebActivated() {
-        return isWebActivated() ? "Running" : "Not running - check logs";
+        return isWebActivated() ? "Running, " + allowOthers(webServer) : "Not running - check logs";
+    }
+
+    private String allowOthers(Server server) {
+        if (server.getService().getAllowOthers()) {
+            return "remotes can connect";
+        }
+        return "only local connections";
     }
 
     public String getTCPConnectionString() {
@@ -142,7 +166,15 @@ public class H2DatabaseTCPServer extends HomeItemAdapter implements HomeItem {
     }
 
     public String getWEBConnectionString() {
-        return webConnectionString;
+        return webIsPublic ? "https://" + getExternalIPAddress() + ":" + getWebPort() : webConnectionString;
+    }
+
+    public String getWebIsPublic() {
+        return String.valueOf(webIsPublic);
+    }
+
+    public void setWebIsPublic(String isPublic) {
+        webIsPublic = Boolean.parseBoolean(isPublic);
     }
 
     public String getTcpPort() {
@@ -162,12 +194,17 @@ public class H2DatabaseTCPServer extends HomeItemAdapter implements HomeItem {
     }
 
     public void activateTcpServer() {
-        // Start the H2 web server
+        if (isTcpActivated()) {
+            return;
+        }
+
+        // Start the H2 database server
         try {
             if (StringUtils.isBlank(tcpPort)) {
                 tcpServer = Server.createTcpServer("-tcpAllowOthers", "-baseDir", getDatabasePath());
             } else {
-                tcpServer = Server.createTcpServer("-tcpPort", tcpPort, "-tcpAllowOthers", "-baseDir", getDatabasePath());
+                tcpServer = Server.createTcpServer("-tcpPort", tcpPort, "-tcpAllowOthers", "-baseDir",
+                        getDatabasePath());
             }
             tcpServer.start();
             tcpConnectionString = tcpServer.getURL();
@@ -179,6 +216,10 @@ public class H2DatabaseTCPServer extends HomeItemAdapter implements HomeItem {
     }
 
     public void activateWebServer() {
+        if (isWebActivated()) {
+            return;
+        }
+
         // Start the H2 web server
         try {
             if (StringUtils.isBlank(webPort)) {
@@ -188,11 +229,16 @@ public class H2DatabaseTCPServer extends HomeItemAdapter implements HomeItem {
             } else {
                 webServer = Server.createWebServer("-webPort", webPort, "-ifExists", "-baseDir", getDatabasePath());
             }
+            if (webIsPublic) {
+                webServer.getService().init("-webAllowOthers");
+            }
             webServer.start();
             webConnectionString = webServer.getURL();
             webPort = String.valueOf(webServer.getPort());
-            logger.info("Started the H2 web server at: " + tcpConnectionString);
+            logger.info("Started the H2 web server at: " + getWEBConnectionString() + ", " + webServer.getStatus());
         } catch (SQLException e) {
+            logger.info("Can't start the H2 web server: " + e.getMessage());
+        } catch (Exception e) {
             logger.info("Can't start the H2 web server: " + e.getMessage());
         }
     }
@@ -207,4 +253,43 @@ public class H2DatabaseTCPServer extends HomeItemAdapter implements HomeItem {
         databasePath = path;
     }
 
+    public String getTcpActiveOnStartup() {
+        return String.valueOf(tcpActiveOnStartup);
+    }
+
+    public void setTcpActiveOnStartup(String activate) {
+        tcpActiveOnStartup = Boolean.parseBoolean(activate);
+    }
+
+    public String getWebActiveOnStartup() {
+        return String.valueOf(webActiveOnStartup);
+    }
+
+    public void setWebActiveOnStartup(String activate) {
+        webActiveOnStartup = Boolean.parseBoolean(activate);
+    }
+
+    public String getExternalIPAddress() {
+        String result = null;
+        Enumeration<NetworkInterface> interfaces2 = null;
+        try {
+            interfaces2 = NetworkInterface.getNetworkInterfaces();
+        } catch (SocketException e) {
+            logger.severe("Can't get network interfaces: " + e.getMessage());
+            return "";
+        }
+        if (interfaces2 != null) {
+            while (interfaces2.hasMoreElements() && StringUtils.isEmpty(result)) {
+                NetworkInterface i = interfaces2.nextElement();
+                Enumeration<InetAddress> addresses2 = i.getInetAddresses();
+                while (addresses2.hasMoreElements() && (result == null || result.isEmpty())) {
+                    InetAddress address = addresses2.nextElement();
+                    if (!address.isLoopbackAddress() && address.isSiteLocalAddress()) {
+                        result = address.getHostAddress();
+                    }
+                }
+            }
+        }
+        return result;
+    }
 }
