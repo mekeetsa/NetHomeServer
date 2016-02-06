@@ -34,6 +34,7 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A base class for writing HomeGUI-plugins which present a portlet interface with HomeItems.
@@ -107,10 +108,34 @@ public abstract class PortletPage implements HomePageInterface {
         p.println("  <ul>");
     }
 
-    protected void printItemPortletEnd(PrintWriter p, String addLink) throws ServletException, IOException {
+    protected void printItemPortletEnd(PrintWriter p, String itemId, String addLink, String subpage, Map<String, CategorizedItemList> categories) throws ServletException, IOException {
         if (addLink != null) {
-            p.println("  </ul><table class=\"bottomlink\"><tr><td><a href=\"" + addLink + "\"><img src=\"web/home/item_new16.png\" /></a></td><td><a href=\"" +
-                    addLink + "\">Add Item...</a></td></tr></table>");
+            String subpageArgument = subpage != null ? ("&subpage=" + subpage) : "";
+            p.println("  </ul>");
+            p.println("  <form action=\"" + localURL + "?page=" + getPageNameURL() + subpageArgument + "&mode=edit\" method=\"POST\">");
+            p.println("  <input type=\"hidden\" name=\"a\" value=\"move\">");
+            p.println("  <input type=\"hidden\" name=\"to\" value=\"" + itemId + "\">");
+            p.println("  <div class=\"bottomlink\"><a href=\"" + addLink + "\"><img src=\"web/home/item_new16.png\" />Add new Item...</a>");
+            p.println("  <select   onchange=\"this.form.submit()\" name=\"name\">");
+            p.println("  <option value=\"\">Add existing Item</option>");
+            for (String category : HomeItemModel.HOME_ITEM_CATEGORIES) {
+                if (categories.containsKey(category)) {
+                    CategorizedItemList itemsInCategory = categories.get(category);
+                    p.println("  <optgroup label=\"" + category + "\">");
+                    for (HomeItemProxy item : itemsInCategory.getItems()) {
+                        p.println("  <option value=\""
+                                + item.getAttributeValue("ID")
+                                + "\""
+                                + ">" + item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE)
+                                + "</option>");
+                    }
+                    p.println("  </optgroup>");
+                }
+            }
+            p.println("  </select>");
+            p.println("  </div>");
+            p.println("  </form>");
+
         } else {
             p.println("  </ul>");
         }
@@ -118,7 +143,7 @@ public abstract class PortletPage implements HomePageInterface {
         p.println("</div>");
     }
 
-    protected void printRoom(PrintWriter p, String page, String subpage, String itemName, String headerLink, String addLink, String itemNames[], HomeService server, boolean includeActions) throws ServletException, IOException {
+    protected void printRoom(PrintWriter p, String page, String subpage, String itemName, String headerLink, String addLink, String itemNames[], HomeService server, boolean includeActions, Map<String, CategorizedItemList> categories) throws ServletException, IOException {
 
         // Start Room Portlet
         printItemPortletStart(p, itemName, headerLink);
@@ -135,18 +160,25 @@ public abstract class PortletPage implements HomePageInterface {
         }
 
         // End Portlet
-        printItemPortletEnd(p, addLink);
+        printItemPortletEnd(p, getItemId(itemName, server), addLink, subpage, categories);
+    }
+
+    private String getItemId(String itemName, HomeService server) {
+        String itemId = "";
+        if (itemName != null && !itemName.isEmpty()) {
+            final HomeItemProxy roomItem = server.openInstance(itemName);
+            itemId = roomItem != null ? roomItem.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE) : "";
+        }
+        return itemId;
     }
 
     /**
      * Prints a HomeItem instance to the output stream.
      *
-     *
-     *
-     * @param p    Output stream
-     * @param item HomeItem to print
-     * @param page Name of the current page
-     * @param subpage sub page identity
+     * @param p              Output stream
+     * @param item           HomeItem to print
+     * @param page           Name of the current page
+     * @param subpage        sub page identity
      * @param includeActions print actions of the home item
      * @throws javax.servlet.ServletException
      * @throws java.io.IOException

@@ -98,7 +98,7 @@ public class ServerFloor extends PortletPage {
         printColumnStart(p, false);
 
         if (selectedCategory != null) {
-            printRoom(p, "server", arguments.getSubpage(), selectedCategory, null, null, categoryItems.toArray(new String[categoryItems.size()]), server, true);
+            printRoom(p, "server", arguments.getSubpage(), selectedCategory, null, null, categoryItems.toArray(new String[categoryItems.size()]), server, true, null);
         }
 
         // End right column
