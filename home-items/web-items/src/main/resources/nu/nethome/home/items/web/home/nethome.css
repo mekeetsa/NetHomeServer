@@ -749,7 +749,7 @@ textarea.iteminput {
 	vertical-align: top;
 }
 
-.logrows, .panel .panellist, .creationlist {
+.logrows, .panel .panellist, .creationlist, .medialist {
     background: none repeat scroll 0 0 white;
     border-color: #C9C9CA #EDEDEF #EDEDEF #C9C9CA;
     color: #000000;
@@ -774,6 +774,16 @@ textarea.iteminput {
 .creationlist tr td:first-child {
     width: 1%;
     font-weight: bold;
+}
+
+.medialist tr td {
+    width: 1%;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.medialist tr td:last-child {
+    width: 100%;
 }
 
 .categoryheader {
@@ -837,4 +847,11 @@ div#chart1 {
     margin-top: 10px;
     position: relative;
     width: 98%;
+}
+
+.uploadPanel {
+    color: #000000;
+    font-size: 130%;
+    margin-left: 12px;
+    margin-top: 12px;
 }
