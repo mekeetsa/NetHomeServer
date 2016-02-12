@@ -59,9 +59,12 @@ public class RoomsPage extends PortletPage {
 
     @Override
     public List<EditControl> getEditControls() {
-        return Arrays.<EditControl>asList(new EditControlAdapter("<a href=\"javascript:gotoRoomEditPage();\">" +
-                "<img src=\"web/home/door_new16.png\" /></a></td><td><a href=\"" +
-                "javascript:gotoRoomEditPage();\">Add Room...</a>"));
+        return Arrays.<EditControl>asList(
+                new EditControlAdapter("<a href=\"javascript:gotoRoomEditPage();\">" +
+                        "<img src=\"web/home/door_new16.png\" />&nbsp;</a></td><td><a href=\"" +
+                        "javascript:gotoRoomEditPage();\">Add new Room...</a>"),
+                new EditControlAdapter("<a href=\"" + localURL + "?page=edit&a=create&mode=edit&class_name=Location\">" +
+                        "<img src=\"web/home/door_new16.png\" />&nbspAdd new Location...</a>"));
     }
 
     public List<String> getJavaScriptFileNames() {
