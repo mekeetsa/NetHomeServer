@@ -63,7 +63,7 @@ public class RoomsPage extends PortletPage {
                 new EditControlAdapter("<a href=\"javascript:gotoRoomEditPage();\">" +
                         "<img src=\"web/home/door_new16.png\" />&nbsp;</a></td><td><a href=\"" +
                         "javascript:gotoRoomEditPage();\">Add new Room...</a>"),
-                new EditControlAdapter("<a href=\"" + localURL + "?page=edit&a=create&mode=edit&class_name=Location\">" +
+                new EditControlAdapter("<a href=\"" + localURL + "?page=edit&a=create&mode=edit&class_name=Location&return=Rooms&returnsp=" + HomeGUIArguments.RETURN_TO_ITEM + "\">" +
                         "<img src=\"web/home/door_new16.png\" />&nbspAdd new Location...</a>"));
     }
 

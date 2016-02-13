@@ -58,7 +58,7 @@ public class HomeUrlBuilder {
             addParameter("page", arguments.getReturnPage());
             preserveEditMode(arguments);
             if (arguments.hasReturnSubpage()) {
-                addParameter("subpage", arguments.getReturnSubpage());
+                addParameter("subpage", arguments.getEffectiveReturnSubpage());
             }
         }
         return this;

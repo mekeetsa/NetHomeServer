@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletRequest;
  * Represents request parameters for a page in the HomeGUI
  */
 public class HomeGUIArguments {
+    public static final String RETURN_TO_ITEM = "RETURN2ITEM";
     private static final String DEFAULT_PAGE = "rooms";
     protected final String action;
     protected final boolean editMode;
@@ -110,5 +111,9 @@ public class HomeGUIArguments {
 
     public String getReturnSubpage() {
         return returnSubpage;
+    }
+
+    public String getEffectiveReturnSubpage() {
+        return (RETURN_TO_ITEM.equals(returnSubpage) && name != null) ? name : returnSubpage;
     }
 }
