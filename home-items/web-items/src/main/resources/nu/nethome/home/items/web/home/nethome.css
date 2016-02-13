@@ -723,7 +723,7 @@ textarea.iteminput {
 	vertical-align: middle;
 }
 
-.attributecmd-item {
+.attributecmd-item, .attributevalue-item {
 	padding: 0 0em;
 	cursor: pointer;
 	width: 230px;

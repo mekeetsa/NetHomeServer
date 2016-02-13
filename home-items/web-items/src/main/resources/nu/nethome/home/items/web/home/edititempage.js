@@ -23,6 +23,7 @@
  */
 $(document).ready(function() {
  	$('.attributecmd-item').homeItemSimpleSelector({});
+ 	$('.attributevalue-item').homeItemAttributeSelector({});
  	$(".refsel").click(onItemRefClick);
  	$(".refselsingle").click(onItemSingleRefClick);
 });
@@ -80,6 +81,28 @@ function refreshTheActionList(sel,el,url) {
 	});	
 }
 
+function refreshTheAttributeList(sel,el,url) {
+	$.post(url+sel, function(data, textStatus) {
+		$(el).empty();
+		var obj = $.parseJSON(data);
+		if(obj==null)return;
+		if(obj.results.length==0) {
+			$("<optgroup label='No attributes available'></optgroup>")
+				.appendTo(el);
+		} else {
+			$("<optgroup label='Select one attribute'></optgroup>")
+				.appendTo(el);
+			$.each(obj.results, function() {
+				s="";
+				$("<option>"+this.name+"</option>")
+					.appendTo(el);
+			});
+		}
+		$(el).change( function(){
+		});
+	});
+}
+
 (function($) {
 	// A simple home item selector
 	$.fn.homeItemSimpleSelector = function(options) {
@@ -97,6 +120,20 @@ function refreshTheActionList(sel,el,url) {
 		});		
 	};
 	
+	$.fn.homeItemAttributeSelector = function(options) {
+		var container = this;
+		var settings = jQuery.extend({
+			color : 'transparent'
+		// put more defaults here
+		}, options);
+		return this.each(function() {
+			var sec = $(this).next('select');
+			$(this).change(function(e){
+                refreshTheAttributeList($(this).val(),sec,"home?a=ajax&r=json&f=getAttributes&itemid=");
+			});
+		});
+	};
+
 	// A litte more esteatic home item selector
 	// To be finalized, or removed eventually
 	$.fn.homeItemSelector = function(options) {

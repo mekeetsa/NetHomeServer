@@ -81,6 +81,7 @@ public class EditItemPage extends PortletPage {
         addAttributePlugin(new BooleanAttributePrinter());
         addAttributePlugin(new StringListAttributePrinter());
         addAttributePlugin(new CommandAttributePrinter(this.server));
+        addAttributePlugin(new ValueAttributePrinter(this.server));
         addAttributePlugin(new OptionsAttributePrinter(this.server));
         addAttributePlugin(new PasswordAttributePrinter());
         addAttributePlugin(new ItemAttributePrinter(this.server));

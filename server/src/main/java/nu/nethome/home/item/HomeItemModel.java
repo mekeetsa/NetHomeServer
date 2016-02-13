@@ -21,9 +21,6 @@ package nu.nethome.home.item;
 
 import java.util.List;
 
-/**
-
- */
 public interface HomeItemModel {
 
     static final String HOME_ITEM_CATEGORIES[] = {

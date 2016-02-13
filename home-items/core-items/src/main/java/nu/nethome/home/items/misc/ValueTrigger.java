@@ -45,7 +45,7 @@ public class ValueTrigger extends HomeItemAdapter implements HomeItem {
             + "  <Attribute Name=\"State\" Type=\"StringList\" Get=\"getState\" Init=\"setState\" 	Default=\"true\" >"
             + "   <item>activated</item><item>deactivated</item></Attribute>"
             + "  <Attribute Name=\"LatestValue\" Type=\"String\" Get=\"getLatestValue\"  />"
-            + "  <Attribute Name=\"ValueAction\" Type=\"String\" Get=\"getValueAction\" 	Set=\"setValueAction\" />"
+            + "  <Attribute Name=\"ValueAction\" Type=\"Value\" Get=\"getValueAction\" 	Set=\"setValueAction\" />"
             + "  <Attribute Name=\"Max\" Type=\"String\" Get=\"getMaxLimit\" 	Set=\"setMaxLimit\" />"
             + "  <Attribute Name=\"Min\" Type=\"String\" Get=\"getMinLimit\" 	Set=\"setMinLimit\" />"
             + "  <Attribute Name=\"ActionOnExceedingMax\" Type=\"Command\" Get=\"getPassingMaxAction\" 	Set=\"setPassingMaxAction\" />"
