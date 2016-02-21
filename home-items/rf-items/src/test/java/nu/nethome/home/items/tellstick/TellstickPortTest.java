@@ -55,4 +55,12 @@ public class TellstickPortTest {
         Integer result[] = tellstick.distinctPulseLengthValues(copy);
         assertThat(result.length, is(6));
     }
+
+    @Test
+    public void canMakeRollertrolgAdjustment() throws Exception {
+        int gMessage[] = {5170, 1665, 360, 770, 360, 770, 360, 770, 360, 7400};
+        int gMessageResult[] = {1670, 10, 1670, 10, 1670, 1670, 360, 770, 360, 770, 360, 770, 360, 770, 360, 7400};
+
+        assertThat(tellstick.protocolSpecificAdjustments(gMessage), is(gMessageResult));
+    }
 }
