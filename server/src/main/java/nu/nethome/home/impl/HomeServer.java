@@ -40,6 +40,8 @@ import java.util.prefs.Preferences;
 
 import org.apache.commons.lang3.StringUtils;
 
+import static java.lang.Class.forName;
+
 /**
  * This is the main class of the NetHomeServer. It will start and manage all other HomeItem instances.
  *
@@ -124,16 +126,28 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
     private String warningAction = "";
     private String errorAction = "";
 
-	public HomeServer() {
-		eventQueue = new LinkedBlockingQueue<>(MAX_QUEUE_SIZE);
-		logRecords = new LinkedBlockingDeque<>(LOG_RECORD_CAPACITY);
+	public HomeServer(BootWebServer bootWebServer) {
+        bootWebServer.setMessage("Creating internal queues");
+        eventQueue = new LinkedBlockingQueue<>(MAX_QUEUE_SIZE);
+        logRecords = new LinkedBlockingDeque<>(LOG_RECORD_CAPACITY);
+        bootWebServer.setMessage("Setting up logger");
 		setupLogger();
-		eventCountlogger.activate(this);
-		python = new Python(this);
+        eventCountlogger.activate(this);
+        bootWebServer.setMessage("Creating CommandLineExecutor");
         commandLineExecutor = new CommandLineExecutor(this, true);
 	}
 
-	private void setupLogger() {
+    private void startPython(BootWebServer bootWebServer) {
+        bootWebServer.setMessage("Starting Python");
+        try {
+            final Class<?> pythonClass = forName("Python", false, this.getClass().getClassLoader());
+            python = new Python(this);
+        } catch (Exception e) {
+            logger.info("Python not available");
+        }
+    }
+
+    private void setupLogger() {
 		Logger.getLogger("").addHandler(new Handler() {
 			@Override
 			synchronized public void publish(LogRecord record) {
@@ -190,13 +204,14 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 		return "";
 	}
 
-	public void run(HomeItemFactory factory, HomeItemLoader loader, PluginProvider pluginProvider) {
+	public void run(HomeItemFactory factory, HomeItemLoader loader, PluginProvider pluginProvider, BootWebServer bootWebServer) {
 		this.factory = factory;
 		this.homeItemLoader = loader;
 		this.pluginProvider = pluginProvider;
 
-		// Load the configuration file
-		loadItems();
+        startPython(bootWebServer);
+
+		loadItems(bootWebServer);
 
 		waitForEnd();
 
@@ -466,10 +481,12 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
      * This means that at activation, all Items are reachable in the directory even those which are
      * not yet activated.
 	 */
-	public void loadItems() {
+	public void loadItems(BootWebServer bootWebServer) {
 		String currentFileName = getFileName();
+        bootWebServer.setMessage("Loading items from file " + currentFileName);
 		List<HomeItem> loadedItems = homeItemLoader.loadItems(getFileName(), factory, this);
 
+        bootWebServer.setMessage("Pre processing items");
 		addSingletonItems(loadedItems);
 
 		sortOnStartOrder(loadedItems);
@@ -482,6 +499,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 		maxID += 1;
 
 		// Loop through all created Items, and register them
+        bootWebServer.setMessage("Registering items");
 		for (HomeItem item : loadedItems) {
 
             // This is a backward compatibility check. If the Item has no valid ID, assign one
@@ -503,6 +521,11 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 		int itemCount = loadedItems.size();
 		int activatedItemCount = 0;
 		for (HomeItem item : loadedItems) {
+            if (item.getClass().getSimpleName().equals("JettyWEB")) {
+                bootWebServer.stop();
+            } else {
+                bootWebServer.setMessage("Activating item '" + item.getName() + "' (" + (activatedItemCount + 1) + " of " + itemCount + ")");
+            }
 			if (!item.getName().startsWith("#") && (item.getItemId() != 0)) {
 				try {
 					item.activate(this);

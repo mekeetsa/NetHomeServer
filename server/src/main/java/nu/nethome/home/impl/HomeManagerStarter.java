@@ -59,7 +59,11 @@ public class HomeManagerStarter {
     }
 
     public final void go(String[] args, HomeItemFactory... additionalFactories) {
-        HomeServer server = new HomeServer();
+        BootWebServer bootWebServer = new BootWebServer();
+        bootWebServer.start(8020);
+        bootWebServer.setMessage("Creating server instance");
+
+        HomeServer server = new HomeServer(bootWebServer);
         server.setName("Home Server");
         String logFileName = System.getProperty("user.home");
 
@@ -83,6 +87,7 @@ public class HomeManagerStarter {
             if (args[i].startsWith("-d") && args[i].length() > 2) {
                 try {
                     int startupDelay = Integer.parseInt(args[i].substring(2)) * 1000;
+                    bootWebServer.setMessage("Startup delay " + startupDelay + " ms");
                     Thread.sleep(startupDelay);
                 } catch (NumberFormatException | InterruptedException e) {
                     // Ignore
@@ -90,7 +95,7 @@ public class HomeManagerStarter {
             }
             i++;
         }
-
+        bootWebServer.setMessage("Initialize logging");
         try {
             // Initialize logging ( http://java.sun.com/j2se/1.4.2/docs/api/java/util/logging/package-summary.html )
             logFileName += "/HomeManager%g.log";
@@ -104,6 +109,7 @@ public class HomeManagerStarter {
         }
 
         // Create Plugin scanner and scan for plugins
+        bootWebServer.setMessage("Scanning for plugins");
         SelectivePluginScanner pluginProvider = new SelectivePluginScanner();
         try {
             List<File> files = new LinkedList<File>();
@@ -136,6 +142,6 @@ public class HomeManagerStarter {
             // Fall back to the demo file supplied with the release
             server.setFileName("demo.xml");
         }
-        server.run(factory, loader, pluginProvider);
+        server.run(factory, loader, pluginProvider, bootWebServer);
     }
 }
