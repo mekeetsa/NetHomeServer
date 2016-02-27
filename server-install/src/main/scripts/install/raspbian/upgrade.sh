@@ -45,6 +45,8 @@ if [ -f /home/nethome/upgrade_nethome_nightly.sh ]; then
 fi
 cp $SRCPATH/upgrade_nethome_nightly.sh /home/nethome/upgrade_nethome_nightly.sh
 chmod +x /home/nethome/upgrade_nethome_nightly.sh
+cp -f $SRCPATH/rpi_daemon_start.sh $INSTALLATION_ROOT/rpi_daemon_start.sh
+chmod +x $INSTALLATION_ROOT/rpi_daemon_start.sh
 
 # Start the server
 echo "Restarting server" 1>&2
