@@ -1,10 +1,13 @@
 package nu.nethome.home.impl;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BootWebServer {
     private static final String END_OF_HEADERS_STRING = "";
@@ -12,9 +15,10 @@ public class BootWebServer {
     private ServerSocket serverSocket = null;
     private int listenPort;
     private String message;
+    private List<String> oldMessages = new ArrayList<>();
 
-    public BootWebServer() {
-        message = "Starting";
+    public BootWebServer(String startMessage) {
+        oldMessages.add("<span style=\"color:green;\">" + startMessage + "</span>");
     }
 
     public void start(int listenPort) {
@@ -27,7 +31,14 @@ public class BootWebServer {
         }, "BootWebServer").start();
     }
 
-    public void setMessage(String message) {
+    public void beginSection(String message) {
+        if (this.message != null) {
+            oldMessages.add(this.message + " <span style=\"color:green;\">[done]</span>");
+        }
+        this.message = message;
+    }
+
+    public void setStatus(String message) {
         this.message = message;
     }
 
@@ -47,18 +58,16 @@ public class BootWebServer {
             isRunning = true;
             serverSocket = new ServerSocket(listenPort);
             while (isRunning) {
-                try (Socket inSocket = serverSocket.accept()){
+                try (Socket inSocket = serverSocket.accept()) {
                     BufferedReader in = new BufferedReader(new InputStreamReader(inSocket.
                             getInputStream()));
                     PrintWriter out = new PrintWriter(inSocket.getOutputStream());
                     processRequest(inSocket);
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     // Ignore
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             // Ignore
         }
         System.out.println("Exiting listener");
@@ -73,13 +82,21 @@ public class BootWebServer {
         out.println("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n" +
                 "<html>\n" +
                 "<head>\n" +
-                "  <meta http-equiv=\"REFRESH\" content=\"4;url=http://" + inSocket.getLocalAddress().getHostAddress() + ":" + listenPort + "/home\">\n" +
+                "  <meta http-equiv=\"REFRESH\" content=\"0;url=http://" + inSocket.getLocalAddress().getHostAddress() + ":" + listenPort + "/home\">\n" +
                 "  <meta content=\"text/html; charset=ISO-8859-1\" http-equiv=\"content-type\">\n" +
-                "  <title>NetHome</title>\n" +
-                "</head>\n" +
-                "<body>\n" +
-                " <p>" + message + "</p>\n" +
-                "</body>\n");
+                "  <title>NetHome</title>\n");
+        out.println("<style>\n" +
+                "body {background-color:black;" +
+                "color:grey;}\n" +
+                "p    {color:green;}\n" +
+                "</style>");
+        out.println("</head>\n" +
+                "<body>\n");
+        for (String oldMessage : oldMessages) {
+            out.println(oldMessage + "<br>\n");
+        }
+        out.println(message + "<br>\n");
+        out.println("</body>\n");
         out.flush();
     }
 
