@@ -16,6 +16,8 @@ public class BootWebServer {
     private int listenPort;
     private String message;
     private List<String> oldMessages = new ArrayList<>();
+    private int receivedRequests = 0;
+    private int refreshRate = 0;
 
     public BootWebServer(String startMessage) {
         oldMessages.add("<span style=\"color:green;\">" + startMessage + "</span>");
@@ -45,9 +47,14 @@ public class BootWebServer {
     public void stop() {
         if (serverSocket != null) {
             try {
+                if (receivedRequests > 0) {
+                    beginSection("Starting GUI...");
+                    refreshRate = 10;
+                    Thread.sleep(500);
+                }
                 isRunning = false;
                 serverSocket.close();
-            } catch (IOException e) {
+            } catch (IOException | InterruptedException e) {
                 // Ignore
             }
         }
@@ -59,9 +66,7 @@ public class BootWebServer {
             serverSocket = new ServerSocket(listenPort);
             while (isRunning) {
                 try (Socket inSocket = serverSocket.accept()) {
-                    BufferedReader in = new BufferedReader(new InputStreamReader(inSocket.
-                            getInputStream()));
-                    PrintWriter out = new PrintWriter(inSocket.getOutputStream());
+                    receivedRequests++;
                     processRequest(inSocket);
                 } catch (Exception e) {
                     // Ignore
@@ -82,7 +87,7 @@ public class BootWebServer {
         out.println("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n" +
                 "<html>\n" +
                 "<head>\n" +
-                "  <meta http-equiv=\"REFRESH\" content=\"0;url=http://" + inSocket.getLocalAddress().getHostAddress() + ":" + listenPort + "/home\">\n" +
+                "  <meta http-equiv=\"REFRESH\" content=\"" + refreshRate + ";url=http://" + inSocket.getLocalAddress().getHostAddress() + ":" + listenPort + "/home\">\n" +
                 "  <meta content=\"text/html; charset=ISO-8859-1\" http-equiv=\"content-type\">\n" +
                 "  <title>NetHome</title>\n");
         out.println("<style>\n" +
