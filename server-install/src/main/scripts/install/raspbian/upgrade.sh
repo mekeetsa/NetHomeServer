@@ -23,13 +23,6 @@ if [ ! -x "/etc/init.d/nethome" -o ! -d "$INSTALLATION_ROOT" -o ! -d "$CONFIGURA
   exit 1
 fi
 
-# See https://github.com/NetHome/NetHomeServer/issues/10
-# Verify $PID_ROOT exists (a previous bug!)
-if [ ! -d $PID_ROOT ]; then
-  echo "Creating missing '$PID_ROOT' directory"
-  mkdir -p $PID_ROOT  
-fi
-
 # Stop the server
 echo "Stopping server" 1>&2
 /etc/init.d/nethome stop
@@ -54,6 +47,12 @@ cp $SRCPATH/upgrade_nethome_nightly.sh /home/nethome/upgrade_nethome_nightly.sh
 chmod +x /home/nethome/upgrade_nethome_nightly.sh
 cp -f $SRCPATH/rpi_daemon_start.sh $INSTALLATION_ROOT/rpi_daemon_start.sh
 chmod +x $INSTALLATION_ROOT/rpi_daemon_start.sh
+# See https://github.com/NetHome/NetHomeServer/issues/10
+# Verify $PID_ROOT exists (a previous bug!)
+if [ ! -d $PID_ROOT ]; then
+  mkdir -p $PID_ROOT
+fi
+chown -R $NH_USER $PID_ROOT
 
 # Start the server
 echo "Restarting server" 1>&2
