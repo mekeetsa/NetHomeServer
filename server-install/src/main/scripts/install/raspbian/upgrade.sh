@@ -23,6 +23,13 @@ if [ ! -x "/etc/init.d/nethome" -o ! -d "$INSTALLATION_ROOT" -o ! -d "$CONFIGURA
   exit 1
 fi
 
+# See https://github.com/NetHome/NetHomeServer/issues/10
+# Verify $PID_ROOT exists (a previous bug!)
+if [ ! -d $PID_ROOT ]; then
+  echo "Creating missing '$PID_ROOT' directory"
+  mkdir -p $PID_ROOT  
+fi
+
 # Stop the server
 echo "Stopping server" 1>&2
 /etc/init.d/nethome stop

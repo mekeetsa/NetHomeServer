@@ -15,6 +15,12 @@ NetHomeServer uses a number of external libraries in source or jar-form.
 Here is a list of the terms and conditions under which these external
 libraries are used and may be distributed:
 
+* Apache Commons
+
+OpenNetHome uses the FileUpload component from Apache Commons. Apache Commons is released under
+Apache License Version 2.0. See https://commons.apache.org/proper/commons-fileupload/index.html
+for details.
+
 * babbler (xmpp-core-client.jar)
 
 A great client API for accessing the XMPP- (Jabber) protocol. Written by
@@ -90,3 +96,10 @@ jqPlot is an open source project dual licensed under the MIT and GPL version 2 l
 An uPnP stack for Java. Copyright (c) 2003-2010, Satoshi Konno, All rights reserved.
 See CyberLink4JavaLicense.txt for details
 
+* H2 database engine (http://www.h2database.com/)
+This software contains unmodified binary redistributions for
+H2 database engine (http://www.h2database.com/),
+which is dual licensed and available under the MPL 2.0
+(Mozilla Public License) or under the EPL 1.0 (Eclipse Public License).
+An original copy of the license agreement can be found at:
+http://www.h2database.com/html/license.html
