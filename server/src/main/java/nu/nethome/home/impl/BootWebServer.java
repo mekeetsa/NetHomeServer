@@ -7,17 +7,18 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class BootWebServer {
     private static final String END_OF_HEADERS_STRING = "";
-    private boolean isRunning;
-    private ServerSocket serverSocket = null;
+    private volatile boolean isRunning;
+    private volatile ServerSocket serverSocket = null;
     private int listenPort;
-    private String message;
-    private List<String> oldMessages = new ArrayList<>();
-    private int receivedRequests = 0;
-    private int refreshRate = 0;
+    private volatile String message;
+    private volatile List<String> oldMessages = Collections.<String>synchronizedList(new ArrayList<String>());
+    private volatile int receivedRequests = 0;
+    private volatile int refreshRate = 0;
 
     public BootWebServer(String startMessage) {
         oldMessages.add("<span style=\"color:green;\">" + startMessage + "</span>");
@@ -49,7 +50,7 @@ public class BootWebServer {
             try {
                 if (receivedRequests > 0) {
                     beginSection("Starting GUI...");
-                    refreshRate = 10;
+                    refreshRate = 15;
                     Thread.sleep(500);
                 }
                 isRunning = false;
@@ -58,6 +59,7 @@ public class BootWebServer {
                 // Ignore
             }
         }
+        isRunning = false;
     }
 
     public void runLoop() {
@@ -69,7 +71,7 @@ public class BootWebServer {
                     receivedRequests++;
                     processRequest(inSocket);
                 } catch (Exception e) {
-                    // Ignore
+                    break;
                 }
             }
         } catch (Exception e) {
