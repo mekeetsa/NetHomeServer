@@ -37,6 +37,7 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -336,6 +337,24 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
             for (Action action : actions) {
                 if (b) p.print(",");
                 p.format("{\"name\":\"%s\"}", action.getName());
+                b = true;
+            }
+            p.format("]}");
+            return;
+        }else if (funcId != null && funcId.compareToIgnoreCase("getattributes") == 0) {
+            if (itemName == null && itemID == null)
+                return;
+            if (itemName != null && itemName.length() == 0)
+                return;
+            if (itemID != null && itemID.length() == 0)
+                return;
+            HomeItemProxy item = homeServer.openInstance(itemID != null ? itemID : itemName);
+            boolean b = false;
+            List<Attribute> attributes = (null != item) ? item.getAttributeValues() : Collections.<Attribute>emptyList();
+            p.format("{\"results\":[");
+            for (Attribute attribute : attributes) {
+                if (b) p.print(",");
+                p.format("{\"name\":\"%s\"}", attribute.getName());
                 b = true;
             }
             p.format("]}");

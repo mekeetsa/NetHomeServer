@@ -37,6 +37,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class RoomsPage extends PortletPage {
 
@@ -58,9 +59,12 @@ public class RoomsPage extends PortletPage {
 
     @Override
     public List<EditControl> getEditControls() {
-        return Arrays.<EditControl>asList(new EditControlAdapter("<a href=\"javascript:gotoRoomEditPage();\">" +
-                "<img src=\"web/home/door_new16.png\" /></a></td><td><a href=\"" +
-                "javascript:gotoRoomEditPage();\">Add Room...</a>"));
+        return Arrays.<EditControl>asList(
+                new EditControlAdapter("<a href=\"javascript:gotoRoomEditPage();\">" +
+                        "<img src=\"web/home/door_new16.png\" />&nbsp;</a></td><td><a href=\"" +
+                        "javascript:gotoRoomEditPage();\">Add new Room...</a>"),
+                new EditControlAdapter("<a href=\"" + localURL + "?page=edit&a=create&mode=edit&class_name=Location&return=Rooms&returnsp=" + HomeGUIArguments.RETURN_TO_ITEM + "\">" +
+                        "<img src=\"web/home/door_new16.png\" />&nbspAdd new Location...</a>"));
     }
 
     public List<String> getJavaScriptFileNames() {
@@ -79,6 +83,9 @@ public class RoomsPage extends PortletPage {
                           HomeService server) throws ServletException, IOException {
         PrintWriter p = res.getWriter();
         HomeGUIArguments arguments = new HomeGUIArguments(req);
+        if (arguments.isAction("move")) {
+            moveItemToRoom(server, arguments.getName(), req.getParameter("to"));
+        }
         HomeItemProxy viewedLocation = findLocation(server, arguments, defaultLocation);
         String viewedLocationId = viewedLocation.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE);
         printPageData(p, viewedLocationId);
@@ -89,8 +96,35 @@ public class RoomsPage extends PortletPage {
         } else {
             leftColumnRooms.add(viewedLocation);
         }
-        printRoomColumn(server, p, leftColumnRooms, viewedLocationId, arguments.isEditMode(), true);
-        printRoomColumn(server, p, rightColumnRooms, viewedLocationId, arguments.isEditMode(), false);
+        Map<String, CategorizedItemList> categories = null;
+        if (arguments.isEditMode()) {
+            categories = CategorizedItemList.categorizeItems(server);
+        }
+        printRoomColumn(server, p, leftColumnRooms, viewedLocationId, arguments.isEditMode(), categories, true);
+        printRoomColumn(server, p, rightColumnRooms, viewedLocationId, arguments.isEditMode(), categories, false);
+    }
+
+    private void moveItemToRoom(HomeService server, String item, String room) {
+        final HomeItemProxy itemProxy = server.openInstance(item);
+        final HomeItemProxy roomProxy = server.openInstance(room);
+        if (itemProxy != null && roomProxy != null) {
+            final String[] roomItems = roomProxy.getAttributeValue("Items").split(",");
+            String result = "";
+            String separator = "";
+            for (String roomItem : roomItems) {
+                if (!roomItem.equals(item)) {
+                    result += separator;
+                    result += roomItem;
+                    separator = ",";
+                }
+            }
+            result += separator + item;
+            try {
+                roomProxy.setAttributeValue("Items", result);
+            } catch (IllegalValueException e) {
+                // Ignore
+            }
+        }
     }
 
     private void distributeRoomsOverColumns(HomeService server, HomeItemProxy viewedLocation, List<HomeItemProxy> leftColumnRooms, List<HomeItemProxy> rightColumnRooms) {
@@ -114,7 +148,7 @@ public class RoomsPage extends PortletPage {
     }
 
 
-    private void printRoomColumn(HomeService server, PrintWriter p, List<HomeItemProxy> rooms, String returnSubPage, boolean editMode, boolean isLeftColumn) throws ServletException, IOException {
+    private void printRoomColumn(HomeService server, PrintWriter p, List<HomeItemProxy> rooms, String returnSubPage, boolean editMode, Map<String, CategorizedItemList> categories, boolean isLeftColumn) throws ServletException, IOException {
         printColumnStart(p, isLeftColumn);
 
         for (HomeItemProxy room : rooms) {
@@ -130,7 +164,7 @@ public class RoomsPage extends PortletPage {
                 headerLink += "&mode=edit";
             }
             printRoom(p, "rooms", returnSubPage, room.getAttributeValue("Name"), editMode ? headerLink : null,
-                    editMode ? addLink : null, itemNames, server, true);
+                    editMode ? addLink : null, itemNames, server, true, categories);
         }
 
         printColumnEnd(p);

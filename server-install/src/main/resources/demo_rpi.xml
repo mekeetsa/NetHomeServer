@@ -143,8 +143,8 @@
 		<Attribute Name="ID">61</Attribute>
 		<Attribute Name="Name">Tellstick</Attribute>
 		<Attribute Name="State">Connected</Attribute>
-		<Attribute Name="ReceivedProtocols">UPM,NexaL,Nexa,Oregon,FineOffset</Attribute>
-		<Attribute Name="TransmittedProtocols">Pronto,NexaL,NexaFire,Nexa,X10,Zhejiang,Emotiva,Deltronic,RisingSun,Waveman</Attribute>
+        <Attribute Name="ReceivedProtocols">FineOffset,Nexa,Oregon,RollerTrol,UPM,NexaL</Attribute>
+        <Attribute Name="TransmittedProtocols">Pronto,Deltronic,Waveman,Nexa,NexaL,X10,Zhejiang,Emotiva,NexaFire,RisingSun,RollerTrolG,RollerTrol</Attribute>
 		<Attribute Name="PortName">/dev/ttyUSB0</Attribute>
 		<Attribute Name="FirmwareVersion">12</Attribute>
 		<Attribute Name="ReceivedMessages">7</Attribute>

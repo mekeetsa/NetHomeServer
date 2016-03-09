@@ -45,6 +45,14 @@ if [ -f /home/nethome/upgrade_nethome_nightly.sh ]; then
 fi
 cp $SRCPATH/upgrade_nethome_nightly.sh /home/nethome/upgrade_nethome_nightly.sh
 chmod +x /home/nethome/upgrade_nethome_nightly.sh
+cp -f $SRCPATH/rpi_daemon_start.sh $INSTALLATION_ROOT/rpi_daemon_start.sh
+chmod +x $INSTALLATION_ROOT/rpi_daemon_start.sh
+# See https://github.com/NetHome/NetHomeServer/issues/10
+# Verify $PID_ROOT exists (a previous bug!)
+if [ ! -d $PID_ROOT ]; then
+  mkdir -p $PID_ROOT
+fi
+chown -R $NH_USER $PID_ROOT
 
 # Start the server
 echo "Restarting server" 1>&2

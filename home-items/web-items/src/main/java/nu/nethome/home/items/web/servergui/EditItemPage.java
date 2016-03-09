@@ -81,6 +81,7 @@ public class EditItemPage extends PortletPage {
         addAttributePlugin(new BooleanAttributePrinter());
         addAttributePlugin(new StringListAttributePrinter());
         addAttributePlugin(new CommandAttributePrinter(this.server));
+        addAttributePlugin(new ValueAttributePrinter(this.server));
         addAttributePlugin(new OptionsAttributePrinter(this.server));
         addAttributePlugin(new PasswordAttributePrinter());
         addAttributePlugin(new ItemAttributePrinter(this.server));
@@ -237,11 +238,11 @@ public class EditItemPage extends PortletPage {
         }
 
         if (referring.size() > 0) {
-            this.printRoom(p, pageArguments.getPage(), pageArguments.getName(), "Related Items", null, null, referring.toArray(new String[referring.size()]), server, false);
+            this.printRoom(p, pageArguments.getPage(), pageArguments.getName(), "Related Items", null, null, referring.toArray(new String[referring.size()]), server, false, null);
         }
 
         if (containing.size() > 0) {
-            this.printRoom(p, pageArguments.getPage(), pageArguments.getName(), "Located in", null, null, containing.toArray(new String[containing.size()]), server, false);
+            this.printRoom(p, pageArguments.getPage(), pageArguments.getName(), "Located in", null, null, containing.toArray(new String[containing.size()]), server, false, null);
         }
 
         this.printColumnEnd(p);

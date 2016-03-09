@@ -19,13 +19,22 @@
 
 package nu.nethome.home.item;
 
-import org.h2.tools.DeleteDbFiles;
-import org.junit.*;
-import org.python.icu.util.Calendar;
+import static org.junit.Assert.assertTrue;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
-import static org.junit.Assert.assertTrue;
+import org.h2.tools.DeleteDbFiles;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import junit.framework.Assert;
 
 /**
  * This junit test will create a temporary database on disk. The database is
@@ -76,6 +85,12 @@ public class LoggerComponentH2DatabaseTest {
 		// First save some values
 		ValueItemLoggerH2Database instance = new ValueItemLoggerH2Database();
 		assertTrue(instance.store(connectionString, homeItemId, "1,0"));
+		try {
+            Thread.sleep(1010);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 		assertTrue(instance.store(connectionString, homeItemId, "10,25"));
 
 		// Now try to read back the values
@@ -88,5 +103,22 @@ public class LoggerComponentH2DatabaseTest {
             }
         }
 		assertTrue(result.size() == 2);
+	}
+	
+	@Test
+	public void testSQLDate() {
+	    String line = "2016.03.08 20:45:00;0.0";
+        String minuteTime = line.substring(0, 16).replace('.', '-');
+        SimpleDateFormat fileDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        Date min;
+        try {
+            min = fileDateFormat.parse(minuteTime);
+            @SuppressWarnings("deprecation")
+            java.sql.Timestamp sqlDate = new java.sql.Timestamp(min.getYear(), min.getMonth(), min.getDay(), min.getHours(), min.getMinutes(), 0, 0);
+            int t = 2;
+            t++;
+        } catch (ParseException e) {
+            Assert.fail("Nope");
+        }
 	}
 }

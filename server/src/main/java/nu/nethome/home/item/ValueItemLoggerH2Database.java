@@ -30,6 +30,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -170,8 +171,9 @@ public class ValueItemLoggerH2Database extends ValueItemLogger {
 
     @Override
     public boolean store(String connectionString, String itemId, String value) {
-        Date justNow = new Date();
-        return storeWithDate(connectionString, itemId, value, justNow);
+        Calendar justNow = Calendar.getInstance();
+        justNow.set(Calendar.MILLISECOND, 0);
+        return storeWithDate(connectionString, itemId, value, justNow.getTime());
     }
 
     public boolean storeWithDate(String connectionString, String itemId, String value, Date date) {

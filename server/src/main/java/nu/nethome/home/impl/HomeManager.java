@@ -49,7 +49,9 @@ public class HomeManager {
     }
 
     public final void go(String[] args) {
-
+        BootWebServer bootWebServer = new BootWebServer("Starting OpenNetHomeServer");
+        bootWebServer.start(8020);
+        bootWebServer.beginSection("Creating logger");
         createFileLogger();
 
         // Check arguments - if no arguments, load the demo configuration
@@ -64,6 +66,7 @@ public class HomeManager {
         }
 
         // Create Plugin scanner and scan for plugins
+        bootWebServer.beginSection("Scanning for plugins");
         SelectivePluginScanner pluginProvider = new SelectivePluginScanner(".hmp", "3dparty");
         try {
             List<File> files = new LinkedList<File>();
@@ -76,13 +79,13 @@ public class HomeManager {
         }
 
         // Create the factory objects to use
+        bootWebServer.beginSection("Creating server instance");
         PluginHomeItemFactory factory = new PluginHomeItemFactory(pluginProvider);
         HomeItemLoader loader = new HomeItemFileLoader();
 
         // Create the server, the only hard coded HomeItem instance
         HomeServer server = new HomeServer();
         server.setName("Home Server");
-        //server.registerInstance(server);
 
         // Check if a configuration file name is supplied
         if (i == args.length) {
@@ -99,7 +102,7 @@ public class HomeManager {
         }
 
         // Run the server
-        server.run(factory, loader, pluginProvider);
+        server.run(factory, loader, pluginProvider, bootWebServer);
     }
 
     private void createFileLogger() {

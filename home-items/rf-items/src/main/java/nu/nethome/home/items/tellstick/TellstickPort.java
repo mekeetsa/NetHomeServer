@@ -21,6 +21,7 @@ package nu.nethome.home.items.tellstick;
 
 import gnu.io.*;
 import nu.nethome.coders.RollerTrol;
+import nu.nethome.coders.RollerTrolG;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,6 +47,9 @@ public class TellstickPort {
     private static final int TELLSTICK_US_PER_UNIT = 10;
     private static final int TELLSTICK_MAX_PULSE_VALUE = 255;
     public static final String ERROR_MESSAGE = "ERROR";
+    private static final int NEW_RTG_HEADER_PULSES = 6;
+    private static final int OLD_RTG_HEADER_PULSES = 2;
+    private static final int NEW_RTG_TRAILING_PULSES = 2;
     private static Logger logger = Logger.getLogger(TellstickPort.class.getName());
 
     private volatile String firmwareVersion = "";
@@ -308,12 +312,42 @@ public class TellstickPort {
         return repeat > 0 ? repeat : 1;
     }
 
-    private int[] protocolSpecificAdjustments(int[] messageToProcess) {
+    int[] protocolSpecificAdjustments(int[] messageToProcess) {
         if (messageToProcess[0] == RollerTrol.LONG_PREAMBLE_MARK.length()) {
             return rollerTrolAdjustment(messageToProcess);
+        } else if (messageToProcess[0] == RollerTrolG.LONG_PREAMBLE_MARK.length()) {
+            return rollerTrolGAdjustment(messageToProcess);
         } else {
             return messageToProcess;
         }
+    }
+
+    /**
+     * The RollertrolG protocol breaks a number of limitations of the Tellstick protocol.
+     * It is longer than 79 pulse, which means it has to use the extended protocol scheme which only allows 4
+     * different pulse lengths. The first header pulse is also longer then the maximum allowed 2550 ms.
+     * We solve this by building the too long pulse with three shorter pulses separated by very short spaces that
+     * are too short to be detected by the receiver.
+     *
+     * @param messageToProcess
+     * @return
+     */
+    private int[] rollerTrolGAdjustment(int[] messageToProcess) {
+        int [] newMessage = new int[messageToProcess.length + NEW_RTG_HEADER_PULSES - OLD_RTG_HEADER_PULSES + NEW_RTG_TRAILING_PULSES];
+        newMessage[0] = 1670;
+        newMessage[1] = 10;
+        newMessage[2] = 1670;
+        newMessage[3] = 10;
+        newMessage[4] = 1670;
+        newMessage[5] = 1670;
+        for (int i = 0; i < messageToProcess.length - OLD_RTG_HEADER_PULSES; i++) {
+            newMessage[i + NEW_RTG_HEADER_PULSES] = messageToProcess[i + OLD_RTG_HEADER_PULSES];
+        }
+        final int lastPulseInOriginal = messageToProcess.length + NEW_RTG_HEADER_PULSES - OLD_RTG_HEADER_PULSES - 1;
+        newMessage[lastPulseInOriginal + 2] = newMessage[lastPulseInOriginal];
+        newMessage[lastPulseInOriginal] = RollerTrolG.LONG.length();
+        newMessage[lastPulseInOriginal + 1] = RollerTrolG.SHORT.length();
+        return newMessage;
     }
 
     private int[] rollerTrolAdjustment(int[] messageToProcess) {

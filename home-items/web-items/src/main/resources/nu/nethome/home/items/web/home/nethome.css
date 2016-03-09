@@ -442,6 +442,24 @@ width:100px;
 
 /* Item Edit Page Definitions */
 
+.bottomlink {
+    padding-top: 6px;
+    padding-bottom: 6px;
+    background-color: gainsboro;
+    font-size: 140%;
+}
+
+.bottomlink img {
+    vertical-align: middle;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.bottomlink select {
+    float: right;
+    margin-right: 10px;
+}
+
 .panel, .item_details {
 	background-color: #E4E5E6;
 	border:1px solid #505050;
@@ -705,7 +723,7 @@ textarea.iteminput {
 	vertical-align: middle;
 }
 
-.attributecmd-item {
+.attributecmd-item, .attributevalue-item {
 	padding: 0 0em;
 	cursor: pointer;
 	width: 230px;

@@ -34,22 +34,33 @@ import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
 import java.util.logging.Logger;
 
+import static java.lang.Class.forName;
+
 /**
  * @author Jari Sarkka
  */
 public class Python {
-    private String scriptSourceFileName = "/home/nethome/nethome.py";
+    private String scriptSourceFileName = "";
     private long sourceFilelastModifiedDate = 0;
     private PythonInterpreter interp;
     private static Logger logger = Logger.getLogger(Python.class.getName());
 
-    public Python(HomeServer server) {
-        interp = new PythonInterpreter();
-        interp.set("server", server);
-        interp.set("log", logger);
+    public void run(HomeServer server) {
+        try {
+            forName("org.python.util.PythonInterpreter", false, this.getClass().getClassLoader());
+            interp = new PythonInterpreter();
+            interp.set("server", server);
+            interp.set("log", logger);
+        } catch (ClassNotFoundException e) {
+            logger.info("Python not available");
+            return;
+        }
     }
 
     public synchronized boolean executePython(String pythonCode) throws FileNotFoundException {
+        if (!isActivated()) {
+            return false;
+        }
         try {
             reinterpretIfNeeded();
             interp.exec(pythonCode);
@@ -77,5 +88,9 @@ public class Python {
 
     public void setScriptSourceFileName(String scriptSourceFileName) {
         this.scriptSourceFileName = scriptSourceFileName;
+    }
+
+    public boolean isActivated() {
+        return interp != null;
     }
 }
