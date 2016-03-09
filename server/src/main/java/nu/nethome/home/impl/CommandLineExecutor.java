@@ -117,7 +117,7 @@ public class CommandLineExecutor {
         HomeItemProxy meta;
         meta = server.openInstance(instance);
         if (meta == null) {
-            return "error,3,Could not find instance specified";
+            return String.format("error,3,Could not find instance (%s) specified", instance);
         }
         if (command.equalsIgnoreCase("get")) {
             result = performGet(it, meta);
