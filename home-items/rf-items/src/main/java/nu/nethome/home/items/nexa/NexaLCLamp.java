@@ -51,15 +51,17 @@ public class NexaLCLamp extends HomeItemAdapter implements HomeItem {
 			+ "  <Action Name=\"off\" 	Method=\"off\" />"
 			+ "</HomeItem> ");
 
-	protected static Logger logger = Logger.getLogger(NexaLCLamp.class.getName());
+    protected static Logger logger = Logger.getLogger(NexaLCLamp.class.getName());
+    private static final int MAX_NEXAL_ADDRESS = 1 << 26 - 1;
 
 	// Public attributes
 	protected boolean isOn = false;
 	protected int lampAddress = 0;
 	protected int lampButton = 1;
-    protected int repeats = 0;
+    protected int repeats = 10;
 
 	public NexaLCLamp() {
+        lampAddress = (int)(Math.random() * MAX_NEXAL_ADDRESS);
 	}
 
 	public boolean receiveEvent(Event event) {
@@ -112,7 +114,7 @@ public class NexaLCLamp extends HomeItemAdapter implements HomeItem {
 	@SuppressWarnings("UnusedDeclaration")
     public void setAddress(String houseCode) {
 		int newAddress = Integer.parseInt(houseCode);
-		if ((newAddress >= 0) && (newAddress < 1<<26)) {
+		if ((newAddress >= 0) && (newAddress <= MAX_NEXAL_ADDRESS)) {
 			lampAddress = newAddress;
 		}
 	}
