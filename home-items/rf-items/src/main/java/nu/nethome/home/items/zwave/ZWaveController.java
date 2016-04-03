@@ -5,12 +5,10 @@ import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.util.plugin.Plugin;
-import nu.nethome.zwave.Hex;
-import nu.nethome.zwave.MessageProcessor;
-import nu.nethome.zwave.PortException;
-import nu.nethome.zwave.ZWavePort;
+import nu.nethome.zwave.*;
 import nu.nethome.zwave.messages.AddNode;
 import nu.nethome.zwave.messages.ApplicationCommand;
+import nu.nethome.zwave.messages.GetInitData;
 import nu.nethome.zwave.messages.MemoryGetId;
 import nu.nethome.zwave.messages.commandclasses.MultiInstanceCommandClass;
 import nu.nethome.zwave.messages.commandclasses.framework.Command;
@@ -19,6 +17,8 @@ import nu.nethome.zwave.messages.framework.MessageAdaptor;
 import nu.nethome.zwave.messages.framework.UndecodedMessage;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,8 +36,10 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"PortName\" Type=\"StringList\" Get=\"getPortName\" Set=\"setPortName\" >"
             + "    %s </Attribute>"
+            + "  <Attribute Name=\"PortAddress\" Type=\"String\" Get=\"getPortAddress\" Set=\"setPortAddress\" />"
             + "  <Attribute Name=\"HomeId\" Type=\"String\" Get=\"getHomeId\" />"
             + "  <Attribute Name=\"NodeId\" Type=\"String\" Get=\"getNodeId\" />"
+            + "  <Attribute Name=\"Nodes\" Type=\"String\" Get=\"getNodes\" />"
             + "  <Action Name=\"RequestIdentity\" 	Method=\"requestIdentity\" Default=\"true\" />"
             + "  <Action Name=\"Reconnect\"		Method=\"reconnect\" Default=\"true\" />"
             + "  <Action Name=\"StartInclusion\"		Method=\"startInclusion\" />"
@@ -54,8 +56,10 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
 
     private ZWavePort port;
     private String portName = "/dev/ttyAMA0";
-    private int homeId = 0;
+    private String portAddress = "";
+    private long homeId = 0;
     private int nodeId = 0;
+    private List<Integer> nodes = Collections.emptyList();
 
     public boolean receiveEvent(nu.nethome.home.system.Event event) {
         if (event.isType(ZWAVE_EVENT_TYPE) &&
@@ -65,7 +69,7 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
             byte[] message = Hex.hexStringToByteArray(event.getAttribute(nu.nethome.home.system.Event.EVENT_VALUE_ATTRIBUTE));
             try {
                 port.sendMessage(message);
-            } catch (SerialPortException e) {
+            } catch (PortException e) {
                 logger.warning("Failed to send ZWave message: " + event.getAttribute(nu.nethome.home.system.Event.EVENT_VALUE_ATTRIBUTE));
             }
             return true;
@@ -79,7 +83,7 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
 
     private String getPortNames() {
         StringBuilder model = new StringBuilder();
-        List<String> ports = ZWavePort.listAvailablePortNames();
+        List<String> ports = ZWaveRawSerialPort.listAvailablePortNames();
         model.append("<item>");
         model.append(portName);
         model.append("</item>");
@@ -99,7 +103,12 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
 
     private void openPort() {
         try {
-            port = new ZWavePort(portName);
+            if (portAddress.isEmpty()) {
+            port = new ZWaveSerialPort(portName);
+            } else {
+                final String[] addressParts = portAddress.split(":");
+                port = new ZWaveNetHomePort(addressParts[0], Integer.parseInt(addressParts[1]));
+            }
             port.setReceiver(new MessageProcessor() {
                 @Override
                 public UndecodedMessage.Message process(byte[] message) {
@@ -110,15 +119,25 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
             });
             logger.fine("Created port");
             requestIdentity();
-        } catch (PortException e) {
+            requestNodeInfo();
+        } catch (PortException|IOException e) {
             logger.log(Level.WARNING, "Could not open ZWave port", e);
         }
     }
 
     public String requestIdentity() {
         try {
-            port.sendMessage(new MemoryGetId.Request().encode());
-        } catch (SerialPortException e) {
+            port.sendMessage(new MemoryGetId.Request());
+        } catch (PortException e) {
+            logger.log(Level.WARNING, "Could not send ZWave initial message", e);
+        }
+        return "";
+    }
+
+    public String requestNodeInfo() {
+        try {
+            port.sendMessage(new GetInitData.Request());
+        } catch (PortException e) {
             logger.log(Level.WARNING, "Could not send ZWave initial message", e);
         }
         return "";
@@ -129,7 +148,11 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
         nodeId = 0;
         homeId = 0;
         if (port != null) {
-            port.close();
+            try {
+                port.close();
+            } catch (PortException e) {
+                // Just ignore...
+            }
             port = null;
         }
     }
@@ -155,7 +178,7 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
             if (port != null && port.isOpen()) {
                 port.sendMessage(request.encode());
             }
-        } catch (SerialPortException e) {
+        } catch (PortException e) {
             logger.log(Level.WARNING, "Could not send ZWave message", e);
         }
         return "";
@@ -179,33 +202,45 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
     }
 
     private void receiveMessage(byte[] message) {
+        try {
+            sendMessageAsEvent(message);
+            processMessage(message);
+        } catch (DecoderException | IOException e) {
+            logger.warning("Could not parse ZWave response:" + e.getMessage());
+        }
+    }
+
+    private void sendMessageAsEvent(byte[] message) throws IOException, DecoderException {
         String data = Hex.asHexString(message);
         logger.info(data);
         nu.nethome.home.system.Event event = server.createEvent(ZWAVE_EVENT_TYPE, data);
         event.setAttribute(ZWAVE_TYPE, message[0] == 0 ? "Request" : "Response");
         event.setAttribute(ZWAVE_MESSAGE_TYPE, ((int) message[1]) & 0xFF);
         event.setAttribute("Direction", "In");
-        try {
-            if (MessageAdaptor.decodeMessageId(message).messageId == ApplicationCommand.REQUEST_ID) {
-                ApplicationCommand.Request request = new ApplicationCommand.Request(message);
-                event.setAttribute(ZWAVE_NODE, request.node);
-                Command command = request.command;
-                if (command.getCommandClass() == MultiInstanceCommandClass.COMMAND_CLASS && command.getCommand() == MultiInstanceCommandClass.ENCAP_V2) {
-                    MultiInstanceCommandClass.EncapsulationV2 encap = new MultiInstanceCommandClass.EncapsulationV2(command.encode());
-                    event.setAttribute("ZWave.Endpoint", encap.instance);
-                    command = encap.command;
-                }
-                event.setAttribute(ZWAVE_COMMAND_CLASS, command.getCommandClass());
-                event.setAttribute(ZWAVE_COMMAND, command.getCommand());
+        if (MessageAdaptor.decodeMessageId(message).messageId == ApplicationCommand.REQUEST_ID) {
+            ApplicationCommand.Request request = new ApplicationCommand.Request(message);
+            event.setAttribute(ZWAVE_NODE, request.node);
+            Command command = request.command;
+            if (command.getCommandClass() == MultiInstanceCommandClass.COMMAND_CLASS && command.getCommand() == MultiInstanceCommandClass.ENCAP_V2) {
+                MultiInstanceCommandClass.EncapsulationV2 encap = new MultiInstanceCommandClass.EncapsulationV2(command.encode());
+                event.setAttribute("ZWave.Endpoint", encap.instance);
+                command = encap.command;
             }
-            server.send(event);
-            if (MessageAdaptor.decodeMessageId(message).messageId == MemoryGetId.MEMORY_GET_ID) {
-                MemoryGetId.Response memoryGetIdResponse = new MemoryGetId.Response(message);
-                homeId = memoryGetIdResponse.homeId;
-                nodeId = memoryGetIdResponse.nodeId;
-            }
-        } catch (DecoderException | IOException e) {
-            logger.warning("Could not parse ZWave response:" + e.getMessage());
+            event.setAttribute(ZWAVE_COMMAND_CLASS, command.getCommandClass());
+            event.setAttribute(ZWAVE_COMMAND, command.getCommand());
+        }
+        server.send(event);
+    }
+
+    private void processMessage(byte[] message) throws DecoderException {
+        final int messageId = MessageAdaptor.decodeMessageId(message).messageId;
+        if (messageId == MemoryGetId.MEMORY_GET_ID) {
+            MemoryGetId.Response memoryGetIdResponse = new MemoryGetId.Response(message);
+            homeId = memoryGetIdResponse.homeId;
+            nodeId = memoryGetIdResponse.nodeId;
+        } else if (messageId == GetInitData.REQUEST_ID) {
+            GetInitData.Response response = new GetInitData.Response(message);
+            nodes = new ArrayList<>(response.nodes);
         }
     }
 
@@ -234,10 +269,31 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
     }
 
     public String getHomeId() {
-        return homeId != 0 ? Integer.toHexString(homeId) : "";
+        return homeId != 0 ? Long.toHexString(homeId) : "";
     }
 
     public String getNodeId() {
         return homeId != 0 ? Integer.toString(nodeId) : "";
+    }
+
+    public String getNodes() {
+        String result = "";
+        String separator = "";
+        for (Integer node : nodes) {
+            if (!node.equals(1)) {
+                result += separator;
+                result += Integer.toString(node);
+                separator = ",";
+            }
+        }
+        return result;
+    }
+
+    public String getPortAddress() {
+        return portAddress;
+    }
+
+    public void setPortAddress(String portAddress) {
+        this.portAddress = portAddress;
     }
 }
