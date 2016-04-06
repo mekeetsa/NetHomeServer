@@ -73,7 +73,7 @@ public class ZWaveNodeExplorer extends HomeItemAdapter implements HomeItem {
                     }
                 });
                 processAssociationReport(command.node, (MultiInstanceAssociationCommandClass.Report)command.command);
-            } catch (DecoderException|IOException e) {
+            } catch (DecoderException e) {
                 logger.warning("Could not parse ZWave response:" + e.getMessage());
             }
         }
