@@ -6,6 +6,8 @@ import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
 import nu.nethome.zwave.Hex;
 import nu.nethome.zwave.messages.*;
+import nu.nethome.zwave.messages.commandclasses.ApplicationSpecificCommandClass;
+import nu.nethome.zwave.messages.commandclasses.CommandArgument;
 import nu.nethome.zwave.messages.framework.DecoderException;
 import nu.nethome.zwave.messages.framework.Message;
 import nu.nethome.zwave.messages.framework.MultiMessageProcessor;
@@ -22,6 +24,9 @@ public class ZWaveNode extends HomeItemAdapter {
             + "<HomeItem Class=\"ZWaveNode\" Category=\"Hardware\" Morphing=\"true\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"NodeId\" Type=\"String\" Get=\"getNodeId\" Init=\"setNodeId\" />"
+            + "  <Attribute Name=\"Manufacturer\" Type=\"String\" Get=\"getManufacturer\" Init=\"setManufacturer\" />"
+            + "  <Attribute Name=\"DeviceType\" Type=\"String\" Get=\"getDeviceType\" Init=\"setDeviceType\" />"
+            + "  <Attribute Name=\"DeviceId\" Type=\"String\" Get=\"getDeviceId\" Init=\"setDeviceId\" />"
             + "  <Attribute Name=\"SupportedCommandClasses\" Type=\"String\" Get=\"getSupportedCommandClasses\" Init=\"setSupportedCommandClasses\" />"
             + "  <Attribute Name=\"ControlledCommandClasses\" Type=\"String\" Get=\"getControlledCommandClasses\" Init=\"setControlledCommandClasses\" />"
             + "</HomeItem> ");
@@ -30,6 +35,9 @@ public class ZWaveNode extends HomeItemAdapter {
     private NodeState state;
     private byte[] supportedCommandClasses = new byte[0];
     private byte[] controlledCommandClasses = new byte[0];
+    private int manufacturer;
+    private int deviceType;
+    private int deviceId;
     private MultiMessageProcessor messageProcessor;
     private Timer timer;
 
@@ -40,6 +48,13 @@ public class ZWaveNode extends HomeItemAdapter {
             @Override
             protected ApplicationUpdate.Event process(ApplicationUpdate.Event command) throws DecoderException {
                 state.applicationUpdate(command);
+                return command;
+            }
+        });
+        messageProcessor.addCommandProcessor(new ApplicationSpecificCommandClass.Report.Processor(){
+            @Override
+            protected ApplicationSpecificCommandClass.Report process(ApplicationSpecificCommandClass.Report command, CommandArgument node) throws DecoderException {
+                state.applicationSpecificReport(command, node);
                 return command;
             }
         });
@@ -116,6 +131,32 @@ public class ZWaveNode extends HomeItemAdapter {
         return asStringList(controlledCommandClasses);
     }
 
+    public String getManufacturer() {
+        return Integer.toHexString(manufacturer);
+    }
+
+    public String getDeviceType() {
+        return Integer.toHexString(deviceType);
+    }
+
+    public String getDeviceId() {
+        return Integer.toHexString(deviceId);
+    }
+
+    /*
+        Discovery state machine:
+
+        Things to check:
+         * Routing info (GetRoutingInfoMessageClass())
+         * is the node failed? (IsFailedNodeMessageClass)
+         * Request node info (RequestNodeInfoMessageClass)
+         * If node supports Manufacturer specific command class, request it to get manufacturer info (manufacturerSpecific.getManufacturerSpecificMessage())
+         * If node supports version command class, loop through all command classes and request version
+         * Check version of interface (versionCommandClass.getVersionMessage())
+         * If node supports MultiInstance, get all endpoints? (multiInstance.initEndpoints(stageAdvanced))
+
+     */
+
     abstract class NodeState {
         abstract public String getStateString();
 
@@ -126,6 +167,9 @@ public class ZWaveNode extends HomeItemAdapter {
         }
 
         public void applicationUpdate(ApplicationUpdate.Event event) {
+        }
+
+        public void applicationSpecificReport(ApplicationSpecificCommandClass.Report report, CommandArgument node) {
         }
     }
 
@@ -154,6 +198,7 @@ public class ZWaveNode extends HomeItemAdapter {
 
         @Override
         public void activate() {
+            retries = 0;
             requestNodeInfo();
         }
 
@@ -162,16 +207,19 @@ public class ZWaveNode extends HomeItemAdapter {
             final Event event = server.createEvent(ZWaveController.ZWAVE_EVENT_TYPE, Hex.asHexString(request.encode()));
             event.setAttribute("Direction", "Out");
             server.send(event);
-            setTimeout(2000);
+            setTimeout(4000);
         }
 
         @Override
         void timeout() {
             synchronized (this) {
-                // TODO: Give up after a number of retries
                 if (state == this) {
-                    retries++;
-                    requestNodeInfo();
+                    if (retries >= 3) {
+                        state = new IncompleteState();
+                    } else {
+                        retries++;
+                        requestNodeInfo();
+                    }
                 }
             }
         }
@@ -183,8 +231,57 @@ public class ZWaveNode extends HomeItemAdapter {
                     cancelTimeout();
                     supportedCommandClasses = event.supportedCommandClasses;
                     controlledCommandClasses = event.controlledCommandClasses;
-                    state = new ActiveState();
+                    state = new RequestApplicationSpecificInfoState();
+                    state.activate();
                 }
+            }
+        }
+    }
+
+    private class RequestApplicationSpecificInfoState extends NodeState {
+        private int retries = 0;
+
+        @Override
+        public String getStateString() {
+            return "FindingApplicationInfo " + retries;
+        }
+
+        @Override
+        public void activate() {
+            retries = 0;
+            requestApplicationInfo();
+        }
+
+        private void requestApplicationInfo() {
+            final ApplicationSpecificCommandClass.Get get = new ApplicationSpecificCommandClass.Get();
+            final SendData.Request request = new SendData.Request((byte) nodeId, get);
+            Event event = server.createEvent(ZWaveController.ZWAVE_EVENT_TYPE, Hex.asHexString(request.encode()));
+            event.setAttribute("Direction", "Out");
+            server.send(event);
+            setTimeout(4000);
+        }
+
+        @Override
+        void timeout() {
+            synchronized (this) {
+                if (state == this) {
+                    if (retries >= 3) {
+                        state = new IncompleteState();
+                    } else {
+                        retries++;
+                        requestApplicationInfo();
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void applicationSpecificReport(ApplicationSpecificCommandClass.Report report, CommandArgument node) {
+            if (node.sourceNode == nodeId) {
+                manufacturer = report.manufacturer;
+                deviceType = report.deviceType;
+                deviceId = report.deviceId;
+                state = new ActiveState();
             }
         }
     }
@@ -193,6 +290,13 @@ public class ZWaveNode extends HomeItemAdapter {
         @Override
         public String getStateString() {
             return "Active";
+        }
+    }
+
+    private class IncompleteState extends NodeState {
+        @Override
+        public String getStateString() {
+            return "Incomplete";
         }
     }
 }
