@@ -12,8 +12,7 @@ import nu.nethome.zwave.messages.framework.DecoderException;
 import nu.nethome.zwave.messages.framework.Message;
 import nu.nethome.zwave.messages.framework.MultiMessageProcessor;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
@@ -27,14 +26,14 @@ public class ZWaveNode extends HomeItemAdapter {
             + "  <Attribute Name=\"Manufacturer\" Type=\"String\" Get=\"getManufacturer\" Init=\"setManufacturer\" />"
             + "  <Attribute Name=\"DeviceType\" Type=\"String\" Get=\"getDeviceType\" Init=\"setDeviceType\" />"
             + "  <Attribute Name=\"DeviceId\" Type=\"String\" Get=\"getDeviceId\" Init=\"setDeviceId\" />"
-            + "  <Attribute Name=\"SupportedCommandClasses\" Type=\"String\" Get=\"getSupportedCommandClasses\" Init=\"setSupportedCommandClasses\" />"
-            + "  <Attribute Name=\"ControlledCommandClasses\" Type=\"String\" Get=\"getControlledCommandClasses\" Init=\"setControlledCommandClasses\" />"
+            + "  <Attribute Name=\"SupportedClasses\" Type=\"String\" Get=\"getSupportedCommandClasses\" Init=\"setSupportedCommandClasses\" />"
+            + "  <Attribute Name=\"ControlledClasses\" Type=\"String\" Get=\"getControlledCommandClasses\" Init=\"setControlledCommandClasses\" />"
             + "</HomeItem> ");
 
     private int nodeId;
-    private NodeState state;
-    private byte[] supportedCommandClasses = new byte[0];
-    private byte[] controlledCommandClasses = new byte[0];
+    private DiscoveryState state;
+    private List<Byte> supportedCommandClasses = Collections.emptyList();
+    private List<Byte> controlledCommandClasses = Collections.emptyList();
     private int manufacturer;
     private int deviceType;
     private int deviceId;
@@ -51,7 +50,7 @@ public class ZWaveNode extends HomeItemAdapter {
                 return command;
             }
         });
-        messageProcessor.addCommandProcessor(new ApplicationSpecificCommandClass.Report.Processor(){
+        messageProcessor.addCommandProcessor(new ApplicationSpecificCommandClass.Report.Processor() {
             @Override
             protected ApplicationSpecificCommandClass.Report process(ApplicationSpecificCommandClass.Report command, CommandArgument node) throws DecoderException {
                 state.applicationSpecificReport(command, node);
@@ -111,20 +110,36 @@ public class ZWaveNode extends HomeItemAdapter {
         }
     }
 
-    // TODO: Set supported classes
+    public void setSupportedCommandClasses(String value) {
+        supportedCommandClasses = fromStringList(value);
+    }
+
     public String getSupportedCommandClasses() {
         return asStringList(supportedCommandClasses);
     }
 
-    private static String asStringList(byte[] supportedCommandClasses1) {
+    private static String asStringList(List<Byte> supportedCommandClasses1) {
         String commandClassesString = "";
         String separator = "";
         for (byte commandClass : supportedCommandClasses1) {
             int cc = ((int) commandClass) & 0xFF;
-            commandClassesString += String.format("%s%d", separator, cc);
+            commandClassesString += String.format("%s%X", separator, cc);
             separator = ",";
         }
         return commandClassesString;
+    }
+
+    private List<Byte> fromStringList(String list) {
+        String separated[] = list.split(",");
+        List<Byte> result = new ArrayList<>(separated.length);
+        for (String aSeparated : separated) {
+            result.add(Byte.parseByte(aSeparated, 16));
+        }
+        return result;
+    }
+
+    public void setControlledCommandClasses(String value) {
+        controlledCommandClasses = fromStringList(value);
     }
 
     public String getControlledCommandClasses() {
@@ -135,8 +150,20 @@ public class ZWaveNode extends HomeItemAdapter {
         return Integer.toHexString(manufacturer);
     }
 
+    public void setManufacturer(String manufacturer) {
+        this.manufacturer = Integer.parseInt(manufacturer, 16);
+    }
+
     public String getDeviceType() {
         return Integer.toHexString(deviceType);
+    }
+
+    public void setDeviceType(String deviceType) {
+        this.deviceType = Integer.parseInt(deviceType, 16);
+    }
+
+    public void setDeviceId(String deviceId) {
+        this.deviceId = Integer.parseInt(deviceId, 16);
     }
 
     public String getDeviceId() {
@@ -156,8 +183,7 @@ public class ZWaveNode extends HomeItemAdapter {
          * If node supports MultiInstance, get all endpoints? (multiInstance.initEndpoints(stageAdvanced))
 
      */
-
-    abstract class NodeState {
+    abstract class DiscoveryState {
         abstract public String getStateString();
 
         void activate() {
@@ -173,7 +199,7 @@ public class ZWaveNode extends HomeItemAdapter {
         }
     }
 
-    private class Initial extends NodeState {
+    private class Initial extends DiscoveryState {
         @Override
         public String getStateString() {
             return "Initializing";
@@ -181,14 +207,16 @@ public class ZWaveNode extends HomeItemAdapter {
 
         @Override
         public void activate() {
-            if (supportedCommandClasses.length == 0) {
+            if (supportedCommandClasses.size() == 0) {
                 state = new RequestNodeInfoState();
                 state.activate();
+            } else {
+                state = new ActiveState();
             }
         }
     }
 
-    private class RequestNodeInfoState extends NodeState {
+    private class RequestNodeInfoState extends DiscoveryState {
         private int retries = 0;
 
         @Override
@@ -207,16 +235,14 @@ public class ZWaveNode extends HomeItemAdapter {
             final Event event = server.createEvent(ZWaveController.ZWAVE_EVENT_TYPE, Hex.asHexString(request.encode()));
             event.setAttribute("Direction", "Out");
             server.send(event);
-            setTimeout(4000);
+            setTimeout(5000);
         }
 
         @Override
         void timeout() {
             synchronized (this) {
                 if (state == this) {
-                    if (retries >= 3) {
-                        state = new IncompleteState();
-                    } else {
+                    if (retries < 3) {
                         retries++;
                         requestNodeInfo();
                     }
@@ -229,16 +255,28 @@ public class ZWaveNode extends HomeItemAdapter {
             synchronized (this) {
                 if (event.nodeId == nodeId && event.updateState == ApplicationUpdate.NODE_INFO_RECEIVED) {
                     cancelTimeout();
-                    supportedCommandClasses = event.supportedCommandClasses;
-                    controlledCommandClasses = event.controlledCommandClasses;
-                    state = new RequestApplicationSpecificInfoState();
-                    state.activate();
+                    supportedCommandClasses = asByteList(event.supportedCommandClasses);
+                    controlledCommandClasses = asByteList(event.controlledCommandClasses);
+                    if (supportedCommandClasses.contains(new Byte((byte)ApplicationSpecificCommandClass.COMMAND_CLASS))) {
+                        state = new RequestApplicationSpecificInfoState();
+                        state.activate();
+                    } else {
+                        state = new ActiveState();
+                    }
                 }
             }
         }
     }
 
-    private class RequestApplicationSpecificInfoState extends NodeState {
+    private List<Byte> asByteList(byte[] byteList) {
+        final ArrayList<Byte> bytes = new ArrayList<>(byteList.length);
+        for (byte b : byteList) {
+            bytes.add(b);
+        }
+        return bytes;
+    }
+
+    private class RequestApplicationSpecificInfoState extends DiscoveryState {
         private int retries = 0;
 
         @Override
@@ -286,14 +324,14 @@ public class ZWaveNode extends HomeItemAdapter {
         }
     }
 
-    private class ActiveState extends NodeState {
+    private class ActiveState extends DiscoveryState {
         @Override
         public String getStateString() {
             return "Active";
         }
     }
 
-    private class IncompleteState extends NodeState {
+    private class IncompleteState extends DiscoveryState {
         @Override
         public String getStateString() {
             return "Incomplete";
