@@ -1,5 +1,6 @@
 package nu.nethome.home.items.zwave;
 
+import nu.nethome.home.impl.CommandLineExecutor;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
@@ -9,6 +10,7 @@ import nu.nethome.zwave.messages.ApplicationUpdate;
 import nu.nethome.zwave.messages.RequestNodeInfo;
 import nu.nethome.zwave.messages.SendData;
 import nu.nethome.zwave.messages.commandclasses.ApplicationSpecificCommandClass;
+import nu.nethome.zwave.messages.commandclasses.CentralSceneCommandClass;
 import nu.nethome.zwave.messages.commandclasses.CommandArgument;
 import nu.nethome.zwave.messages.framework.DecoderException;
 import nu.nethome.zwave.messages.framework.Message;
@@ -32,24 +34,37 @@ public class ZWaveCentralSceneRemapButton extends HomeItemAdapter {
 
     private int nodeId = 0;
     private int scene = 1;
+    String pressCommand = "";
+    String holdCommand = "";
+    String releaseCommand = "";
     private MultiMessageProcessor messageProcessor;
+    CommandLineExecutor commandExecutor;
 
     public ZWaveCentralSceneRemapButton() {
         messageProcessor = new MultiMessageProcessor();
-        messageProcessor.addMessageProcessor(ApplicationUpdate.REQUEST_ID, Message.Type.REQUEST, new ApplicationUpdate.Event.Processor() {
+        messageProcessor.addCommandProcessor(new CentralSceneCommandClass.Set.Processor() {
             @Override
-            protected ApplicationUpdate.Event process(ApplicationUpdate.Event command) throws DecoderException {
-                // NYI
+            protected CentralSceneCommandClass.Set process(CentralSceneCommandClass.Set command, CommandArgument node) throws DecoderException {
+                centralSceneCommand(command, node);
                 return command;
             }
         });
-        messageProcessor.addCommandProcessor(new ApplicationSpecificCommandClass.Report.Processor() {
-            @Override
-            protected ApplicationSpecificCommandClass.Report process(ApplicationSpecificCommandClass.Report command, CommandArgument node) throws DecoderException {
-                // NYI
-                return command;
+    }
+
+    private void centralSceneCommand(CentralSceneCommandClass.Set command, CommandArgument node) {
+        if (node.sourceNode == nodeId && command.scene == scene) {
+            switch (command.press) {
+                case 0:
+                    commandExecutor.executeCommandLine(pressCommand);
+                    break;
+                case 1:
+                    commandExecutor.executeCommandLine(holdCommand);
+                    break;
+                case 2:
+                    commandExecutor.executeCommandLine(releaseCommand);
+                    break;
             }
-        });
+        }
     }
 
     @Override
@@ -59,6 +74,7 @@ public class ZWaveCentralSceneRemapButton extends HomeItemAdapter {
 
     @Override
     public void activate() {
+        commandExecutor = new CommandLineExecutor(server, true);
     }
 
     @Override
@@ -90,5 +106,29 @@ public class ZWaveCentralSceneRemapButton extends HomeItemAdapter {
 
     public void setScene(String scene) {
         this.scene = Integer.parseInt(scene);
+    }
+
+    public String getPressCommand() {
+        return pressCommand;
+    }
+
+    public void setPressCommand(String pressCommand) {
+        this.pressCommand = pressCommand;
+    }
+
+    public String getHoldCommand() {
+        return holdCommand;
+    }
+
+    public void setHoldCommand(String holdCommand) {
+        this.holdCommand = holdCommand;
+    }
+
+    public String getReleaseCommand() {
+        return releaseCommand;
+    }
+
+    public void setReleaseCommand(String releaseCommand) {
+        this.releaseCommand = releaseCommand;
     }
 }
