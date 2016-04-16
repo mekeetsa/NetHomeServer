@@ -85,7 +85,7 @@ public class LogPage extends PortletPage {
             p.println("  <tr>");
             p.println("   <td><img src=\"web/home/" + getIconName(logRow.getLevel().intValue()) + "\" /></td>");
             p.println("   <td>" + dateFormat.format(new Date(logRow.getMillis())) + "</td>");
-            String[] separatedName = logRow.getSourceClassName().split(Pattern.quote("."));
+            String[] separatedName = (logRow.getSourceClassName() != null) ? logRow.getSourceClassName().split(Pattern.quote(".")) : new String[0];;
             p.println("   <td>" + (separatedName.length > 0 ? separatedName[separatedName.length - 1] : "") + "</td>");
             p.println("   <td>" + logRow.getMessage() + "</td>");
             p.println("  </tr>");
