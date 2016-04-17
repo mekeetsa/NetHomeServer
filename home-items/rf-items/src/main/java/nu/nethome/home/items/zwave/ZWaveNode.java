@@ -30,6 +30,8 @@ public class ZWaveNode extends HomeItemAdapter {
             + "  <Attribute Name=\"ControlledClasses\" Type=\"String\" Get=\"getControlledCommandClasses\" Init=\"setControlledCommandClasses\" />"
             + "</HomeItem> ");
 
+    public static final String ZWAVE_NODE_REPORT = "ZWave_Node_Report";
+
     private int nodeId;
     private DiscoveryState state;
     private List<Byte> supportedCommandClasses = Collections.emptyList();
@@ -78,8 +80,18 @@ public class ZWaveNode extends HomeItemAdapter {
             } catch (DecoderException e) {
                 // Ignore
             }
+        } else if (event.isType("ReportItems") && state.getClass().equals(ActiveState.class)) {
+            sendNodeReport();
+            return true;
         }
         return false;
+    }
+
+    private void sendNodeReport() {
+        Event nodeReport = server.createEvent(ZWAVE_NODE_REPORT, asStringList(supportedCommandClasses, true));
+        nodeReport.setAttribute("NodeId", nodeId);
+        nodeReport.setAttribute("Direction", "In");
+        server.send(nodeReport);
     }
 
     public String getState() {
@@ -111,41 +123,41 @@ public class ZWaveNode extends HomeItemAdapter {
     }
 
     public void setSupportedCommandClasses(String value) {
-        supportedCommandClasses = fromStringList(value);
+        supportedCommandClasses = fromStringList(value, 16);
     }
 
     public String getSupportedCommandClasses() {
-        return asStringList(supportedCommandClasses);
+        return asStringList(supportedCommandClasses, true);
     }
 
-    private static String asStringList(List<Byte> supportedCommandClasses1) {
+    private static String asStringList(List<Byte> commandClasses, boolean asHex) {
         String commandClassesString = "";
         String separator = "";
-        for (byte commandClass : supportedCommandClasses1) {
+        for (byte commandClass : commandClasses) {
             int cc = ((int) commandClass) & 0xFF;
-            commandClassesString += String.format("%s%X", separator, cc);
+            commandClassesString += String.format(asHex ? "%s%02X" : "%s%d", separator, cc);
             separator = ",";
         }
         return commandClassesString;
     }
 
-    private List<Byte> fromStringList(String list) {
+    private List<Byte> fromStringList(String list, int radix) {
         String separated[] = list.split(",");
         List<Byte> result = new ArrayList<>(separated.length);
         for (String aSeparated : separated) {
             if (!aSeparated.isEmpty()) {
-                result.add((byte) Integer.parseInt(aSeparated, 16));
+                result.add((byte) Integer.parseInt(aSeparated, radix));
             }
         }
         return result;
     }
 
     public void setControlledCommandClasses(String value) {
-        controlledCommandClasses = fromStringList(value);
+        controlledCommandClasses = fromStringList(value, 16);
     }
 
     public String getControlledCommandClasses() {
-        return asStringList(controlledCommandClasses);
+        return asStringList(controlledCommandClasses, true);
     }
 
     public String getManufacturer() {

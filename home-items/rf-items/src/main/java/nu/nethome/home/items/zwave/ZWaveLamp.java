@@ -19,13 +19,16 @@
 
 package nu.nethome.home.items.zwave;
 
+import nu.nethome.home.item.AutoCreationInfo;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
 import nu.nethome.zwave.Hex;
+import nu.nethome.zwave.messages.ApplicationCommand;
 import nu.nethome.zwave.messages.SendData;
+import nu.nethome.zwave.messages.commandclasses.CentralSceneCommandClass;
 import nu.nethome.zwave.messages.commandclasses.CommandArgument;
 import nu.nethome.zwave.messages.commandclasses.MultiInstanceCommandClass;
 import nu.nethome.zwave.messages.commandclasses.SwitchBinaryCommandClass;
@@ -33,15 +36,36 @@ import nu.nethome.zwave.messages.commandclasses.framework.Command;
 import nu.nethome.zwave.messages.framework.DecoderException;
 import nu.nethome.zwave.messages.framework.MultiMessageProcessor;
 
+import java.io.IOException;
 import java.util.logging.Logger;
 
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
-@HomeItemType(value = "Lamps")
+@HomeItemType(value = "Lamps", creationInfo = ZWaveLamp.CreationInfo.class)
 public class ZWaveLamp extends HomeItemAdapter implements HomeItem {
 
+    private static final String SWITCH_BINARY_COMMAND_CLASS_AS_HEX = "25";
+
+    public static class CreationInfo implements AutoCreationInfo {
+        static final String[] CREATION_EVENTS = {ZWaveNode.ZWAVE_NODE_REPORT};
+        @Override
+        public String[] getCreationEvents() {
+            return CREATION_EVENTS;
+        }
+
+        @Override
+        public boolean canBeCreatedBy(Event e) {
+            return e.getAttribute(Event.EVENT_VALUE_ATTRIBUTE).contains(SWITCH_BINARY_COMMAND_CLASS_AS_HEX);
+        }
+
+        @Override
+        public String getCreationIdentification(Event e) {
+            return String.format("ZWave Lamp, node: %d", e.getAttributeInt("NodeId"));
+        }
+    }
+
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
-            + "<HomeItem Class=\"NexaLamp\" Category=\"Lamps\" >"
+            + "<HomeItem Class=\"ZWaveLamp\" Category=\"Lamps\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"NodeId\" Type=\"String\" Get=\"getNodeId\" 	Set=\"setNodeId\" />"
             + "  <Attribute Name=\"Instance\" Type=\"String\" Get=\"getInstance\" 	Set=\"setInstance\" />"
@@ -96,8 +120,8 @@ public class ZWaveLamp extends HomeItemAdapter implements HomeItem {
 
     @Override
     protected boolean initAttributes(Event event) {
-        nodeId = 0; // TODO: NYI
-        instance = null; //
+        nodeId = event.getAttributeInt("NodeId");
+        instance = null;
         return true;
     }
 
