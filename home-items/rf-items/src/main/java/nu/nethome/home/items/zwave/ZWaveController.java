@@ -51,6 +51,7 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
     public static final String ZWAVE_COMMAND_CLASS = "ZWave.CommandClass";
     public static final String ZWAVE_COMMAND = "ZWave.Command";
     public static final String ZWAVE_NODE = "ZWave.Node";
+    public static final String ZWAVE_ENDPOINT = "ZWave.Endpoint";
 
     private static Logger logger = Logger.getLogger(ZWaveController.class.getName());
 
@@ -223,7 +224,7 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
             Command command = request.command;
             if (command.getCommandClass() == MultiInstanceCommandClass.COMMAND_CLASS && command.getCommand() == MultiInstanceCommandClass.ENCAP_V2) {
                 MultiInstanceCommandClass.EncapsulationV2 encap = new MultiInstanceCommandClass.EncapsulationV2(command.encode());
-                event.setAttribute("ZWave.Endpoint", encap.instance);
+                event.setAttribute(ZWAVE_ENDPOINT, encap.instance);
                 command = encap.command;
             }
             event.setAttribute(ZWAVE_COMMAND_CLASS, command.getCommandClass());

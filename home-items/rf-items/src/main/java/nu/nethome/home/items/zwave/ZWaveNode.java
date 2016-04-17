@@ -133,7 +133,9 @@ public class ZWaveNode extends HomeItemAdapter {
         String separated[] = list.split(",");
         List<Byte> result = new ArrayList<>(separated.length);
         for (String aSeparated : separated) {
-            result.add(Byte.parseByte(aSeparated, 16));
+            if (!aSeparated.isEmpty()) {
+                result.add((byte) Integer.parseInt(aSeparated, 16));
+            }
         }
         return result;
     }
@@ -257,7 +259,7 @@ public class ZWaveNode extends HomeItemAdapter {
                     cancelTimeout();
                     supportedCommandClasses = asByteList(event.supportedCommandClasses);
                     controlledCommandClasses = asByteList(event.controlledCommandClasses);
-                    if (supportedCommandClasses.contains(new Byte((byte)ApplicationSpecificCommandClass.COMMAND_CLASS))) {
+                    if (supportedCommandClasses.contains(new Byte((byte) ApplicationSpecificCommandClass.COMMAND_CLASS))) {
                         state = new RequestApplicationSpecificInfoState();
                         state.activate();
                     } else {
