@@ -1,9 +1,7 @@
 package nu.nethome.home.items.zwave;
 
 import jssc.SerialPortException;
-import nu.nethome.home.item.HomeItem;
-import nu.nethome.home.item.HomeItemAdapter;
-import nu.nethome.home.item.HomeItemType;
+import nu.nethome.home.item.*;
 import nu.nethome.util.plugin.Plugin;
 import nu.nethome.zwave.*;
 import nu.nethome.zwave.messages.AddNode;
@@ -39,7 +37,7 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
             + "  <Attribute Name=\"PortAddress\" Type=\"String\" Get=\"getPortAddress\" Set=\"setPortAddress\" />"
             + "  <Attribute Name=\"HomeId\" Type=\"String\" Get=\"getHomeId\" />"
             + "  <Attribute Name=\"NodeId\" Type=\"String\" Get=\"getNodeId\" />"
-            + "  <Attribute Name=\"Nodes\" Type=\"String\" Get=\"getNodes\" />"
+            + "  <Attribute Name=\"Nodes\" Type=\"String\" Get=\"getNodes\" Set=\"setNodes\" />"
             + "  <Action Name=\"RequestIdentity\" 	Method=\"requestIdentity\" Default=\"true\" />"
             + "  <Action Name=\"Reconnect\"		Method=\"reconnect\" Default=\"true\" />"
             + "  <Action Name=\"StartInclusion\"		Method=\"startInclusion\" />"
@@ -52,6 +50,7 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
     public static final String ZWAVE_COMMAND = "ZWave.Command";
     public static final String ZWAVE_NODE = "ZWave.Node";
     public static final String ZWAVE_ENDPOINT = "ZWave.Endpoint";
+    private static final long DELAY_BETWEEN_NODE_CREATIONS_MS = 5000L;
 
     private static Logger logger = Logger.getLogger(ZWaveController.class.getName());
 
@@ -60,7 +59,7 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
     private String portAddress = "";
     private long homeId = 0;
     private int nodeId = 0;
-    private List<Integer> nodes = Collections.emptyList();
+    private List<DiscoveredNode> nodes = new ArrayList<>();
 
     public boolean receiveEvent(nu.nethome.home.system.Event event) {
         if (event.isType(ZWAVE_EVENT_TYPE) &&
@@ -105,7 +104,7 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
     private void openPort() {
         try {
             if (portAddress.isEmpty()) {
-            port = new ZWaveSerialPort(portName);
+                port = new ZWaveSerialPort(portName);
             } else {
                 final String[] addressParts = portAddress.split(":");
                 port = new ZWaveNetHomePort(addressParts[0], Integer.parseInt(addressParts[1]));
@@ -121,7 +120,7 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
             logger.fine("Created port");
             requestIdentity();
             requestNodeInfo();
-        } catch (PortException|IOException e) {
+        } catch (PortException | IOException e) {
             logger.log(Level.WARNING, "Could not open ZWave port", e);
         }
     }
@@ -241,8 +240,37 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
             nodeId = memoryGetIdResponse.nodeId;
         } else if (messageId == GetInitData.REQUEST_ID) {
             GetInitData.Response response = new GetInitData.Response(message);
-            nodes = new ArrayList<>(response.nodes);
+            processNodes(response);
         }
+    }
+
+    private void processNodes(GetInitData.Response response) {
+        for (int zWaveNode : response.nodes) {
+            if (zWaveNode > 1 && !hasNode(zWaveNode)) {
+                final String instanceName = "ZWave_Node:" + this.getHomeId() + "-" + zWaveNode;
+                try {
+                    if (server.openInstance(instanceName) == null) {
+                        HomeItemProxy instance = server.createInstance(ZWaveNode.class.getSimpleName(), "#" + instanceName);
+                        instance.setAttributeValue("NodeId", Integer.toString(zWaveNode));
+                        instance.callAction("activate");
+                        server.renameInstance("#" + instanceName, instanceName);
+                        this.nodes.add(new DiscoveredNode(zWaveNode, instance.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE)));
+                        Thread.sleep(DELAY_BETWEEN_NODE_CREATIONS_MS);
+                    }
+                } catch (ExecutionFailure | IllegalValueException | InterruptedException executionFailure) {
+                    logger.warning("Could not create ZWave node: " + instanceName);
+                }
+            }
+        }
+    }
+
+    private boolean hasNode(int i) {
+        for (DiscoveredNode node : nodes) {
+            if (node.nodeId == i) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public String getPortName() {
@@ -280,14 +308,26 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
     public String getNodes() {
         String result = "";
         String separator = "";
-        for (Integer node : nodes) {
+        for (DiscoveredNode node : nodes) {
             if (!node.equals(1)) {
                 result += separator;
-                result += Integer.toString(node);
+                result += node.toString();
                 separator = ",";
             }
         }
         return result;
+    }
+
+    public void setNodes(String nodes) {
+        String list[] = nodes.split(",");
+        this.nodes = new ArrayList<>(list.length);
+        for (String node : list) {
+            try {
+                this.nodes.add(new DiscoveredNode(node));
+            } catch (IllegalArgumentException e) {
+                // Not adding bad node
+            }
+        }
     }
 
     public String getPortAddress() {
@@ -296,5 +336,30 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
 
     public void setPortAddress(String portAddress) {
         this.portAddress = portAddress;
+    }
+
+    class DiscoveredNode {
+        public final int nodeId;
+        public final String nodeItem;
+
+        DiscoveredNode(int nodeId, String nodeItem) {
+            this.nodeId = nodeId;
+            this.nodeItem = nodeItem;
+        }
+
+        DiscoveredNode(String nodeAndItem) {
+            String tuple[] = nodeAndItem.split(":");
+            if (tuple.length == 2) {
+                this.nodeId = Integer.parseInt(tuple[0]);
+                this.nodeItem = tuple[1];
+            } else {
+                throw new IllegalArgumentException();
+            }
+        }
+
+        @Override
+        public String toString() {
+            return "" + nodeId + ":" + nodeItem;
+        }
     }
 }

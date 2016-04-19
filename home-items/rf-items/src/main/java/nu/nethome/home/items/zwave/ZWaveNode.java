@@ -22,7 +22,7 @@ public class ZWaveNode extends HomeItemAdapter {
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"ZWaveNode\" Category=\"Hardware\" Morphing=\"true\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
-            + "  <Attribute Name=\"NodeId\" Type=\"String\" Get=\"getNodeId\" Init=\"setNodeId\" />"
+            + "  <Attribute Name=\"NodeId\" Type=\"String\" Get=\"getNodeId\" Set=\"setNodeId\" />"
             + "  <Attribute Name=\"Manufacturer\" Type=\"String\" Get=\"getManufacturer\" Init=\"setManufacturer\" />"
             + "  <Attribute Name=\"DeviceType\" Type=\"String\" Get=\"getDeviceType\" Init=\"setDeviceType\" />"
             + "  <Attribute Name=\"DeviceId\" Type=\"String\" Get=\"getDeviceId\" Init=\"setDeviceId\" />"
@@ -231,6 +231,7 @@ public class ZWaveNode extends HomeItemAdapter {
     }
 
     private class RequestNodeInfoState extends DiscoveryState {
+        private static final int RETRY_BASE_DELAY = 5000;
         private int retries = 0;
 
         @Override
@@ -249,7 +250,15 @@ public class ZWaveNode extends HomeItemAdapter {
             final Event event = server.createEvent(ZWaveController.ZWAVE_EVENT_TYPE, Hex.asHexString(request.encode()));
             event.setAttribute("Direction", "Out");
             server.send(event);
-            setTimeout(5000);
+            setTimeout((long)(retryDelay() * plusMinus20Percent()));
+        }
+
+        private int retryDelay() {
+            return (RETRY_BASE_DELAY + RETRY_BASE_DELAY * retries);
+        }
+
+        private double plusMinus20Percent() {
+            return (0.8 + Math.random() * 0.4);
         }
 
         @Override
