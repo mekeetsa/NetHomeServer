@@ -245,5 +245,6 @@ public class SelectClassPage extends PortletPage {
         p.println(" </div>");
         p.println(" <h5></h5>");
         p.println("</div>");
+        p.println("<div id=\"includeState\"><button onclick=\"myFunction()\">Include new node</button>Scanning for new nodes</div>");
     }
 }

@@ -873,3 +873,14 @@ div#chart1 {
     margin-left: 12px;
     margin-top: 12px;
 }
+
+#includeState {
+    margin-top: 10px;
+    font-size: 1.4em;
+    font-weight: bold;
+    color: black;
+}
+
+#includeState button {
+    margin-right: 4px;
+}
