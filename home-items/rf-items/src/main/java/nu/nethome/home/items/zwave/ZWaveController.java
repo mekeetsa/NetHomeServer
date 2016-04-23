@@ -1,7 +1,7 @@
 package nu.nethome.home.items.zwave;
 
-import jssc.SerialPortException;
 import nu.nethome.home.item.*;
+import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
 import nu.nethome.zwave.*;
 import nu.nethome.zwave.messages.AddNode;
@@ -16,7 +16,6 @@ import nu.nethome.zwave.messages.framework.UndecodedMessage;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,6 +59,7 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
     private long homeId = 0;
     private int nodeId = 0;
     private List<DiscoveredNode> nodes = new ArrayList<>();
+    private State state = new Initial();
 
     public boolean receiveEvent(nu.nethome.home.system.Event event) {
         if (event.isType(ZWAVE_EVENT_TYPE) &&
@@ -120,6 +120,7 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
             logger.fine("Created port");
             requestIdentity();
             requestNodeInfo();
+            state.portOpened();
         } catch (PortException | IOException e) {
             logger.log(Level.WARNING, "Could not open ZWave port", e);
         }
@@ -166,11 +167,13 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
     }
 
     public String startInclusion() {
-        return sendRequest(new AddNode.Request(AddNode.Request.InclusionMode.ANY));
+        state.startInclusion();
+        return "";
     }
 
     public String endInclusion() {
-        return sendRequest(new AddNode.Request(AddNode.Request.InclusionMode.STOP));
+        state.endInclusion();
+        return "";
     }
 
     private String sendRequest(MessageAdaptor request) {
@@ -238,9 +241,13 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
             MemoryGetId.Response memoryGetIdResponse = new MemoryGetId.Response(message);
             homeId = memoryGetIdResponse.homeId;
             nodeId = memoryGetIdResponse.nodeId;
+            state.gotResponse();
         } else if (messageId == GetInitData.REQUEST_ID) {
             GetInitData.Response response = new GetInitData.Response(message);
             processNodes(response);
+        } else if (messageId == AddNode.REQUEST_ID) {
+            AddNode.Event event = new AddNode.Event(message);
+            state.addNodeEvent(event);
         }
     }
 
@@ -338,7 +345,7 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
         this.portAddress = portAddress;
     }
 
-    class DiscoveredNode {
+    static class DiscoveredNode {
         public final int nodeId;
         public final String nodeItem;
 
@@ -360,6 +367,89 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
         @Override
         public String toString() {
             return "" + nodeId + ":" + nodeItem;
+        }
+    }
+
+    private abstract class State {
+        public abstract String getStateString();
+        public void portOpened() {}
+        public void gotResponse() {}
+        public void startInclusion() {}
+        public void endInclusion() {}
+        public void addNodeEvent(AddNode.Event event) {
+            switch (event.status) {
+                case LEARN_READY:
+                    state = new InclusionState();
+                    sendInclusionEvent("InclusionStarted", 0);
+                    break;
+            }
+        }
+    }
+
+    private void sendInclusionEvent(String event, int node) {
+        final Event serverEvent = server.createEvent("NodeInclusionEvent", event);
+        serverEvent.setAttribute("Protocol", "ZWave");
+        if (node > 0) {
+            serverEvent.setAttribute("Node", Integer.toString(node));
+        }
+        server.send(serverEvent);
+    }
+
+    private class Initial extends State {
+
+        public String getStateString() {
+            return "Disconnected";
+        }
+
+        @Override
+        public void portOpened() {
+            state = new ConnectingState();
+        }
+    }
+
+    private class ConnectingState extends State {
+
+        public String getStateString() {
+            return "Connecting";
+        }
+
+        @Override
+        public void gotResponse() {
+            state = new ConnectedState();
+        }
+    }
+
+    private class ConnectedState extends State {
+
+        public String getStateString() {
+            return "Connected";
+        }
+
+        @Override
+        public void startInclusion() {
+            sendRequest(new AddNode.Request(AddNode.Request.InclusionMode.ANY));
+        }
+    }
+
+    private class InclusionState extends State {
+
+        public String getStateString() {
+            return "Including nodes";
+        }
+
+        public void addNodeEvent(AddNode.Event event) {
+            switch (event.status) {
+                case ADDING_SLAVE:
+                case ADDING_CONTROLLER:
+                    sendInclusionEvent("AddedNode", event.nodeId);
+                    break;
+                case PROTOCOL_DONE:
+            }
+        }
+
+        @Override
+        public void endInclusion() {
+            sendRequest(new AddNode.Request(AddNode.Request.InclusionMode.STOP));
         }
     }
 }
