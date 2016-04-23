@@ -420,7 +420,6 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
     }
 
     private class ConnectedState extends State {
-
         public String getStateString() {
             return "Connected";
         }
@@ -432,7 +431,6 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
     }
 
     private class InclusionState extends State {
-
         public String getStateString() {
             return "Including nodes";
         }
@@ -444,6 +442,17 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
                     sendInclusionEvent("AddedNode", event.nodeId);
                     break;
                 case PROTOCOL_DONE:
+                    sendRequest(new AddNode.Request(AddNode.Request.InclusionMode.STOP));
+                    break;
+                case FAILED:
+                    sendRequest(new AddNode.Request(AddNode.Request.InclusionMode.STOP_FAILED));
+                    sendInclusionEvent("InclusionEnded", 0);
+                    state = new ConnectedState();
+                    break;
+                case DONE:
+                    sendInclusionEvent("InclusionEnded", 0);
+                    state = new ConnectedState();
+                    break;
             }
         }
 
