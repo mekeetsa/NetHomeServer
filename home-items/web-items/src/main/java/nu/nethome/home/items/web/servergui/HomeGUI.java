@@ -303,6 +303,12 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
 
         if (funcId != null && funcId.equals("eventtable")) {
             printEventsTable(p);
+        } else if (funcId != null && funcId.equals("addnodestate")) {
+            printaddNodeState(p);
+        } else if (funcId != null && funcId.equals("startinclude")) {
+            homeServer.send(homeServer.createEvent("NodeInclusionEvent", "StartInclusion"));
+        } else if (funcId != null && funcId.equals("endinclude")) {
+            homeServer.send(homeServer.createEvent("NodeInclusionEvent", "EndInclusion"));
         } else if (funcId != null && funcId.compareToIgnoreCase("gethomeitems") == 0) {
             List<DirectoryEntry> names = homeServer.listInstances("");
 
@@ -437,6 +443,20 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         }
         p.flush();
         p.close();
+    }
+
+    private void printaddNodeState(PrintWriter p) {
+        if (creationEvents.isAddingNodes()) {
+            p.print("<button onclick=\"endInclude()\">Stop Including node</button>");
+            final CreationEventCache.AddedNodeInfo lastAddedNode = creationEvents.getLastAddedNode();
+            if (lastAddedNode != null) {
+                p.println("Found " + lastAddedNode.protocol + " node " + lastAddedNode.identity);
+            } else {
+                p.println("Scanning for new nodes...");
+            }
+        } else {
+            p.println("<button onclick=\"startInclude()\">Include new node</button>");
+        }
     }
 
     protected void printHeader(PrintWriter p, HomePageInterface pagePlugin) throws ServletException, IOException {

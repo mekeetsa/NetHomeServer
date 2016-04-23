@@ -12,6 +12,8 @@ public class CreationEventCache {
     private long collectTimeout = 1000 * 60 * 20;
     private long clearTimeout = 1000 * 60 * 60 * 2;
     private Date latestCollectionTime = new Date(0);
+    private volatile boolean isAddingNodes = false;
+    private volatile AddedNodeInfo lastAddedNode;
 
     public void addItemInfo(List<HomeItemInfo> itemInfos) {
         for (HomeItemInfo info : itemInfos) {
@@ -27,13 +29,28 @@ public class CreationEventCache {
     }
 
     public synchronized void newEvent(Event event, boolean wasHandled) {
-        if (isCollecting() && isInbound(event)) {
+        if (event.isType("NodeInclusionEvent")) {
+            updateNodeInclusionState(event);
+        } else if (isCollecting() && isInbound(event)) {
             List<HomeItemInfo> itemsCreatableByEvent = getItemsCreatableByEvent(event);
             if (itemsCreatableByEvent.size() > 0) {
                 cacheCreationEvent(event, wasHandled, itemsCreatableByEvent);
             }
         } else {
             clearOldCacheEntriesIfNeeded();
+        }
+    }
+
+    private void updateNodeInclusionState(Event event) {
+        final String value = event.getAttribute(Event.EVENT_VALUE_ATTRIBUTE);
+        if (value.equals("InclusionStarted")) {
+            this.isAddingNodes = true;
+            lastAddedNode = null;
+        } else if (value.equals("AddedNode")) {
+            this.isAddingNodes = true;
+            lastAddedNode = new AddedNodeInfo(event.getAttribute("Protocol"), event.getAttribute("Node"));
+        }  else if (value.equals("InclusionEnded")) {
+            this.isAddingNodes = false;
         }
     }
 
@@ -101,5 +118,23 @@ public class CreationEventCache {
 
     public void setClearTimeout(long clearTimeout) {
         this.clearTimeout = clearTimeout;
+    }
+
+    public boolean isAddingNodes() {
+        return isAddingNodes;
+    }
+
+    public AddedNodeInfo getLastAddedNode() {
+        return lastAddedNode;
+    }
+
+    public static class AddedNodeInfo {
+        public final String protocol;
+        public final String identity;
+
+        public AddedNodeInfo(String protocol, String identity) {
+            this.protocol = protocol;
+            this.identity = identity;
+        }
     }
 }

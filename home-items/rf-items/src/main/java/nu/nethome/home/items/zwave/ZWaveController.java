@@ -73,6 +73,14 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
                 logger.warning("Failed to send ZWave message: " + event.getAttribute(nu.nethome.home.system.Event.EVENT_VALUE_ATTRIBUTE));
             }
             return true;
+        } else if (event.isType("NodeInclusionEvent")) {
+            if (event.getAttribute(Event.EVENT_VALUE_ATTRIBUTE).equals("StartInclusion")) {
+                startInclusion();
+                return true;
+            } else if (event.getAttribute(Event.EVENT_VALUE_ATTRIBUTE).equals("EndInclusion")) {
+                endInclusion();
+                return true;
+            }
         }
         return false;
     }
@@ -446,14 +454,18 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
                     break;
                 case FAILED:
                     sendRequest(new AddNode.Request(AddNode.Request.InclusionMode.STOP_FAILED));
-                    sendInclusionEvent("InclusionEnded", 0);
-                    state = new ConnectedState();
+                    endAddNodeEventState();
                     break;
                 case DONE:
-                    sendInclusionEvent("InclusionEnded", 0);
-                    state = new ConnectedState();
+                    endAddNodeEventState();
                     break;
             }
+        }
+
+        private void endAddNodeEventState() {
+            sendInclusionEvent("InclusionEnded", 0);
+            requestNodeInfo();
+            state = new ConnectedState();
         }
 
         @Override

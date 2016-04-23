@@ -23,7 +23,16 @@ $(document).ready(function () {
 });
 
 function refreshTable(){
+    $('#includeState').load(homeManager.baseURL + "?a=ajax&f=addnodestate");
     $('#eventsTableHolder').load(homeManager.baseURL + "?a=ajax&f=eventtable", function(){
         setTimeout(refreshTable, 1000);
     });
+}
+
+function startInclude() {
+    $.post(homeManager.baseURL + "?a=ajax&f=startinclude");
+}
+
+function endInclude() {
+    $.post(homeManager.baseURL + "?a=ajax&f=endinclude");
 }
