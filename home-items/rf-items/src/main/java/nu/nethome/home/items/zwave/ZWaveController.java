@@ -464,8 +464,8 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
 
         private void endAddNodeEventState() {
             sendInclusionEvent("InclusionEnded", 0);
-            requestNodeInfo();
             state = new ConnectedState();
+            requestNodeInfo();
         }
 
         @Override

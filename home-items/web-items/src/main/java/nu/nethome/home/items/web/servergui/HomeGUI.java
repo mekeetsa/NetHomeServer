@@ -289,7 +289,6 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
      * <p>
      * <code>http://localhost:8020/home?a=ajax&r=json&f=getActions&item=Hyll-Lampa</code>
      * </p>
-     *
      */
     private void performAjax(HttpServletRequest req, HttpServletResponse res, HomeGUIArguments arguments) throws ServletException, IOException {
         String typeId = req.getParameter("r");
@@ -347,7 +346,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
             }
             p.format("]}");
             return;
-        }else if (funcId != null && funcId.compareToIgnoreCase("getattributes") == 0) {
+        } else if (funcId != null && funcId.compareToIgnoreCase("getattributes") == 0) {
             if (itemName == null && itemID == null)
                 return;
             if (itemName != null && itemName.length() == 0)
@@ -446,16 +445,15 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
     }
 
     private void printaddNodeState(PrintWriter p) {
+        final CreationEventCache.AddedNodeInfo lastAddedNode = creationEvents.getLastAddedNode();
+        String nodeText = lastAddedNode != null ? ("Found " + lastAddedNode.protocol + " node " + lastAddedNode.identity) : "";
         if (creationEvents.isAddingNodes()) {
-            p.print("<button onclick=\"endInclude()\">Stop Including node</button>");
-            final CreationEventCache.AddedNodeInfo lastAddedNode = creationEvents.getLastAddedNode();
-            if (lastAddedNode != null) {
-                p.println("Found " + lastAddedNode.protocol + " node " + lastAddedNode.identity);
-            } else {
-                p.println("Scanning for new nodes...");
+            p.print("<button onclick=\"endInclude()\">Stop Including node</button>" + nodeText);
+            if (nodeText.isEmpty()) {
+                p.println("Scanning for new node...");
             }
         } else {
-            p.println("<button onclick=\"startInclude()\">Include new node</button>");
+            p.println("<button onclick=\"startInclude()\">Include new node</button>" + nodeText);
         }
     }
 
@@ -713,15 +711,15 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         }
         ageString.append(ageSeconds).append(" Sec");
         p.println("  <tr>");
-        p.printf ("   <td><img src=\"web/home/%s\" /></td>\n", (event.getWasHandled() ? "item16.png" : "item_new16.png"));
+        p.printf("   <td><img src=\"web/home/%s\" /></td>\n", (event.getWasHandled() ? "item16.png" : "item_new16.png"));
         if (event.getContent().length() < MAX_EVENT_ID_LENGTH) {
-            p.printf ("   <td>%s</td>\n", event.getContent());
-        } else  {
-            p.printf ("   <td title=\"%s\">%s...</td>\n", event.getContent(), event.getContent().substring(0, MAX_EVENT_ID_LENGTH));
+            p.printf("   <td>%s</td>\n", event.getContent());
+        } else {
+            p.printf("   <td title=\"%s\">%s...</td>\n", event.getContent(), event.getContent().substring(0, MAX_EVENT_ID_LENGTH));
         }
-        p.printf ("   <td><a onclick=\"location.href=homeManager.classUrl + '&event=%d';return false;\" href=\"%s?page=edit&event=%d\">Create Item</a></td>\n", event.getId(), localURL, event.getId());
-        p.printf ("   <td>%s</td>\n", ageString);
-        p.printf ("   <td>%s</td>\n", (event.getWasHandled() ? "Existing" : "New"));
+        p.printf("   <td><a onclick=\"location.href=homeManager.classUrl + '&event=%d';return false;\" href=\"%s?page=edit&event=%d\">Create Item</a></td>\n", event.getId(), localURL, event.getId());
+        p.printf("   <td>%s</td>\n", ageString);
+        p.printf("   <td>%s</td>\n", (event.getWasHandled() ? "Existing" : "New"));
         p.println("  </tr>");
     }
 }

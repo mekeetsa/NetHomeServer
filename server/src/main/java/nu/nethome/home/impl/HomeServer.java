@@ -425,7 +425,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
      * @param item Instance to register
      */
     public int registerInstance(HomeItem item) {
-        return itemDirectory.registerInstance(item);
+        return itemDirectory.registerInstance(item, false);
     }
 
     public String getModel() {
@@ -503,7 +503,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
             }
 
             // Register the new instance
-            int regResult = registerInstance(item);
+            int regResult = itemDirectory.registerInstance(item, true);
             if (regResult != 0) {
                 // IF we fail to register the instance, mark it as bad by setting ID = 0
                 HomeServer.logger.warning("Failed to register Item " + item.getName() + " Error " + Integer.toString(regResult));

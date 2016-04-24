@@ -231,7 +231,7 @@ public class ZWaveNode extends HomeItemAdapter {
     }
 
     private class RequestNodeInfoState extends DiscoveryState {
-        private static final int RETRY_BASE_DELAY = 5000;
+        private static final long RETRY_BASE_DELAY = 5000L;
         private int retries = 0;
 
         @Override
@@ -253,7 +253,7 @@ public class ZWaveNode extends HomeItemAdapter {
             setTimeout((long)(retryDelay() * plusMinus20Percent()));
         }
 
-        private int retryDelay() {
+        private long retryDelay() {
             return (RETRY_BASE_DELAY + RETRY_BASE_DELAY * retries);
         }
 

@@ -29,9 +29,9 @@ public class ItemDirectory {
 
     public static final String RELATED_SEARCH_KEYWORD = "@related=";
     private volatile List<HomeItem> homeItems = new LinkedList<HomeItem>();
-    private volatile AbstractMap<String, HomeItem> homeItemNameMap = new TreeMap<String, HomeItem>();
-    private volatile AbstractMap<Long, HomeItem> homeItemIDMap = new TreeMap<Long, HomeItem>();
-    private volatile AbstractMap<Long, String> categoryMap = new TreeMap<Long, String>();
+    private volatile Map<String, HomeItem> homeItemNameMap = new TreeMap<String, HomeItem>();
+    private volatile Map<Long, HomeItem> homeItemIDMap = new TreeMap<Long, HomeItem>();
+    private volatile Map<Long, String> categoryMap = new TreeMap<Long, String>();
     private volatile RelationCache relationCache = new RelationCache();
 
     public ItemDirectory() {
@@ -45,7 +45,7 @@ public class ItemDirectory {
         return Collections.unmodifiableList(homeItems);
     }
 
-    public synchronized int registerInstance(HomeItem item) {
+    public synchronized int registerInstance(HomeItem item, boolean bulk) {
         String name = item.getName();
         if (name == null) {
             return 1;
@@ -56,7 +56,6 @@ public class ItemDirectory {
         if (homeItemIDMap.containsKey(item.getItemId()) || (item.getItemId() == 0)) {
             return 3;
         }
-        homeItems.add(item);
         homeItemNameMap.put(name, item);
         homeItemIDMap.put(item.getItemId(), item);
         try {
@@ -64,6 +63,14 @@ public class ItemDirectory {
             relationCache.addItem(item);
         } catch (ModelException e) {
             return 4;
+        }
+        if (bulk) {
+            homeItems.add(item);
+        } else {
+            ArrayList<HomeItem> newHomeItems = new ArrayList<>(homeItems.size() + 1);
+            newHomeItems.addAll(homeItems);
+            newHomeItems.add(item);
+            homeItems = newHomeItems;
         }
         return 0;
     }
@@ -135,8 +142,10 @@ public class ItemDirectory {
         categoryMap.remove(item.getItemId());
         homeItemIDMap.remove(item.getItemId());
         homeItemNameMap.remove(instanceName);
-        homeItems.remove(item);
         relationCache.removeItem(item.getItemId());
+        final ArrayList<HomeItem> newHomeItems = new ArrayList<>(homeItems);
+        newHomeItems.remove(item);
+        homeItems = newHomeItems;
         return item;
     }
 
