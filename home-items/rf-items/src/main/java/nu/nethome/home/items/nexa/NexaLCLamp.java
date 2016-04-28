@@ -52,7 +52,7 @@ public class NexaLCLamp extends HomeItemAdapter implements HomeItem {
 			+ "</HomeItem> ");
 
     protected static Logger logger = Logger.getLogger(NexaLCLamp.class.getName());
-    private static final int MAX_NEXAL_ADDRESS = 1 << 26 - 1;
+    private static final int MAX_NEXAL_ADDRESS = (1 << 26) - 1;
 
 	// Public attributes
 	protected boolean isOn = false;
