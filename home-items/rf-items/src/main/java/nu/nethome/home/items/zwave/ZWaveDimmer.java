@@ -58,7 +58,7 @@ public class ZWaveDimmer extends HomeItemAdapter implements HomeItem {
 
         @Override
         public String getCreationIdentification(Event e) {
-            return String.format("ZWave Dimmer, node: %d", e.getAttributeInt("NodeId"));
+            return String.format("ZWave Multi Level Switch, node: %d", e.getAttributeInt("NodeId"));
         }
     }
 

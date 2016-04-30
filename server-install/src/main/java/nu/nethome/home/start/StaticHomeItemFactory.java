@@ -179,6 +179,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("ZWaveCentralSceneRemapButton", nu.nethome.home.items.zwave.ZWaveCentralSceneRemapButton.class),
             new HomeItemClassInfo("ZWaveLamp", nu.nethome.home.items.zwave.ZWaveLamp.class),
             new HomeItemClassInfo("ZWaveDimmer", nu.nethome.home.items.zwave.ZWaveDimmer.class),
+            new HomeItemClassInfo("ZWaveBlind", nu.nethome.home.items.zwave.ZWaveBlind.class),
 
             // web-items
             new HomeItemClassInfo("Room", nu.nethome.home.items.infra.Room.class),

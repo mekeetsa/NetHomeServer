@@ -17,9 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nu.nethome.home.items.rollertrol;
+package nu.nethome.home.items.zwave;
 
-import nu.nethome.coders.RollerTrol;
 import nu.nethome.home.item.AutoCreationInfo;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
@@ -27,31 +26,27 @@ import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.items.blinds.BlindState;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
+import nu.nethome.zwave.Hex;
+import nu.nethome.zwave.messages.SendData;
+import nu.nethome.zwave.messages.commandclasses.MultiLevelSwitchCommandClass;
+import nu.nethome.zwave.messages.commandclasses.framework.Command;
+import nu.nethome.zwave.messages.framework.DecoderException;
+import nu.nethome.zwave.messages.framework.MultiMessageProcessor;
 
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Logger;
 
-import static nu.nethome.coders.RollerTrol.*;
-
-/**
- * @author Stefan
- */
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
-@HomeItemType(value = "Actuators", creationInfo = RollerTrolBlind.RollerTrolCreationInfo.class)
-public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
+@HomeItemType(value = "Actuators", creationInfo = ZWaveBlind.CreationInfo.class)
+public class ZWaveBlind extends HomeItemAdapter implements HomeItem {
 
-    public static final String HOUSE_CODE_ATTRIBUTE = "RollerTrol.HouseCode";
-    public static final String DEVICE_CODE_ATTRIBUTE = "RollerTrol.DeviceCode";
-    public static final String COMMAND_ATTRIBUTE = "RollerTrol.Command";
     public static final int MINIMAL_MOVEMENT_TIME = 1000;
-    public static final int MAX_ID = (1 << RollerTrol.HOUSE_CODE.length) - 1;
+    private static final String SWITCH_MULTI_LEVEL_COMMAND_CLASS_AS_HEX = "26";
 
-    private int repeats = 15;
-
-    public static class RollerTrolCreationInfo implements AutoCreationInfo {
-        static final String[] CREATION_EVENTS = {"RollerTrol_Message"};
+    public static class CreationInfo implements AutoCreationInfo {
+        static final String[] CREATION_EVENTS = {ZWaveNode.ZWAVE_NODE_REPORT};
         @Override
         public String[] getCreationEvents() {
             return CREATION_EVENTS;
@@ -59,68 +54,55 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
 
         @Override
         public boolean canBeCreatedBy(Event e) {
-            return true;
+            return e.getAttribute(Event.EVENT_VALUE_ATTRIBUTE).contains(SWITCH_MULTI_LEVEL_COMMAND_CLASS_AS_HEX);
         }
 
         @Override
         public String getCreationIdentification(Event e) {
-            return String.format("Rollertrol Blind Motor, Ch: %s, Remote: %s",
-                    e.getAttribute(DEVICE_CODE_ATTRIBUTE), e.getAttribute(HOUSE_CODE_ATTRIBUTE));
+            return String.format("ZWave Multi Level Switch, node: %d", e.getAttributeInt("NodeId"));
         }
     }
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"RollerTrolBlind\" Category=\"Actuators\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
-            + "  <Attribute Name=\"RemoteId\" Type=\"String\" Get=\"getRemoteId\" 	Set=\"setRemoteId\" />"
-            + "  <Attribute Name=\"Channel\" Type=\"StringList\" Get=\"getChannel\" Set=\"setChannel\" >"
-            + "     <item>1</item> <item>2</item> <item>3</item> <item>4</item> <item>5</item> <item>6</item> <item>7</item> <item>8</item> <item>All</item></Attribute>"
+            + "  <Attribute Name=\"NodeId\" Type=\"String\" Get=\"getNodeId\" 	Set=\"setNodeId\" />"
             + "  <Attribute Name=\"TravelTime\" Type=\"String\" Get=\"getTravelTime\" 	Set=\"setTravelTime\" />"
             + "  <Attribute Name=\"Position1\" Type=\"String\" Get=\"getPosition1\" 	Set=\"setPosition1\" />"
             + "  <Attribute Name=\"Position2\" Type=\"String\" Get=\"getPosition2\" 	Set=\"setPosition2\" />"
-            + "  <Attribute Name=\"TransmissionRepeats\" Type=\"String\" Get=\"getRepeats\" 	Set=\"setRepeats\" />"
             + "  <Action Name=\"up\" 	Method=\"blindUp\" />"
             + "  <Action Name=\"stop\" 	Method=\"blindStop\" />"
             + "  <Action Name=\"down\" 	Method=\"blindDown\" />"
             + "  <Action Name=\"toggle\" 	Method=\"blindToggle\" Default=\"true\" />"
             + "  <Action Name=\"Position1\" 	Method=\"position1\" />"
             + "  <Action Name=\"Position2\" 	Method=\"position2\" />"
-            + "  <Action Name=\"setConfirm\" 	Method=\"blindConfirm\" />"
-            + "  <Action Name=\"setLimit\" 	Method=\"blindLimit\" />"
-            + "  <Action Name=\"setReverse\" 	Method=\"blindReverse\" />"
             + "</HomeItem> ");
 
-    private static Logger logger = Logger.getLogger(RollerTrolBlind.class.getName());
+    private static Logger logger = Logger.getLogger(ZWaveBlind.class.getName());
 
-    private Timer stopTimer = new Timer("RollerTrolBlind", true);
-    private int remoteId = 1;
-    private int channel = 1;
+    private MultiMessageProcessor messageProcessor;
+    private Timer stopTimer = new Timer("ZWaveBlind", true);
+    private int nodeId = 1;
     private BlindState state = new BlindState();
     private int position1;
     private int position2;
 
-    public RollerTrolBlind(int remoteId) {
-        this.remoteId = remoteId;
+    public ZWaveBlind(int nodeId) {
+        this.nodeId = nodeId;
+        messageProcessor = new MultiMessageProcessor();
     }
 
-    public RollerTrolBlind() {
-        this((int)(Math.random() * MAX_ID));
+    public ZWaveBlind() {
+        this(0);
     }
 
     public boolean receiveEvent(Event event) {
         // Check if this is an inward event directed to this instance
-        if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(getProtocolName()) &&
-                event.getAttribute("Direction").equals("In") &&
-                (event.getAttributeInt(getAddressAttributeName()) == remoteId) &&
-                event.getAttributeInt(getChannelAttributeName()) == channel) {
-            // In that case, update our state accordingly
-            int command = event.getAttributeInt(getCommandAttributeName());
-            if (command == getUpCommandCode()) {
-                state.up();
-            } else if (command == getDownCommandCode()) {
-                state.down();
-            } else if (command == getStopCopmmandCode()) {
-                state.stop();
+        if (isMultiLevelSwithReport(event) && event.getAttributeInt(ZWaveController.ZWAVE_NODE) == nodeId) {
+            try {
+                messageProcessor.process(Hex.hexStringToByteArray(event.getAttribute(Event.EVENT_VALUE_ATTRIBUTE)));
+            } catch (DecoderException e) {
+                // Ignore
             }
             return true;
         } else {
@@ -128,38 +110,15 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
         }
     }
 
-    protected String getCommandAttributeName() {
-        return COMMAND_ATTRIBUTE;
-    }
-
-    protected String getChannelAttributeName() {
-        return DEVICE_CODE_ATTRIBUTE;
-    }
-
-    protected String getAddressAttributeName() {
-        return HOUSE_CODE_ATTRIBUTE;
-    }
-
-    protected String getProtocolName() {
-        return "RollerTrol_Message";
-    }
-
-    protected int getStopCopmmandCode() {
-        return STOP;
-    }
-
-    protected int getDownCommandCode() {
-        return DOWN;
-    }
-
-    protected int getUpCommandCode() {
-        return UP;
+    private static boolean isMultiLevelSwithReport(Event e) {
+        return e.isType(ZWaveController.ZWAVE_EVENT_TYPE) && e.getAttribute("Direction").equals("In") &&
+                e.getAttributeInt(ZWaveController.ZWAVE_COMMAND_CLASS) == MultiLevelSwitchCommandClass.COMMAND_CLASS &&
+                e.getAttributeInt(ZWaveController.ZWAVE_COMMAND) == MultiLevelSwitchCommandClass.SWITCH_MULTILEVEL_REPORT;
     }
 
     @Override
     protected boolean initAttributes(Event event) {
-        remoteId = event.getAttributeInt(getAddressAttributeName());
-        channel = event.getAttributeInt(getChannelAttributeName());
+        nodeId = event.getAttributeInt("NodeId");
         return true;
     }
 
@@ -178,36 +137,27 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
         stopTimer.cancel();
     }
 
-    public String getRemoteId() {
-        return Integer.toString(remoteId);
+    public String getNodeId() {
+        return Integer.toString(nodeId);
     }
 
-    public void setRemoteId(String remoteId) {
-        this.remoteId = Integer.parseInt(remoteId);
+    public void setNodeId(String nodeId) {
+        this.nodeId = Integer.parseInt(nodeId);
     }
 
-    public String getChannel() {
-        return channel == 15 ? "All" : Integer.toString(channel);
-    }
-
-    public void setChannel(String channel) {
-        if (channel.equalsIgnoreCase("all")) {
-            this.channel = 15;
+    public void sendCommand(int newLevel) {
+        Command command;
+        if (newLevel == 0) {
+            command = new MultiLevelSwitchCommandClass.StopLevelChange();
+        } else if (newLevel > 0) {
+            command = new MultiLevelSwitchCommandClass.StartLevelChange(MultiLevelSwitchCommandClass.StartLevelChange.Direction.UP, 10);
         } else {
-            this.channel = Integer.parseInt(channel);
+            command = new MultiLevelSwitchCommandClass.StartLevelChange(MultiLevelSwitchCommandClass.StartLevelChange.Direction.DOWN, 10);
         }
-    }
-
-    public void sendCommand(int command) {
-        Event ev = server.createEvent(getProtocolName(), "");
-        ev.setAttribute("Direction", "Out");
-        ev.setAttribute(getAddressAttributeName(), remoteId);
-        ev.setAttribute(getChannelAttributeName(), channel);
-        ev.setAttribute(getCommandAttributeName(), command);
-        if (repeats > 0) {
-            ev.setAttribute("Repeat", repeats);
-        }        server.send(ev);
-        deactivateStopTimer();
+        final SendData.Request request = new SendData.Request((byte) nodeId, command);
+        Event event = server.createEvent(ZWaveController.ZWAVE_EVENT_TYPE, Hex.asHexString(request.encode()));
+        event.setAttribute("Direction", "Out");
+        server.send(event);
     }
 
     public String getState() {
@@ -215,17 +165,17 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
     }
 
     public void blindUp() {
-        sendCommand(getUpCommandCode());
+        sendCommand(1);
         state.up();
     }
 
     public void blindStop() {
-        sendCommand(getStopCopmmandCode());
+        sendCommand(0);
         state.stop();
     }
 
     public void blindDown() {
-        sendCommand(getDownCommandCode());
+        sendCommand(-1);
         state.down();
     }
 
@@ -237,18 +187,6 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
         } else {
             blindUp();
         }
-    }
-
-    public void blindConfirm() {
-        sendCommand(CONFIRM);
-    }
-
-    public void blindLimit() {
-        sendCommand(LIMIT);
-    }
-
-    public void blindReverse() {
-        sendCommand(REVERSE);
     }
 
     public String getTravelTime() {
@@ -323,23 +261,5 @@ public class RollerTrolBlind extends HomeItemAdapter implements HomeItem {
                 blindStop();
             }
         }, time);
-    }
-
-    public String getRepeats() {
-        if (repeats == 0) {
-            return "";
-        }
-        return Integer.toString(repeats);
-    }
-
-    public void setRepeats(String repeats) {
-        if (repeats.length() == 0) {
-            this.repeats = 0;
-        } else {
-            int newRepeats = Integer.parseInt(repeats);
-            if ((newRepeats >= 0) && (newRepeats <= 50)) {
-                this.repeats = newRepeats;
-            }
-        }
     }
 }

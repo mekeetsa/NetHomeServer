@@ -1,11 +1,11 @@
 package nu.nethome.home.items.rollertrol;
 
+import nu.nethome.home.items.blinds.BlindState;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import static nu.nethome.home.items.rollertrol.BlindState.DOWN_STRING;
-import static nu.nethome.home.items.rollertrol.BlindState.UP_STRING;
+import static nu.nethome.home.items.blinds.BlindState.DOWN_STRING;
+import static nu.nethome.home.items.blinds.BlindState.UP_STRING;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.anyLong;

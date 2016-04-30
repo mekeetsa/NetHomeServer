@@ -1,4 +1,4 @@
-package nu.nethome.home.items.rollertrol;
+package nu.nethome.home.items.blinds;
 
 public class BlindState {
     public static final String UP_STRING = "Up";
