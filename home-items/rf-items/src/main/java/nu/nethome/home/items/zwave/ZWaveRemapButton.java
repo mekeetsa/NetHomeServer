@@ -6,6 +6,13 @@ import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
+import nu.nethome.zwave.Hex;
+import nu.nethome.zwave.messages.commandclasses.BasicCommandClass;
+import nu.nethome.zwave.messages.commandclasses.CentralSceneCommandClass;
+import nu.nethome.zwave.messages.commandclasses.CommandArgument;
+import nu.nethome.zwave.messages.commandclasses.MultiLevelSwitchCommandClass;
+import nu.nethome.zwave.messages.framework.DecoderException;
+import nu.nethome.zwave.messages.framework.MultiMessageProcessor;
 
 import java.util.logging.Logger;
 
@@ -20,6 +27,7 @@ public class ZWaveRemapButton extends HomeItemAdapter implements HomeItem {
             + "<HomeItem Class=\"ZWaveRemapButton\" Category=\"Controls\" >"
             + "  <Attribute Name=\"State\" 	Type=\"String\" Get=\"getState\" Init=\"setState\" Default=\"true\" />"
             + "  <Attribute Name=\"InstanceId\" 	Type=\"String\" Get=\"getInstanceId\" 	Set=\"setInstanceId\" />"
+            + "  <Attribute Name=\"NodeId\" 	Type=\"String\" Get=\"getNodeId\" 	Set=\"setNodeId\" />"
             + "  <Attribute Name=\"OnCommand\" Type=\"Command\" Get=\"getOnCommand\" 	Set=\"setOnCommand\" />"
             + "  <Attribute Name=\"OffCommand\" Type=\"Command\" Get=\"getOffCommand\" 	Set=\"setOffCommand\" />"
             + "  <Action Name=\"on\" 	Method=\"on\" />"
@@ -33,10 +41,34 @@ public class ZWaveRemapButton extends HomeItemAdapter implements HomeItem {
 
     // Public attributes
     private boolean isEnabled = true;
+    private int nodeId;
     private int instanceId;
     private String onCommand = "";
     private String offCommand = "";
     CommandLineExecutor commandExecutor;
+    private MultiMessageProcessor messageProcessor;
+
+    public ZWaveRemapButton() {
+        messageProcessor = new MultiMessageProcessor();
+        messageProcessor.addCommandProcessor(new BasicCommandClass.Set.Processor() {
+            @Override
+            protected BasicCommandClass.Set process(BasicCommandClass.Set command, CommandArgument node) throws DecoderException {
+                processCommand(command.isOn);
+                return command;
+            }
+        });
+        messageProcessor.addCommandProcessor(new MultiLevelSwitchCommandClass.Set.Processor() {
+            @Override
+            protected MultiLevelSwitchCommandClass.Set process(MultiLevelSwitchCommandClass.Set command, CommandArgument node) throws DecoderException {
+                processCommand(command.level > 0);
+                return command;
+            }
+        });
+    }
+
+    private void processCommand(boolean on) {
+        commandExecutor.executeCommandLine(on ? onCommand : offCommand);
+    }
 
     @Override
     public void activate() {
@@ -49,18 +81,17 @@ public class ZWaveRemapButton extends HomeItemAdapter implements HomeItem {
         if (isEnabled && event.isType("ZWave_Message") &&
                 event.getAttribute("Direction").equals("In") &&
                 (event.getAttribute(ZWaveController.ZWAVE_TYPE).equals("Request")) &&
+                (event.getAttributeInt(ZWaveController.ZWAVE_NODE) == nodeId) &&
                 (event.getAttributeInt(ZWaveController.ZWAVE_MESSAGE_TYPE) == APPLICATION_COMMAND_HANDLER) &&
-                (getHexValueAt(event.getAttribute("Value"), 8) == instanceId)) {
-            processEvent(event);
-            return true;
-        } else {
-            return handleInit(event);
+                (getHexValueAt(event.getAttribute("Value"), 8) == instanceId)) { //TODO: Handle empty instance
+            try {
+                messageProcessor.process(Hex.hexStringToByteArray(event.getAttribute(Event.EVENT_VALUE_ATTRIBUTE)));
+                return true;
+            } catch (DecoderException e) {
+                // Ignore
+            }
         }
-    }
-
-    private void processEvent(Event event) {
-        boolean isOn = getHexValueAt(event.getAttribute("Value"), 11) > 0;
-        commandExecutor.executeCommandLine(isOn ? onCommand : offCommand);
+        return handleInit(event);
     }
 
     private int getHexValueAt(String hexDataString, int index) {
@@ -79,6 +110,14 @@ public class ZWaveRemapButton extends HomeItemAdapter implements HomeItem {
 
     public void setInstanceId(String instanceId) {
         this.instanceId = Integer.parseInt(instanceId);
+    }
+
+    public String getNoteId() {
+        return Integer.toString(nodeId);
+    }
+
+    public void setNodeId(String nodeId) {
+        this.nodeId = Integer.parseInt(nodeId);
     }
 
     public String getOnCommand() {

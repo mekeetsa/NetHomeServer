@@ -27,54 +27,60 @@ public class ZWaveRemapButtonTest {
         zWaveRemapButton.commandExecutor = commandLineExecutor;
         homeItemProxy = new LocalHomeItemProxy(zWaveRemapButton);
         homeItemProxy.setAttributeValue("InstanceId", "5");
+        homeItemProxy.setAttributeValue("NodeId", "7");
         homeItemProxy.setAttributeValue("OnCommand", CALL_1_ON);
         homeItemProxy.setAttributeValue("OffCommand", CALL_1_OFF);
     }
 
     @Test
     public void switchesOnForOnCommand() throws Exception {
-        Event event = createZWaveEvent("0004000607600D00052001FF41", 4);
-
+        Event event = createZWaveEvent("0004000607600D00052001FF41", 4, 0x20, 5, 7, 1);
         zWaveRemapButton.receiveEvent(event);
-
         verify(commandLineExecutor).executeCommandLine(CALL_1_ON);
     }
 
     @Test
     public void switchesOffForOffCommand() throws Exception {
-        Event event = createZWaveEvent("0004000607600D000520010041", 4);
-
+        Event event = createZWaveEvent("0004000607600D000520010041", 4, 0x20, 5, 7, 1);
         zWaveRemapButton.receiveEvent(event);
-
         verify(commandLineExecutor).executeCommandLine(CALL_1_OFF);
     }
 
     @Test
     public void doesNotSwitchOffForOffCommandForOtherInstance() throws Exception {
-        Event event = createZWaveEvent("0004000607600D000520010041", 4);
+        Event event = createZWaveEvent("0004000607600D000520010041", 4, 0x20, 5, 7, 1);
         homeItemProxy.setAttributeValue("InstanceId", "17");
-
         zWaveRemapButton.receiveEvent(event);
-
         verifyNoMoreInteractions(commandLineExecutor);
     }
 
     @Test
     public void doesNotSwitchOffIfDisabled() throws Exception {
-        Event event = createZWaveEvent("0004000607600D000520010041", 4);
+        Event event = createZWaveEvent("0004000607600D000520010041", 4, 0x20, 5, 7, 1);
         homeItemProxy.callAction("disable");
-
         zWaveRemapButton.receiveEvent(event);
-
         verifyNoMoreInteractions(commandLineExecutor);
     }
 
-    private Event createZWaveEvent(String s, int messageType) {
+    @Test
+    public void doesNotSwitchOffForWrongNode() throws Exception {
+        Event event = createZWaveEvent("0004000607600D000520010041", 4, 0x20, 5, 17, 1);
+        zWaveRemapButton.receiveEvent(event);
+        verifyNoMoreInteractions(commandLineExecutor);
+    }
+
+    private Event createZWaveEvent(String s, int messageType, int commandClass, Integer endpoint, int node, int command) {
         Event event = new InternalEvent("ZWave_Message");
         event.setAttribute("Value", s);
         event.setAttribute(ZWaveController.ZWAVE_TYPE, "Request");
         event.setAttribute(ZWaveController.ZWAVE_MESSAGE_TYPE, messageType);
         event.setAttribute("Direction", "In");
+        event.setAttribute(ZWaveController.ZWAVE_COMMAND_CLASS, commandClass);
+        if (endpoint != null) {
+            event.setAttribute(ZWaveController.ZWAVE_ENDPOINT, endpoint);
+        }
+        event.setAttribute(ZWaveController.ZWAVE_NODE, node);
+        event.setAttribute(ZWaveController.ZWAVE_COMMAND, command);
         return event;
     }
 }
