@@ -1,12 +1,14 @@
 package nu.nethome.home.items.zwave;
 
 import nu.nethome.home.impl.CommandLineExecutor;
+import nu.nethome.home.item.AutoCreationInfo;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
 import nu.nethome.zwave.Hex;
+import nu.nethome.zwave.messages.ApplicationCommand;
 import nu.nethome.zwave.messages.commandclasses.BasicCommandClass;
 import nu.nethome.zwave.messages.commandclasses.CentralSceneCommandClass;
 import nu.nethome.zwave.messages.commandclasses.CommandArgument;
@@ -14,20 +16,41 @@ import nu.nethome.zwave.messages.commandclasses.MultiLevelSwitchCommandClass;
 import nu.nethome.zwave.messages.framework.DecoderException;
 import nu.nethome.zwave.messages.framework.MultiMessageProcessor;
 
+import java.io.IOException;
 import java.util.logging.Logger;
 
 /**
  *
  */
 @Plugin
-@HomeItemType(value = "Controls", creationEvents = "ZWave_Message")
+@HomeItemType(value = "Controls", creationInfo = ZWaveRemapButton.CreationInfo.class)
 public class ZWaveRemapButton extends HomeItemAdapter implements HomeItem {
+
+    public static class CreationInfo implements AutoCreationInfo {
+        static final String[] CREATION_EVENTS = {"ZWave_Message"};
+        @Override
+        public String[] getCreationEvents() {
+            return CREATION_EVENTS;
+        }
+
+        @Override
+        public boolean canBeCreatedBy(Event e) {
+            return isBasicSet(e);
+        }
+
+        @Override
+        public String getCreationIdentification(Event e) {
+            final int node = e.getAttributeInt(ZWaveController.ZWAVE_NODE);
+            final String instance = e.getAttribute(ZWaveController.ZWAVE_ENDPOINT);
+            return String.format("ZWave Button, node: %d%s%s ", node, instance.isEmpty() ? "" : ", instance: ", instance);
+        }
+    }
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"ZWaveRemapButton\" Category=\"Controls\" >"
             + "  <Attribute Name=\"State\" 	Type=\"String\" Get=\"getState\" Init=\"setState\" Default=\"true\" />"
-            + "  <Attribute Name=\"InstanceId\" 	Type=\"String\" Get=\"getInstanceId\" 	Set=\"setInstanceId\" />"
             + "  <Attribute Name=\"NodeId\" 	Type=\"String\" Get=\"getNodeId\" 	Set=\"setNodeId\" />"
+            + "  <Attribute Name=\"InstanceId\" 	Type=\"String\" Get=\"getInstanceId\" 	Set=\"setInstanceId\" />"
             + "  <Attribute Name=\"OnCommand\" Type=\"Command\" Get=\"getOnCommand\" 	Set=\"setOnCommand\" />"
             + "  <Attribute Name=\"OffCommand\" Type=\"Command\" Get=\"getOffCommand\" 	Set=\"setOffCommand\" />"
             + "  <Action Name=\"on\" 	Method=\"on\" />"
@@ -35,14 +58,12 @@ public class ZWaveRemapButton extends HomeItemAdapter implements HomeItem {
             + "  <Action Name=\"enable\" 	Method=\"enable\" />"
             + "  <Action Name=\"disable\" 	Method=\"disable\" />"
             + "</HomeItem> ");
-    public static final int APPLICATION_COMMAND_HANDLER = 4;
 
     private static Logger logger = Logger.getLogger(ZWaveRemapButton.class.getName());
 
-    // Public attributes
     private boolean isEnabled = true;
     private int nodeId;
-    private int instanceId;
+    private Integer instanceId;
     private String onCommand = "";
     private String offCommand = "";
     CommandLineExecutor commandExecutor;
@@ -54,13 +75,6 @@ public class ZWaveRemapButton extends HomeItemAdapter implements HomeItem {
             @Override
             protected BasicCommandClass.Set process(BasicCommandClass.Set command, CommandArgument node) throws DecoderException {
                 processCommand(command.isOn);
-                return command;
-            }
-        });
-        messageProcessor.addCommandProcessor(new MultiLevelSwitchCommandClass.Set.Processor() {
-            @Override
-            protected MultiLevelSwitchCommandClass.Set process(MultiLevelSwitchCommandClass.Set command, CommandArgument node) throws DecoderException {
-                processCommand(command.level > 0);
                 return command;
             }
         });
@@ -77,13 +91,7 @@ public class ZWaveRemapButton extends HomeItemAdapter implements HomeItem {
 
     @Override
     public boolean receiveEvent(Event event) {
-        // Check the event and see if they affect our current state. // 0004000607600D00052001FF41
-        if (isEnabled && event.isType("ZWave_Message") &&
-                event.getAttribute("Direction").equals("In") &&
-                (event.getAttribute(ZWaveController.ZWAVE_TYPE).equals("Request")) &&
-                (event.getAttributeInt(ZWaveController.ZWAVE_NODE) == nodeId) &&
-                (event.getAttributeInt(ZWaveController.ZWAVE_MESSAGE_TYPE) == APPLICATION_COMMAND_HANDLER) &&
-                (getHexValueAt(event.getAttribute("Value"), 8) == instanceId)) { //TODO: Handle empty instance
+        if (isEnabled && isBasicSet(event) && isForThisInstance(event)) {
             try {
                 messageProcessor.process(Hex.hexStringToByteArray(event.getAttribute(Event.EVENT_VALUE_ATTRIBUTE)));
                 return true;
@@ -94,9 +102,26 @@ public class ZWaveRemapButton extends HomeItemAdapter implements HomeItem {
         return handleInit(event);
     }
 
-    private int getHexValueAt(String hexDataString, int index) {
-        int i = Integer.parseInt(hexDataString.substring(index * 2, index * 2 + 2), 16);
-        return i;
+    private boolean isForThisInstance(Event event) {
+        return (event.getAttributeInt(ZWaveController.ZWAVE_NODE) == nodeId) &&
+                ((instanceId == null && event.getAttribute(ZWaveController.ZWAVE_ENDPOINT).isEmpty()) ||
+                        (instanceId != null && instanceId.equals(event.getAttributeInt(ZWaveController.ZWAVE_ENDPOINT))));
+    }
+
+    private static boolean isBasicSet(Event e) {
+        return e.isType("ZWave_Message") && e.getAttribute("Direction").equals("In") &&
+                e.getAttributeInt("ZWave.CommandClass") == BasicCommandClass.COMMAND_CLASS &&
+                e.getAttributeInt("ZWave.Command") == BasicCommandClass.SET;
+    }
+
+    @Override
+    protected boolean initAttributes(Event event) {
+        nodeId = event.getAttributeInt(ZWaveController.ZWAVE_NODE);
+        final String endPoint = event.getAttribute(ZWaveController.ZWAVE_ENDPOINT);
+        if (!endPoint.isEmpty()) {
+            instanceId = Integer.parseInt(endPoint);
+        }
+        return true;
     }
 
     @Override
@@ -105,14 +130,19 @@ public class ZWaveRemapButton extends HomeItemAdapter implements HomeItem {
     }
 
     public String getInstanceId() {
-        return Integer.toString(instanceId);
+        return instanceId != null ? Integer.toString(instanceId) : "";
     }
 
-    public void setInstanceId(String instanceId) {
-        this.instanceId = Integer.parseInt(instanceId);
+    public void setInstanceId(String instance) {
+        if (instance.isEmpty()) {
+            this.instanceId = null;
+        } else {
+            int instanceNum = Integer.parseInt(instance);
+            this.instanceId = ((instanceNum > 0) && (instanceNum < 256)) ? instanceNum : this.instanceId;
+        }
     }
 
-    public String getNoteId() {
+    public String getNodeId() {
         return Integer.toString(nodeId);
     }
 

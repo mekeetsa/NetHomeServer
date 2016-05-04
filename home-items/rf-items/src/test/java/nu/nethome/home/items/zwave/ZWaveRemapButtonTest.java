@@ -55,6 +55,21 @@ public class ZWaveRemapButtonTest {
     }
 
     @Test
+    public void doesNotSwitchOffForOffCommandWhenNoInstance() throws Exception {
+        Event event = createZWaveEvent("0004000607600D000520010041", 4, 0x20, 5, 7, 1);
+        homeItemProxy.setAttributeValue("InstanceId", "");
+        zWaveRemapButton.receiveEvent(event);
+        verifyNoMoreInteractions(commandLineExecutor);
+    }
+
+    @Test
+    public void doesNotSwitchOffForOffCommandWithoutInstance() throws Exception {
+        Event event = createZWaveEvent("0004000607600D000520010041", 4, 0x20, null, 7, 1);
+        zWaveRemapButton.receiveEvent(event);
+        verifyNoMoreInteractions(commandLineExecutor);
+    }
+
+    @Test
     public void doesNotSwitchOffIfDisabled() throws Exception {
         Event event = createZWaveEvent("0004000607600D000520010041", 4, 0x20, 5, 7, 1);
         homeItemProxy.callAction("disable");
