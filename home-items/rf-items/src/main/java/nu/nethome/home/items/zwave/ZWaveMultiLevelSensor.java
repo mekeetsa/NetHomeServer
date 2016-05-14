@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005-2013, Stefan Strömberg <stefangs@nethome.nu>
+ * Copyright (C) 2005-2016, Stefan Strömberg <stefangs@nethome.nu>
  *
  * This file is part of OpenNetHome  (http://www.nethome.nu)
  *
@@ -28,6 +28,7 @@ import nu.nethome.zwave.messages.SendData;
 import nu.nethome.zwave.messages.commandclasses.CommandArgument;
 import nu.nethome.zwave.messages.commandclasses.MeterCommandClass;
 import nu.nethome.zwave.messages.commandclasses.MultiInstanceCommandClass;
+import nu.nethome.zwave.messages.commandclasses.MultiLevelSensorCommandClass;
 import nu.nethome.zwave.messages.commandclasses.framework.Command;
 import nu.nethome.zwave.messages.framework.DecoderException;
 import nu.nethome.zwave.messages.framework.MultiMessageProcessor;
@@ -38,10 +39,10 @@ import java.util.logging.Logger;
 
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
-@HomeItemType(value = "Gauges", creationInfo = ZWaveMeter.CreationInfo.class)
-public class ZWaveMeter extends HomeItemAdapter implements HomeItem, ValueItem {
+@HomeItemType(value = "Gauges", creationInfo = ZWaveMultiLevelSensor.CreationInfo.class)
+public class ZWaveMultiLevelSensor extends ZWaveMeter implements HomeItem {
 
-    private static final String METER_COMMAND_CLASS_AS_HEX = "32";
+    private static final String MULTI_LEVEL_SENSOR_COMMAND_CLASS_AS_HEX = "31";
 
     public static class CreationInfo implements AutoCreationInfo {
         static final String[] CREATION_EVENTS = {ZWaveNode.ZWAVE_NODE_REPORT};
@@ -53,17 +54,17 @@ public class ZWaveMeter extends HomeItemAdapter implements HomeItem, ValueItem {
 
         @Override
         public boolean canBeCreatedBy(Event e) {
-            return e.getAttribute(Event.EVENT_VALUE_ATTRIBUTE).contains(METER_COMMAND_CLASS_AS_HEX);
+            return e.getAttribute(Event.EVENT_VALUE_ATTRIBUTE).contains(MULTI_LEVEL_SENSOR_COMMAND_CLASS_AS_HEX);
         }
 
         @Override
         public String getCreationIdentification(Event e) {
-            return String.format("ZWave Meter, node: %d", e.getAttributeInt("NodeId"));
+            return String.format("ZWave Multi Level Sensor, node: %d", e.getAttributeInt("NodeId"));
         }
     }
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
-            + "<HomeItem Class=\"ZWaveMeter\" Category=\"Gauges\"  Morphing=\"%b\" >"
+            + "<HomeItem Class=\"ZWaveMultiLevelSensor\" Category=\"Gauges\"  Morphing=\"%b\" >"
             + "  <Attribute Name=\"Value\" Type=\"String\" Get=\"getValue\" Default=\"true\" Unit=\"%s\" />"
             + "  <Attribute Name=\"NodeId\" Type=\"String\" Get=\"getNodeId\" 	Set=\"setNodeId\" />"
             + "  <Attribute Name=\"Instance\" Type=\"String\" Get=\"getInstance\" 	Set=\"setInstance\" />"
@@ -73,34 +74,32 @@ public class ZWaveMeter extends HomeItemAdapter implements HomeItem, ValueItem {
             + "  <Action Name=\"update\" 	Method=\"sendGetCommand\" Default=\"true\" />"
             + "</HomeItem> ");
 
-    protected Logger logger = Logger.getLogger(ZWaveMeter.class.getName());
-    protected MultiMessageProcessor messageProcessor;
-    protected ExtendedLoggerComponent meterLoggerComponent = new ExtendedLoggerComponent(this);
-    protected static final SimpleDateFormat dateFormatter = new SimpleDateFormat("HH:mm:ss yyyy.MM.dd ");
+    protected Logger logger = Logger.getLogger(ZWaveMultiLevelSensor.class.getName());
 
-    protected int nodeId;
-    protected Integer instance = null;
-    protected double value;
-    protected Date latestUpdateOrCreation = new Date();
-    protected boolean hasBeenUpdated = false;
-    protected String unit = "";
-    protected int precision = 1;
-
-    public ZWaveMeter() {
-        messageProcessor = new MultiMessageProcessor();
+    @Override
+    protected boolean isCommandForUs(Event e) {
+        return e.isType(ZWaveController.ZWAVE_EVENT_TYPE) && e.getAttribute("Direction").equals("In") &&
+                e.getAttributeInt(ZWaveController.ZWAVE_COMMAND_CLASS) == MultiLevelSensorCommandClass.COMMAND_CLASS &&
+                e.getAttributeInt(ZWaveController.ZWAVE_COMMAND) == MultiLevelSensorCommandClass.REPORT;
     }
 
+    @Override
+    public String getModel() {
+        return String.format(MODEL, unit.isEmpty(), unit);
+    }
+
+    @Override
     protected void addMessageProcessors() {
-        messageProcessor.addCommandProcessor(new MeterCommandClass.Report.Processor() {
+        messageProcessor.addCommandProcessor(new MultiLevelSensorCommandClass.Report.Processor() {
             @Override
-            protected MeterCommandClass.Report process(MeterCommandClass.Report command, CommandArgument node) throws DecoderException {
+            protected MultiLevelSensorCommandClass.Report process(MultiLevelSensorCommandClass.Report command, CommandArgument node) throws DecoderException {
                 meterReport(command, node);
                 return command;
             }
         });
     }
 
-    private void meterReport(MeterCommandClass.Report report, CommandArgument node) {
+    private void meterReport(MultiLevelSensorCommandClass.Report report, CommandArgument node) {
         value = report.value;
         latestUpdateOrCreation = new Date();
         hasBeenUpdated = true;
@@ -112,49 +111,6 @@ public class ZWaveMeter extends HomeItemAdapter implements HomeItem, ValueItem {
                 // Ignore
             }
         }
-    }
-
-    public boolean receiveEvent(Event event) {
-        // Check if this is an inward event directed to this instance
-        if (isCommandForUs(event) && isForThisNode(event)) {
-            try {
-                messageProcessor.process(Hex.hexStringToByteArray(event.getAttribute(Event.EVENT_VALUE_ATTRIBUTE)));
-            } catch (DecoderException e) {
-                // Ignore
-            }
-            return true;
-        } else {
-            return handleInit(event);
-        }
-    }
-
-    private boolean isForThisNode(Event event) {
-        return event.getAttributeInt(ZWaveController.ZWAVE_NODE) == nodeId;
-    }
-
-    protected boolean isCommandForUs(Event e) {
-        return e.isType(ZWaveController.ZWAVE_EVENT_TYPE) && e.getAttribute("Direction").equals("In") &&
-                e.getAttributeInt(ZWaveController.ZWAVE_COMMAND_CLASS) == MeterCommandClass.COMMAND_CLASS &&
-                e.getAttributeInt(ZWaveController.ZWAVE_COMMAND) == MeterCommandClass.REPORT;
-    }
-
-    @Override
-    protected boolean initAttributes(Event event) {
-        nodeId = event.getAttributeInt("NodeId");
-        instance = null;
-        return true;
-    }
-
-    @Override
-    public String getModel() {
-        return String.format(MODEL, unit.isEmpty(), unit);
-    }
-
-    @Override
-    public void activate(HomeService server) {
-        super.activate(server);
-        addMessageProcessors();
-        meterLoggerComponent.activate(server);
     }
 
     public String getInstance() {
@@ -171,20 +127,9 @@ public class ZWaveMeter extends HomeItemAdapter implements HomeItem, ValueItem {
         }
     }
 
-    public String getNodeId() {
-        return Integer.toString(nodeId);
-    }
-
-    public void setNodeId(String nodeId) {
-        this.nodeId = Integer.parseInt(nodeId);
-    }
-
-    public String getValue() {
-        return hasBeenUpdated ? String.format("%." + precision + "f", value) : "";
-    }
-
+    @Override
     public void sendGetCommand() {
-        Command command = new MeterCommandClass.Get();
+        Command command = new MultiLevelSensorCommandClass.Get();
         if (instance != null) {
             command = new MultiInstanceCommandClass.EncapsulationV2(instance, command);
         }
@@ -193,21 +138,4 @@ public class ZWaveMeter extends HomeItemAdapter implements HomeItem, ValueItem {
         event.setAttribute("Direction", "Out");
         server.send(event);
     }
-
-    public String getLastUpdate() {
-        return hasBeenUpdated ? dateFormatter.format(latestUpdateOrCreation) : "";
-    }
-
-    public String getLogFile() {
-        return meterLoggerComponent.getFileName();
-    }
-
-    public void setLogFile(String logfile) {
-        meterLoggerComponent.setFileName(logfile);
-    }
-
-    public String getTimeSinceUpdate() {
-        return Long.toString((new Date().getTime() - latestUpdateOrCreation.getTime()) / 1000);
-    }
-
 }
