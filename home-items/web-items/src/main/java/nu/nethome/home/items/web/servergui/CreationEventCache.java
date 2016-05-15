@@ -13,7 +13,9 @@ public class CreationEventCache {
     private long clearTimeout = 1000 * 60 * 60 * 2;
     private Date latestCollectionTime = new Date(0);
     private volatile boolean isAddingNodes = false;
-    private volatile AddedNodeInfo lastAddedNode;
+    private volatile boolean isRemovingNodes = false;
+    private volatile ChangedNodeInfo lastAddedNode;
+    private volatile ChangedNodeInfo lastRemovedNode;
 
     public void addItemInfo(List<HomeItemInfo> itemInfos) {
         for (HomeItemInfo info : itemInfos) {
@@ -46,11 +48,21 @@ public class CreationEventCache {
         if (value.equals("InclusionStarted")) {
             this.isAddingNodes = true;
             lastAddedNode = null;
+            lastRemovedNode = null;
         } else if (value.equals("AddedNode")) {
             this.isAddingNodes = true;
-            lastAddedNode = new AddedNodeInfo(event.getAttribute("Protocol"), event.getAttribute("Node"));
+            lastAddedNode = new ChangedNodeInfo(event.getAttribute("Protocol"), event.getAttribute("Node"));
         }  else if (value.equals("InclusionEnded")) {
             this.isAddingNodes = false;
+        } else if (value.equals("ExclusionStarted")) {
+            this.isRemovingNodes = true;
+            lastRemovedNode = null;
+            lastAddedNode = null;
+        } else if (value.equals("ExcludedNode")) {
+            this.isRemovingNodes = true;
+            lastRemovedNode = new ChangedNodeInfo(event.getAttribute("Protocol"), event.getAttribute("Node"));
+        }  else if (value.equals("ExclusionEnded")) {
+            this.isRemovingNodes = false;
         }
     }
 
@@ -124,15 +136,23 @@ public class CreationEventCache {
         return isAddingNodes;
     }
 
-    public AddedNodeInfo getLastAddedNode() {
+    public ChangedNodeInfo getLastAddedNode() {
         return lastAddedNode;
     }
 
-    public static class AddedNodeInfo {
+    public boolean isRemovingNodes() {
+        return isRemovingNodes;
+    }
+
+    public ChangedNodeInfo getLastRemovedNode() {
+        return lastRemovedNode;
+    }
+
+    public static class ChangedNodeInfo {
         public final String protocol;
         public final String identity;
 
-        public AddedNodeInfo(String protocol, String identity) {
+        public ChangedNodeInfo(String protocol, String identity) {
             this.protocol = protocol;
             this.identity = identity;
         }

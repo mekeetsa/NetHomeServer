@@ -4,10 +4,7 @@ import nu.nethome.home.item.*;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
 import nu.nethome.zwave.*;
-import nu.nethome.zwave.messages.AddNode;
-import nu.nethome.zwave.messages.ApplicationCommand;
-import nu.nethome.zwave.messages.GetInitData;
-import nu.nethome.zwave.messages.MemoryGetId;
+import nu.nethome.zwave.messages.*;
 import nu.nethome.zwave.messages.commandclasses.MultiInstanceCommandClass;
 import nu.nethome.zwave.messages.commandclasses.framework.Command;
 import nu.nethome.zwave.messages.framework.DecoderException;
@@ -79,6 +76,12 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
                 return true;
             } else if (event.getAttribute(Event.EVENT_VALUE_ATTRIBUTE).equals("EndInclusion")) {
                 endInclusion();
+                return true;
+            } else if (event.getAttribute(Event.EVENT_VALUE_ATTRIBUTE).equals("StartExclusion")) {
+                startExclusion();
+                return true;
+            } else if (event.getAttribute(Event.EVENT_VALUE_ATTRIBUTE).equals("EndExclusion")) {
+                endExclusion();
                 return true;
             }
         }
@@ -184,6 +187,16 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
         return "";
     }
 
+    public String startExclusion() {
+        state.startExclusion();
+        return "";
+    }
+
+    public String endExclusion() {
+        state.endExclusion();
+        return "";
+    }
+
     private String sendRequest(MessageAdaptor request) {
         try {
             if (port != null && port.isOpen()) {
@@ -256,6 +269,9 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
         } else if (messageId == AddNode.REQUEST_ID) {
             AddNode.Event event = new AddNode.Event(message);
             state.addNodeEvent(event);
+        } else if (messageId == RemoveNode.REQUEST_ID) {
+            RemoveNode.Event event = new RemoveNode.Event(message);
+            state.removeNodeEvent(event);
         }
     }
 
@@ -384,17 +400,27 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
         public void gotResponse() {}
         public void startInclusion() {}
         public void endInclusion() {}
+        public void startExclusion() {}
+        public void endExclusion() {}
         public void addNodeEvent(AddNode.Event event) {
             switch (event.status) {
                 case LEARN_READY:
                     state = new InclusionState();
-                    sendInclusionEvent("InclusionStarted", 0);
+                    sendNodeEvent("InclusionStarted", 0);
+                    break;
+            }
+        }
+        public void removeNodeEvent(RemoveNode.Event event) {
+            switch (event.status) {
+                case LEARN_READY:
+                    state = new ExclusionState();
+                    sendNodeEvent("ExclusionStarted", 0);
                     break;
             }
         }
     }
 
-    private void sendInclusionEvent(String event, int node) {
+    private void sendNodeEvent(String event, int node) {
         final Event serverEvent = server.createEvent("NodeInclusionEvent", event);
         serverEvent.setAttribute("Protocol", "ZWave");
         if (node > 0) {
@@ -436,6 +462,11 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
         public void startInclusion() {
             sendRequest(new AddNode.Request(AddNode.Request.InclusionMode.ANY));
         }
+
+        @Override
+        public void startExclusion() {
+            sendRequest(new RemoveNode.Request(RemoveNode.Request.ExclusionMode.ANY));
+        }
     }
 
     private class InclusionState extends State {
@@ -447,7 +478,7 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
             switch (event.status) {
                 case ADDING_SLAVE:
                 case ADDING_CONTROLLER:
-                    sendInclusionEvent("AddedNode", event.nodeId);
+                    sendNodeEvent("AddedNode", event.nodeId);
                     break;
                 case PROTOCOL_DONE:
                     sendRequest(new AddNode.Request(AddNode.Request.InclusionMode.STOP));
@@ -463,7 +494,7 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
         }
 
         private void endAddNodeEventState() {
-            sendInclusionEvent("InclusionEnded", 0);
+            sendNodeEvent("InclusionEnded", 0);
             state = new ConnectedState();
             requestNodeInfo();
         }
@@ -471,6 +502,42 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
         @Override
         public void endInclusion() {
             sendRequest(new AddNode.Request(AddNode.Request.InclusionMode.STOP));
+        }
+    }
+
+    private class ExclusionState extends State {
+        public String getStateString() {
+            return "Excluding nodes";
+        }
+
+        public void removeNodeEvent(RemoveNode.Event event) {
+            switch (event.status) {
+                case REMOVING_SLAVE:
+                case REMOVING_CONTROLLER:
+                    sendNodeEvent("RemovedNode", event.nodeId);
+                    break;
+                case PROTOCOL_DONE:
+                    sendRequest(new RemoveNode.Request(RemoveNode.Request.ExclusionMode.STOP));
+                    break;
+                case FAILED:
+                    sendRequest(new RemoveNode.Request(RemoveNode.Request.ExclusionMode.STOP_FAILED));
+                    endRemoveNodeEventState();
+                    break;
+                case DONE:
+                    endRemoveNodeEventState();
+                    break;
+            }
+        }
+
+        private void endRemoveNodeEventState() {
+            sendNodeEvent("ExclusionEnded", 0);
+            state = new ConnectedState();
+            requestNodeInfo();
+        }
+
+        @Override
+        public void endExclusion() {
+            sendRequest(new RemoveNode.Request(RemoveNode.Request.ExclusionMode.STOP));
         }
     }
 }

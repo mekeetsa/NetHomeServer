@@ -36,3 +36,11 @@ function startInclude() {
 function endInclude() {
     $.post(homeManager.baseURL + "?a=ajax&f=endinclude");
 }
+
+function startExclude() {
+    $.post(homeManager.baseURL + "?a=ajax&f=startexclude");
+}
+
+function endExclude() {
+    $.post(homeManager.baseURL + "?a=ajax&f=endexclude");
+}

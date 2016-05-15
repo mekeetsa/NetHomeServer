@@ -308,6 +308,10 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
             homeServer.send(homeServer.createEvent("NodeInclusionEvent", "StartInclusion"));
         } else if (funcId != null && funcId.equals("endinclude")) {
             homeServer.send(homeServer.createEvent("NodeInclusionEvent", "EndInclusion"));
+        }  else if (funcId != null && funcId.equals("startexclude")) {
+            homeServer.send(homeServer.createEvent("NodeInclusionEvent", "StartExclusion"));
+        } else if (funcId != null && funcId.equals("endexclude")) {
+            homeServer.send(homeServer.createEvent("NodeInclusionEvent", "EndExclusion"));
         } else if (funcId != null && funcId.compareToIgnoreCase("gethomeitems") == 0) {
             List<DirectoryEntry> names = homeServer.listInstances("");
 
@@ -445,15 +449,23 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
     }
 
     private void printaddNodeState(PrintWriter p) {
-        final CreationEventCache.AddedNodeInfo lastAddedNode = creationEvents.getLastAddedNode();
-        String nodeText = lastAddedNode != null ? ("Found " + lastAddedNode.protocol + " node " + lastAddedNode.identity) : "";
+        final CreationEventCache.ChangedNodeInfo lastAddedNode = creationEvents.getLastAddedNode();
+        final CreationEventCache.ChangedNodeInfo lastRemovedNode = creationEvents.getLastRemovedNode();
+        String addedNodeText = lastAddedNode != null ? ("Found " + lastAddedNode.protocol + " node " + lastAddedNode.identity) : "";
+        String removedNodeText = lastRemovedNode != null ? ("Found " + lastRemovedNode.protocol + " node " + lastRemovedNode.identity) : "";
         if (creationEvents.isAddingNodes()) {
-            p.print("<button onclick=\"endInclude()\">Stop Including node</button>" + nodeText);
-            if (nodeText.isEmpty()) {
+            p.print("<button onclick=\"endInclude()\">Stop Including node</button>" + addedNodeText);
+            if (addedNodeText.isEmpty()) {
                 p.println("Scanning for new node...");
             }
+        } else if (creationEvents.isRemovingNodes()) {
+            p.print("<button onclick=\"endExclude()\">Stop Excluding node</button>" + addedNodeText);
+            if (addedNodeText.isEmpty()) {
+                p.println("Scanning for node to remove...");
+            }
         } else {
-            p.println("<button onclick=\"startInclude()\">Include new node</button>" + nodeText);
+            p.println("<button onclick=\"startInclude()\">Include new node</button>" +
+                    "  <button onclick=\"startExclude()\">Exclude existing node</button>" + addedNodeText);
         }
     }
 
