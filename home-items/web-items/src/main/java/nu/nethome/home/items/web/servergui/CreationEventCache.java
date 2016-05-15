@@ -58,7 +58,7 @@ public class CreationEventCache {
             this.isRemovingNodes = true;
             lastRemovedNode = null;
             lastAddedNode = null;
-        } else if (value.equals("ExcludedNode")) {
+        } else if (value.equals("RemovedNode")) {
             this.isRemovingNodes = true;
             lastRemovedNode = new ChangedNodeInfo(event.getAttribute("Protocol"), event.getAttribute("Node"));
         }  else if (value.equals("ExclusionEnded")) {

@@ -343,6 +343,7 @@ public class ZWaveNode extends HomeItemAdapter {
                 deviceType = report.deviceType;
                 deviceId = report.deviceId;
                 state = new ActiveState();
+                sendNodeReport();
             }
         }
     }

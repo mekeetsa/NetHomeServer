@@ -451,8 +451,8 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
     private void printaddNodeState(PrintWriter p) {
         final CreationEventCache.ChangedNodeInfo lastAddedNode = creationEvents.getLastAddedNode();
         final CreationEventCache.ChangedNodeInfo lastRemovedNode = creationEvents.getLastRemovedNode();
-        String addedNodeText = lastAddedNode != null ? ("Found " + lastAddedNode.protocol + " node " + lastAddedNode.identity) : "";
-        String removedNodeText = lastRemovedNode != null ? ("Found " + lastRemovedNode.protocol + " node " + lastRemovedNode.identity) : "";
+        String addedNodeText = lastAddedNode != null ? ("Added " + lastAddedNode.protocol + " node " + lastAddedNode.identity) : "";
+        String removedNodeText = lastRemovedNode != null ? ("Removed " + lastRemovedNode.protocol + " node " + lastRemovedNode.identity) : "";
         if (creationEvents.isAddingNodes()) {
             p.print("<button onclick=\"endInclude()\">Stop Including node</button>" + addedNodeText);
             if (addedNodeText.isEmpty()) {
@@ -465,7 +465,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
             }
         } else {
             p.println("<button onclick=\"startInclude()\">Include new node</button>" +
-                    "  <button onclick=\"startExclude()\">Exclude existing node</button>" + addedNodeText);
+                    "  <button onclick=\"startExclude()\">Exclude existing node</button>" + addedNodeText + " " + removedNodeText);
         }
     }
 

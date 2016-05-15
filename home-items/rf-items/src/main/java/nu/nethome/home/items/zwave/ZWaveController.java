@@ -13,6 +13,7 @@ import nu.nethome.zwave.messages.framework.UndecodedMessage;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -276,6 +277,11 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
     }
 
     private void processNodes(GetInitData.Response response) {
+        createNodeItemsForNewNodes(response);
+        removeNodeItemsForRemovedNodes(response);
+    }
+
+    private void createNodeItemsForNewNodes(GetInitData.Response response) {
         for (int zWaveNode : response.nodes) {
             if (zWaveNode > 1 && !hasNode(zWaveNode)) {
                 final String instanceName = "ZWave_Node:" + this.getHomeId() + "-" + zWaveNode;
@@ -292,6 +298,20 @@ public class ZWaveController extends HomeItemAdapter implements HomeItem {
                     logger.warning("Could not create ZWave node: " + instanceName);
                 }
             }
+        }
+    }
+
+    private void removeNodeItemsForRemovedNodes(GetInitData.Response response) {
+        final HashSet<Integer> actualNodes = new HashSet<>(response.nodes);
+        final ArrayList<DiscoveredNode> nodesToRemove = new ArrayList<>();
+        for (DiscoveredNode node : nodes) {
+            if (!actualNodes.contains(node.nodeId)) {
+                server.removeInstance(node.nodeItem);
+                nodesToRemove.add(node);
+            }
+        }
+        for (DiscoveredNode removedNode : nodesToRemove) {
+            nodes.remove(removedNode);
         }
     }
 
