@@ -192,6 +192,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("JettyWEB", nu.nethome.home.items.web.JettyWEB.class),
             new HomeItemClassInfo("TempWEB", nu.nethome.home.items.web.temp.TempWEB.class),
             new HomeItemClassInfo("ActionButton", nu.nethome.home.items.web.servergui.ActionButton.class),
+            new HomeItemClassInfo("HttpReverseProxy", nu.nethome.home.items.web.proxy.HttpReverseProxy.class),
 
             // Misc
             new HomeItemClassInfo("ValueLogger",nu.nethome.home.items.misc.ValueLogger.class),
