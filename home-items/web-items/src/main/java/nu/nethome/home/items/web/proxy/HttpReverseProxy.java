@@ -33,23 +33,25 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.logging.Logger;
 
 
+@SuppressWarnings("UnusedDeclaration")
 @Plugin
 @HomeItemType("Ports")
 public class HttpReverseProxy extends HomeItemAdapter implements Runnable, HomeItem {
 
-    private final String MODEL = ("<?xml version = \"1.0\"?> \n"
+    private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"HttpReverseProxy\" Category=\"Ports\" >"
             + "  <Attribute Name=\"serviceURL\" Type=\"String\" Get=\"getServiceURL\" Set=\"setServiceURL\" Default=\"true\" />"
-            + "  <Attribute Name=\"localURL\" Type=\"String\" Get=\"getLocalURL\" Set=\"setLocalURL\" Default=\"true\" />"
+            + "  <Attribute Name=\"localURL\" Type=\"String\" Get=\"getLocalURL\" Set=\"setLocalURL\" />"
+            + "  <Attribute Name=\"systemId\" Type=\"String\" Get=\"getSystemId\" Set=\"setSystemId\" />"
             + "  <Attribute Name=\"MessageCount\" Type=\"String\" Get=\"getMessageCount\" />"
             + "</HomeItem> ");
 
     protected String serviceURL = "http://127.0.0.1:8080/poll";
     protected String localURL = "http://127.0.0.1:8020/";
+    protected String systemId = "0";
     protected int messageCount = 0;
 
     /*
@@ -97,9 +99,9 @@ public class HttpReverseProxy extends HomeItemAdapter implements Runnable, HomeI
     }
 
     String charset = java.nio.charset.StandardCharsets.UTF_8.name();
-    HttpResponse noResponse = new HttpResponse("", new String[0]);
 
     public void run() {
+        HttpResponse noResponse = new HttpResponse(systemId, "", new String[0]);
         try {
             HttpResponse httpResponse = noResponse;
             while (isRunning) {
@@ -159,12 +161,20 @@ public class HttpReverseProxy extends HomeItemAdapter implements Runnable, HomeI
                     " ,Value : " + entry.getValue());
             headers[i++] = entry.getKey() + ":" + entry.getValue().get(0);
         }
-        httpResponse = new HttpResponse(new String(Base64.encodeBase64(baf.toByteArray())), headers);
+        httpResponse = new HttpResponse(systemId, new String(Base64.encodeBase64(baf.toByteArray())), headers);
         return httpResponse;
     }
 
     public String getMessageCount() {
         return String.valueOf(messageCount);
+    }
+
+    public String getSystemId() {
+        return systemId;
+    }
+
+    public void setSystemId(String systemId) {
+        this.systemId = systemId;
     }
 }
 
