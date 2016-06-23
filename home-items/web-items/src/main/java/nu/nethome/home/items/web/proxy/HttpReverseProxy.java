@@ -101,7 +101,7 @@ public class HttpReverseProxy extends HomeItemAdapter implements Runnable, HomeI
     String charset = java.nio.charset.StandardCharsets.UTF_8.name();
 
     public void run() {
-        HttpResponse noResponse = new HttpResponse(systemId, "", new String[0]);
+        HttpResponse noResponse = new HttpResponse(systemId, "", new String[0], "challenge");
         try {
             HttpResponse httpResponse = noResponse;
             while (isRunning) {
@@ -161,7 +161,7 @@ public class HttpReverseProxy extends HomeItemAdapter implements Runnable, HomeI
                     " ,Value : " + entry.getValue());
             headers[i++] = entry.getKey() + ":" + entry.getValue().get(0);
         }
-        httpResponse = new HttpResponse(systemId, new String(Base64.encodeBase64(baf.toByteArray())), headers);
+        httpResponse = new HttpResponse(systemId, new String(Base64.encodeBase64(baf.toByteArray())), headers, "challenge");
         return httpResponse;
     }
 
