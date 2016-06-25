@@ -6,11 +6,7 @@ import org.json.JSONObject;
 public class HttpRequest {
     public final String url;
     public final String[] headers;
-
-    public HttpRequest(String url, String[] headers) {
-        this.url = url;
-        this.headers = headers;
-    }
+    public final String loginCredential;
 
     public HttpRequest(JSONObject json) {
         url = json.getString("url");
@@ -20,5 +16,6 @@ public class HttpRequest {
             h[i] = headers1.getString(i);
         }
         headers = h;
+        loginCredential = json.getString("loginCredential");
     }
 }
