@@ -37,6 +37,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -71,6 +72,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     private JsonRestClient jsonRestClient;
 
     public HomeCloudConnection() {
+        systemId = Integer.toString(new Random().nextInt(10000));
     }
 
     public String getModel() {
