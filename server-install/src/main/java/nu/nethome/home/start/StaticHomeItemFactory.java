@@ -27,6 +27,7 @@ import nu.nethome.home.items.UsbScanner;
 import nu.nethome.home.items.net.ArpScanner;
 import nu.nethome.home.items.rollertrol.RollerTrolBlindGSeries;
 import nu.nethome.home.items.tellstick.Tellstick;
+import nu.nethome.home.items.web.proxy.HomeCloudConnection;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -192,7 +193,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("JettyWEB", nu.nethome.home.items.web.JettyWEB.class),
             new HomeItemClassInfo("TempWEB", nu.nethome.home.items.web.temp.TempWEB.class),
             new HomeItemClassInfo("ActionButton", nu.nethome.home.items.web.servergui.ActionButton.class),
-            new HomeItemClassInfo("HttpReverseProxy", nu.nethome.home.items.web.proxy.HttpReverseProxy.class),
+            new HomeItemClassInfo("HomeCloudConnection", HomeCloudConnection.class),
 
             // Misc
             new HomeItemClassInfo("ValueLogger",nu.nethome.home.items.misc.ValueLogger.class),

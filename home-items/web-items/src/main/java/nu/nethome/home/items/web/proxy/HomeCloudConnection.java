@@ -25,7 +25,6 @@ import nu.nethome.home.item.HomeItemType;
 import nu.nethome.util.plugin.Plugin;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.HexDump;
 import org.apache.http.util.ByteArrayBuffer;
 
 import java.io.BufferedInputStream;
@@ -45,7 +44,7 @@ import java.util.logging.Logger;
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
 @HomeItemType("Ports")
-public class HttpReverseProxy extends HomeItemAdapter implements Runnable, HomeItem {
+public class HomeCloudConnection extends HomeItemAdapter implements Runnable, HomeItem {
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"HttpReverseProxy\" Category=\"Ports\" >"
@@ -57,7 +56,7 @@ public class HttpReverseProxy extends HomeItemAdapter implements Runnable, HomeI
             + "</HomeItem> ");
     private static final String CHALLENGE = "challenge"; // TODO: Generate dynamic challenge
 
-    protected String serviceURL = "http://127.0.0.1:8080/poll";
+    protected String serviceURL = "https://cloud.opennethome.org/poll";
     protected String localURL = "http://127.0.0.1:8020/";
     protected String password = "";
     protected String systemId = "0";
@@ -66,13 +65,12 @@ public class HttpReverseProxy extends HomeItemAdapter implements Runnable, HomeI
     /*
      * Internal attributes
      */
-    private static Logger logger = Logger.getLogger(HttpReverseProxy.class.getName());
+    private static Logger logger = Logger.getLogger(HomeCloudConnection.class.getName());
     protected Thread listenThread;
     protected boolean isRunning = false;
     private JsonRestClient jsonRestClient;
 
-
-    public HttpReverseProxy() {
+    public HomeCloudConnection() {
     }
 
     public String getModel() {
