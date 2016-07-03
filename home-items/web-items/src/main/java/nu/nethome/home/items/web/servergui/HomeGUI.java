@@ -475,7 +475,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         p.println("  <title>NewNetHome</title>");
         p.println("  <meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">");
         p.println("  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=7\"> ");
-        p.println("  <link rel=\"shortcut icon\" type=\"image/ico\" href=\"web/home.ico\">");
+        p.println("  <link rel=\"shortcut icon\" type=\"image/ico\" href=\"web/home/home.ico\">");
         p.println("  <link rel=\"stylesheet\" type=\"text/css\" href=\"web/home/nethome.css\">");
         List<String> styles = pagePlugin.getCssFileNames();
         if (styles != null) {

@@ -30,8 +30,8 @@ import org.apache.http.util.ByteArrayBuffer;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -46,22 +46,30 @@ import java.util.logging.Logger;
 @Plugin
 @HomeItemType("Ports")
 public class HomeCloudConnection extends HomeItemAdapter implements Runnable, HomeItem {
-
+    // TODO: Verify session id
+    // TODO: Generate dynamic challenge
+    // TODO: Handle POST and DELETE
+    // TODO: Transfer error codes
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"HttpReverseProxy\" Category=\"Ports\" >"
-            + "  <Attribute Name=\"serviceURL\" Type=\"String\" Get=\"getServiceURL\" Set=\"setServiceURL\" Default=\"true\" />"
+            + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
+            + "  <Attribute Name=\"serviceURL\" Type=\"String\" Get=\"getServiceURL\" Set=\"setServiceURL\" />"
             + "  <Attribute Name=\"localURL\" Type=\"String\" Get=\"getLocalURL\" Set=\"setLocalURL\" />"
             + "  <Attribute Name=\"systemId\" Type=\"String\" Get=\"getSystemId\" Set=\"setSystemId\" />"
             + "  <Attribute Name=\"password\" Type=\"Password\" Get=\"getPassword\" Set=\"setPassword\" />"
             + "  <Attribute Name=\"MessageCount\" Type=\"String\" Get=\"getMessageCount\" />"
             + "</HomeItem> ");
-    private static final String CHALLENGE = "challenge"; // TODO: Generate dynamic challenge
 
-    protected String serviceURL = "https://cloud.opennethome.org/poll";
+    private static final String CHALLENGE = "challenge";
+    private static final String POLL_RESOURCE = "poll";
+    private static final int RETRY_INTERVAL_MS = 5000;
+
+    protected String serviceURL = "https://cloud.opennethome.org/";
     protected String localURL = "http://127.0.0.1:8020/";
     protected String password = "";
     protected String systemId = "0";
     protected int messageCount = 0;
+    private boolean connected = false;
 
     /*
      * Internal attributes
@@ -112,31 +120,39 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     public void run() {
         HttpResponse noResponse = new HttpResponse(systemId, "", new String[0], CHALLENGE);
         try {
-            HttpResponse httpResponse = noResponse;
+            HttpResponse lastHttpResponse = noResponse;
             while (isRunning) {
                 try {
-                    final HttpRequest request = postResponseAndFetchNewRequest(httpResponse);
-                    if (request.url.isEmpty()) {
-                        final String loginCredential = request.loginCredential;
-                        if (!loginCredential.isEmpty()) {
-                            httpResponse = verifyLoginRequest(noResponse, loginCredential);
-                        } else {
-                            httpResponse = noResponse;
-                        }
-                    } else { // TODO: Verify session id
-                        httpResponse = performLocalRequest(request);
-                        messageCount++;
-                    }
+                    lastHttpResponse = proxyHttpRequest(noResponse, lastHttpResponse);
+                    connected = true;
                 } catch (Exception e) {
+                    connected = false;
                     if (isRunning) {
-                        logger.warning("Failed reading from proxy " + e);
-                        httpResponse = noResponse;
+                         logger.fine("Failed connecting to cloud " + e);
+                        lastHttpResponse = noResponse;
+                        Thread.sleep(RETRY_INTERVAL_MS);
                     }
                 }
             }
         } catch (Exception e) {
             logger.warning("Failed creating socket in UDPListener " + e);
         }
+    }
+
+    private HttpResponse proxyHttpRequest(HttpResponse noResponse, HttpResponse httpResponse) throws IOException, NoSuchAlgorithmException {
+        final HttpRequest request = postResponseAndFetchNewRequest(httpResponse);
+        if (request.url.isEmpty()) {
+            final String loginCredential = request.loginCredential;
+            if (!loginCredential.isEmpty()) {
+                httpResponse = verifyLoginRequest(noResponse, loginCredential);
+            } else {
+                httpResponse = noResponse;
+            }
+        } else {
+            httpResponse = performLocalRequest(request);
+            messageCount++;
+        }
+        return httpResponse;
     }
 
     private HttpResponse verifyLoginRequest(HttpResponse noResponse, String loginCredential) throws NoSuchAlgorithmException {
@@ -155,14 +171,13 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     }
 
     private HttpRequest postResponseAndFetchNewRequest(HttpResponse httpResponse) throws IOException {
-        final JSONData result = jsonRestClient.post(serviceURL, "", httpResponse.toJson());
+        final JSONData result = jsonRestClient.post(serviceURL, POLL_RESOURCE, httpResponse.toJson());
         return new HttpRequest(result.getObject());
     }
 
     private HttpResponse performLocalRequest(HttpRequest request) throws IOException {
         HttpResponse httpResponse;
-        URLConnection connection = new URL(localURL + request.url).openConnection();
-        //connection.setRequestProperty("Accept-Charset", charset);
+        HttpURLConnection connection = (HttpURLConnection)new URL(localURL + request.url).openConnection();
         for (String header : request.headers) {
             String parts[] = header.split(":");
             connection.setRequestProperty(parts[0].trim(), parts[1].trim());
@@ -180,6 +195,8 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
                 }
                 baf.append(buffer, 0, read);
             }
+        } catch (IOException e) {
+            return new HttpResponse(systemId, "", new String[0], CHALLENGE);
         }
 
         Map<String, List<String>> map = connection.getHeaderFields();
@@ -212,6 +229,10 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getState() {
+        return connected ? "Connected" : "Not Connected";
     }
 }
 
