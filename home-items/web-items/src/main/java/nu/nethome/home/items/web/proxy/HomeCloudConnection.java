@@ -53,24 +53,28 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"HttpReverseProxy\" Category=\"Ports\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
-            + "  <Attribute Name=\"serviceURL\" Type=\"String\" Get=\"getServiceURL\" Set=\"setServiceURL\" />"
-            + "  <Attribute Name=\"localURL\" Type=\"String\" Get=\"getLocalURL\" Set=\"setLocalURL\" />"
-            + "  <Attribute Name=\"systemId\" Type=\"String\" Get=\"getSystemId\" Set=\"setSystemId\" />"
-            + "  <Attribute Name=\"password\" Type=\"Password\" Get=\"getPassword\" Set=\"setPassword\" />"
+            + "  <Attribute Name=\"ServiceURL\" Type=\"String\" Get=\"getServiceURL\" Set=\"setServiceURL\" />"
+            + "  <Attribute Name=\"LocalURL\" Type=\"String\" Get=\"getLocalURL\" Set=\"setLocalURL\" />"
+            + "  <Attribute Name=\"SystemId\" Type=\"String\" Get=\"getSystemId\" Set=\"setSystemId\" />"
+            + "  <Attribute Name=\"SystemPassword\" Type=\"Password\" Get=\"getSystemPassword\" Set=\"setSystemPassword\" />"
+            + "  <Attribute Name=\"UserPassword\" Type=\"Password\" Get=\"getPassword\" Set=\"setPassword\" />"
             + "  <Attribute Name=\"MessageCount\" Type=\"String\" Get=\"getMessageCount\" />"
             + "</HomeItem> ");
 
     private static final String CHALLENGE = "challenge";
     private static final String POLL_RESOURCE = "poll";
     private static final int RETRY_INTERVAL_MS = 5000;
+    private static final String LOGIN_RESOURCE = "serverLogin";
 
     protected String serviceURL = "https://cloud.opennethome.org/";
     protected String localURL = "http://127.0.0.1:8020/";
     protected String password = "";
     protected String systemId = "0";
+    private String systemPassword = "";
     protected int messageCount = 0;
-    private boolean connected = false;
+    private boolean systemPasswordIsBad = false;
 
+    private boolean connected = false;
     /*
      * Internal attributes
      */
@@ -123,8 +127,19 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
             HttpResponse lastHttpResponse = noResponse;
             while (isRunning) {
                 try {
-                    lastHttpResponse = proxyHttpRequest(noResponse, lastHttpResponse);
-                    connected = true;
+                    if (systemPasswordIsBad) {
+                        Thread.sleep(RETRY_INTERVAL_MS);
+                        continue;
+                    }
+                    final LoginResponse loginResponse = loginToCloud(new LoginRequest(systemId, systemPassword));
+                    if (loginResponse.sesssionId.isEmpty()) {
+                        systemPasswordIsBad = true;
+                    } else {
+                        connected = true;
+                        while (isRunning) {
+                            lastHttpResponse = proxyHttpRequest(noResponse, lastHttpResponse);
+                        }
+                    }
                 } catch (Exception e) {
                     connected = false;
                     if (isRunning) {
@@ -168,6 +183,11 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
             httpResponse = noResponse;
         }
         return httpResponse;
+    }
+
+    private LoginResponse loginToCloud(LoginRequest loginRequest) throws IOException {
+        final JSONData result = jsonRestClient.post(serviceURL, LOGIN_RESOURCE, loginRequest.toJson());
+        return new LoginResponse(result.getObject());
     }
 
     private HttpRequest postResponseAndFetchNewRequest(HttpResponse httpResponse) throws IOException {
@@ -233,6 +253,15 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
 
     public String getState() {
         return connected ? "Connected" : "Not Connected";
+    }
+
+    public String getSystemPassword() {
+        return systemPassword;
+    }
+
+    public void setSystemPassword(String systemPassword) {
+        this.systemPassword = systemPassword;
+        systemPasswordIsBad = false;
     }
 }
 
