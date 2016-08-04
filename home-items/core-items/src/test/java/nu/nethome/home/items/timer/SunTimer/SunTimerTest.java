@@ -23,9 +23,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
 import static org.mockito.Mockito.*;
 
-/**
- *
- */
 public class SunTimerTest {
 
     private static final int HOUR = 60 * 60;
@@ -41,6 +38,8 @@ public class SunTimerTest {
 
     @Before
     public void setUp() throws Exception {
+        timeZone = TimeZone.getDefault();
+        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"));
         sunTimer = spy(new SunTimer());
         proxy = new LocalHomeItemProxy(sunTimer);
         for (String weekday : weekdays) {
@@ -58,9 +57,6 @@ public class SunTimerTest {
         calendar.set(Calendar.DATE, 24);
         doReturn(calendar).when(sunTimer).getTime();
         dateFormat = new SimpleDateFormat("HH:mm");
-        // doReturn(Calendar.TUESDAY).when(sunTimer).getDayToday();
-        timeZone = TimeZone.getDefault();
-        TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"));
     }
 
     @After
