@@ -29,14 +29,20 @@ For example:
 This will copy the correct version of the rxtx runtime libraries to the
 root of the project so you can run the application from your IDE.
 
-Also, the NetHome Server depends on the projects NetHome/Utils and NetHome/Coders.
-These two need to be built and installed in your local Maven repository:
+Also, the NetHome Server depends on the projects NetHome/Utils, NetHome/Coders,
+Nethome/ZWave and Nethome/cybergarage-upnp.
+These projects need to be cloned locally and built and installed in your local 
+Maven repository:
 
     cd <location-of NetHome/Utils>
     mvn install
     cd <location-of NetHome/Coders>
     mvn install
-
+    cd <location-of NetHome/ZWave>
+    mvn install
+    cd <location-of NetHome/Coders>
+    mvn install
+    
 Overview
 --------
 The project consists of a number of separate maven modules.
