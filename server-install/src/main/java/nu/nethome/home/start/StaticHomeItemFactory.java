@@ -25,6 +25,7 @@ import nu.nethome.home.item.HomeItemInfo;
 import nu.nethome.home.items.UPnPScanner;
 import nu.nethome.home.items.UsbScanner;
 import nu.nethome.home.items.net.ArpScanner;
+import nu.nethome.home.items.net.MqttClient;
 import nu.nethome.home.items.rollertrol.RollerTrolBlindGSeries;
 import nu.nethome.home.items.tellstick.Tellstick;
 import nu.nethome.home.items.web.proxy.HomeCloudConnection;
@@ -97,6 +98,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("TCPListener", nu.nethome.home.items.net.TCPListener.class),
             new HomeItemClassInfo("TCPCommandPort", nu.nethome.home.items.net.TCPCommandPort.class),
             new HomeItemClassInfo("UDPCommandPort", nu.nethome.home.items.net.UDPCommandPort.class),
+            new HomeItemClassInfo("MqttClient", MqttClient.class),
             new HomeItemClassInfo("UDPListener", nu.nethome.home.items.net.UDPListener.class),
             new HomeItemClassInfo("WeekTimer", nu.nethome.home.items.timer.WeekTimer.class),
             new HomeItemClassInfo("IntervalTimer", nu.nethome.home.items.timer.IntervalTimer.class),
@@ -183,6 +185,9 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("ZWaveBlind", nu.nethome.home.items.zwave.ZWaveBlind.class),
             new HomeItemClassInfo("ZWaveMeter", nu.nethome.home.items.zwave.ZWaveMeter.class),
             new HomeItemClassInfo("ZWaveMultiLevelSensor", nu.nethome.home.items.zwave.ZWaveMultiLevelSensor.class),
+            new HomeItemClassInfo("MqttThermometer", nu.nethome.home.items.mqtt.MqttThermometer.class),
+            new HomeItemClassInfo("MqttHygrometer", nu.nethome.home.items.mqtt.MqttHygrometer.class),
+            new HomeItemClassInfo("MqttRemapButton", nu.nethome.home.items.mqtt.MqttRemapButton.class),
 
             // web-items
             new HomeItemClassInfo("Room", nu.nethome.home.items.infra.Room.class),
@@ -222,7 +227,8 @@ public class StaticHomeItemFactory implements HomeItemFactory {
     };
 
     private static final String RENAMED_CLASSES[] = {
-            "SatelliteService", "SatelliteLogger"
+            "SatelliteService", "SatelliteLogger",
+            "MQTTCommandPort", "MqttClient"
     };
 
     /**

@@ -103,3 +103,6 @@ which is dual licensed and available under the MPL 2.0
 (Mozilla Public License) or under the EPL 1.0 (Eclipse Public License).
 An original copy of the license agreement can be found at:
 http://www.h2database.com/html/license.html
+
+* Eclipse paho MQTT Client
+An MQTT access library released under EPL (Eclipse Public License) http://www.eclipse.org/org/documents/epl-v10.php
