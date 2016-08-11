@@ -131,8 +131,8 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
                         Thread.sleep(RETRY_INTERVAL_MS);
                         continue;
                     }
-                    final LoginResponse loginResponse = loginToCloud(new LoginRequest(systemId, systemPassword));
-                    if (loginResponse.sesssionId.isEmpty()) {
+                    final LoginResp loginResp = loginToCloud(new LoginReq(systemId, systemPassword));
+                    if (loginResp.sesssionId.isEmpty()) {
                         systemPasswordIsBad = true;
                     } else {
                         connected = true;
@@ -185,9 +185,9 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         return httpResponse;
     }
 
-    private LoginResponse loginToCloud(LoginRequest loginRequest) throws IOException {
-        final JSONData result = jsonRestClient.post(serviceURL, LOGIN_RESOURCE, loginRequest.toJson());
-        return new LoginResponse(result.getObject());
+    private LoginResp loginToCloud(LoginReq loginReq) throws IOException {
+        final JSONData result = jsonRestClient.post(serviceURL, LOGIN_RESOURCE, loginReq.toJson());
+        return new LoginResp(result.getObject());
     }
 
     private HttpRequest postResponseAndFetchNewRequest(HttpResponse httpResponse) throws IOException {
