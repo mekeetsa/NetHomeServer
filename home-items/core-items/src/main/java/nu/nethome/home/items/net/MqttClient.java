@@ -42,7 +42,7 @@ import java.util.logging.Logger;
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
 @HomeItemType("Ports")
-public class MqttReadClient extends HomeItemAdapter implements HomeItem {
+public class MqttClient extends HomeItemAdapter implements HomeItem {
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"MQTTCommandPort\" Category=\"Ports\" >"
@@ -61,10 +61,10 @@ public class MqttReadClient extends HomeItemAdapter implements HomeItem {
     /*
 	 * Internal attributes
      */
-    private static Logger logger = Logger.getLogger(MqttReadClient.class.getName());
+    private static Logger logger = Logger.getLogger(MqttClient.class.getName());
     protected org.eclipse.paho.client.mqttv3.MqttClient client;
 
-    public MqttReadClient() {
+    public MqttClient() {
     }
 
     public String getModel() {

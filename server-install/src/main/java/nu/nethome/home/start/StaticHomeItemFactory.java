@@ -25,7 +25,7 @@ import nu.nethome.home.item.HomeItemInfo;
 import nu.nethome.home.items.UPnPScanner;
 import nu.nethome.home.items.UsbScanner;
 import nu.nethome.home.items.net.ArpScanner;
-import nu.nethome.home.items.net.MqttReadClient;
+import nu.nethome.home.items.net.MqttClient;
 import nu.nethome.home.items.rollertrol.RollerTrolBlindGSeries;
 import nu.nethome.home.items.tellstick.Tellstick;
 import nu.nethome.home.items.web.proxy.HomeCloudConnection;
@@ -98,7 +98,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("TCPListener", nu.nethome.home.items.net.TCPListener.class),
             new HomeItemClassInfo("TCPCommandPort", nu.nethome.home.items.net.TCPCommandPort.class),
             new HomeItemClassInfo("UDPCommandPort", nu.nethome.home.items.net.UDPCommandPort.class),
-            new HomeItemClassInfo("MqttClient", MqttReadClient.class),
+            new HomeItemClassInfo("MqttClient", MqttClient.class),
             new HomeItemClassInfo("UDPListener", nu.nethome.home.items.net.UDPListener.class),
             new HomeItemClassInfo("WeekTimer", nu.nethome.home.items.timer.WeekTimer.class),
             new HomeItemClassInfo("IntervalTimer", nu.nethome.home.items.timer.IntervalTimer.class),
