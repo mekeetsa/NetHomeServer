@@ -4,11 +4,11 @@ import org.json.JSONObject;
 
 import java.util.Arrays;
 
-public class LoginRequest {
+public class LoginReq {
     public final String systemId;
     public final String password;
 
-    public LoginRequest(String systemId, String password) {
+    public LoginReq(String systemId, String password) {
         this.systemId = systemId;
         this.password = password;
     }

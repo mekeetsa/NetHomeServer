@@ -2,14 +2,14 @@ package nu.nethome.home.items.web.proxy;
 
 import org.json.JSONObject;
 
-public class LoginResponse {
+public class LoginResp {
     public final String sesssionId;
 
-    public LoginResponse(String sesssionId) {
+    public LoginResp(String sesssionId) {
         this.sesssionId = sesssionId;
     }
 
-    public LoginResponse(JSONObject json) {
+    public LoginResp(JSONObject json) {
         sesssionId = json.getString("sessionId");
     }
 
