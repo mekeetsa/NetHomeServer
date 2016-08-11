@@ -28,13 +28,11 @@ import java.util.Date;
 import java.util.logging.Logger;
 
 /**
- * Presents and logs temperature values received by an FineOffset-temperature
- * sensor. The actual values are received as events which may be sent by any
- * kind of receiver module which can receive FineOffset messages from the
- * hardware devices.
+ * Presents values from a MQTT-Topic as temperature values
  *
- * @author Stefan
+ * @author Jocke G and Patrik Gustavsson
  */
+@SuppressWarnings("UnusedDeclaration")
 @Plugin
 @HomeItemType(value = "Thermometers", creationEvents = "Mqtt_Message")
 public class MqttThermometer extends HomeItemAdapter implements HomeItem, ValueItem {

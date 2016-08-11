@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005-2013, Stefan Strömberg <stefangs@nethome.nu>
+ * Copyright (C) 2005-2016, Stefan Strömberg <stefangs@nethome.nu>
  *
  * This file is part of OpenNetHome (http://www.nethome.nu)
  *
@@ -18,38 +18,33 @@
  */
 package nu.nethome.home.items.net;
 
-import com.sun.tracing.dtrace.Attributes;
-import java.util.List;
-import java.util.logging.Level;
-import nu.nethome.home.impl.CommandLineExecutor;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
+import nu.nethome.home.item.HomeItemProxy;
 import nu.nethome.home.item.HomeItemType;
+import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
 import nu.nethome.util.plugin.Plugin;
-
-import java.util.logging.Logger;
-import nu.nethome.home.item.ExecutionFailure;
-import nu.nethome.home.item.HomeItemProxy;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
- * HomeItem class which listens for TCP/IP-connections on the specified port and
- * sends the content of the message as an event of type <b>TCPMessage</b> and
- * the message in the
- * <b>Value</b>-attribute.
+ * HomeItem class which connects to a MQTT-Server, subscribes for a topic and sends the messages
+ * as events in OpenNetHome.
  *
- * @author Stefan
+ * @author Jocke G and Patrik Gustavsson
  */
+@SuppressWarnings("UnusedDeclaration")
 @Plugin
 @HomeItemType("Ports")
-public class MQTTCommandPort extends HomeItemAdapter implements HomeItem {
+public class MqttClient extends HomeItemAdapter implements HomeItem {
 
-    private final String model = ("<?xml version = \"1.0\"?> \n"
+    private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"MQTTCommandPort\" Category=\"Ports\" >"
             + "  <Attribute Name=\"Port\" Type=\"String\" Get=\"getPort\" Set=\"setPort\" Default=\"1883\" />"
             + "  <Attribute Name=\"Address\" Type=\"String\" Get=\"getAddress\" Set=\"setAddress\" />"
@@ -66,26 +61,16 @@ public class MQTTCommandPort extends HomeItemAdapter implements HomeItem {
     /*
 	 * Internal attributes
      */
-    private static Logger logger = Logger.getLogger(MQTTCommandPort.class.getName());
-    protected CommandLineExecutor executor;
-    protected MqttClient client;
+    private static Logger logger = Logger.getLogger(MqttClient.class.getName());
+    protected org.eclipse.paho.client.mqttv3.MqttClient client;
 
-    public MQTTCommandPort() {
+    public MqttClient() {
     }
 
-    /* (non-Javadoc)
-	 * @see ssg.home.HomeItem#getModel()
-     */
     public String getModel() {
-        return model;
+        return MODEL;
     }
 
-    /*
-	 * Internal implementation methods
-     */
-    /**
-     * @return Returns the listenPort.
-     */
     public String getPort() {
         return String.valueOf(port);
     }
@@ -117,15 +102,13 @@ public class MQTTCommandPort extends HomeItemAdapter implements HomeItem {
     @Override
     public void activate(HomeService server) {
         super.activate(server);
-
-        executor = new CommandLineExecutor(server, false);
         try {
-            client = new MqttClient(address + ":" + port, "OpenNetHomeServer-Sub");
+            client = new org.eclipse.paho.client.mqttv3.MqttClient(address + ":" + port, "OpenNetHomeServer-Sub");
             client.setCallback(new SubscribeCallback());
             client.connect();
             client.subscribe(baseTopic);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Failed to connect to MQTT Server", e);
         }
     }
 
@@ -136,7 +119,7 @@ public class MQTTCommandPort extends HomeItemAdapter implements HomeItem {
             try {
                 client.disconnect();
             } catch (MqttException ex) {
-                logger.log(Level.SEVERE, "MQTT refused to disconnect", ex);
+                logger.log(Level.WARNING, "MQTT refused to disconnect", ex);
             }
             client = null;
         }
@@ -150,14 +133,12 @@ public class MQTTCommandPort extends HomeItemAdapter implements HomeItem {
 
         @Override
         public void messageArrived(String topic, MqttMessage message) {
-            System.out.println("Message arrived. Topic: " + topic + " Message: " + message.toString());
-
-            try {
-                String event = "event,Mqtt_Message,Direction,In,Mqtt.Topic," + topic + ",Mqtt.Message," + message.toString();
-                executor.executeCommandLine(event);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            logger.fine("Message arrived. Topic: " + topic + " Message: " + message.toString());
+            Event mqtt_message = server.createEvent("Mqtt_Message", "");
+            mqtt_message.setAttribute("Direction", "In");
+            mqtt_message.setAttribute("Mqtt.Topic", topic);
+            mqtt_message.setAttribute("Mqtt.Message", message.toString());
+            server.send(mqtt_message);
         }
         
         private boolean hasAction(HomeItemProxy homeItemProxy, String action) {

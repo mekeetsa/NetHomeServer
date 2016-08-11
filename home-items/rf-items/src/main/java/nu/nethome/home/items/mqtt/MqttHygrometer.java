@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005-2013, Stefan Strömberg <stefangs@nethome.nu>
+ * Copyright (C) 2005-2016, Stefan Strömberg <stefangs@nethome.nu>
  *
  * This file is part of OpenNetHome  (http://www.nethome.nu)
  *
@@ -28,6 +28,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Logger;
 
+/**
+ * Presents values from a MQTT-Topic as hygrometer values
+ *
+ * @author Jocke G and Patrik Gustavsson
+ */
+@SuppressWarnings("UnusedDeclaration")
 @Plugin
 @HomeItemType(value = "Gauges", creationEvents = "Mqtt_Message")
 public class MqttHygrometer extends HomeItemAdapter implements HomeItem, ValueItem {

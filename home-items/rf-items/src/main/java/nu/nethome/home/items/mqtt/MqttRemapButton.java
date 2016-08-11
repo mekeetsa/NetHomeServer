@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005-2013, Stefan Strömberg <stefangs@nethome.nu>
+ * Copyright (C) 2005-2016, Stefan Strömberg <stefangs@nethome.nu>
  *
  * This file is part of OpenNetHome (http://www.nethome.nu)
  *
@@ -29,11 +29,12 @@ import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.system.HomeService;
 
 /**
- * Listens for commands for a specific Nexa Learning Code address and button.
- * When a command is received, the corresponding command is executed.
+ * Reacts to messages received from a MQTT-Topic and calls configured actions
  *
- * @author Stefan
+ * @author Jocke G and Patrik Gustavsson
  */
+
+@SuppressWarnings("UnusedDeclaration")
 @Plugin
 @HomeItemType(value = "Controls", creationEvents = "Mqtt_Message")
 public class MqttRemapButton extends HomeItemAdapter implements HomeItem {
