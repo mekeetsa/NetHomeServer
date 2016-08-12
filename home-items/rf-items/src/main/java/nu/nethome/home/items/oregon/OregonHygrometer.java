@@ -36,8 +36,27 @@ import java.util.logging.Logger;
  * @author Stefan
  */
 @Plugin
-@HomeItemType(value = "Gauges", creationEvents = "Oregon_Message")
+@HomeItemType(value = "Gauges", creationInfo = OregonHygrometer.OregonCreationInfo.class)
 public class OregonHygrometer extends OregonThermometer implements HomeItem {
+
+    public static class OregonCreationInfo implements AutoCreationInfo {
+        static final String[] CREATION_EVENTS = {"Oregon_Message"};
+        @Override
+        public String[] getCreationEvents() {
+            return CREATION_EVENTS;
+        }
+
+        @Override
+        public boolean canBeCreatedBy(Event e) {
+            return e.hasAttribute("Oregon.Moisture");
+        }
+
+        @Override
+        public String getCreationIdentification(Event e) {
+            return String.format("Oregon Weather Sensor, Ch: %s, Id: %s",
+                    e.getAttribute("Oregon.Channel"), e.getAttribute("Oregon.Id"));
+        }
+    }
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"OregonHygrometer\" Category=\"Gauges\" >"

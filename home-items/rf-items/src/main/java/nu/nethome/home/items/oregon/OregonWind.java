@@ -29,16 +29,35 @@ import java.util.Date;
 import java.util.logging.Logger;
 
 /**
- * Presents and logs temperature values received by an Oregon Scientific-temperature sensor. The actual
+ * Presents and logs temperature values received by an Oregon Scientific-wind sensor. The actual
  * values are received as events which may be sent by any kind of receiver module
- * which can receive UPM messages from the hardware devices.
+ * which can receive Oregon messages from the hardware devices.
  *
  * @author Stefan
  */
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
-@HomeItemType(value = "Gauges", creationEvents = "Oregon_Message")
+@HomeItemType(value = "Gauges", creationInfo = OregonWind.OregonCreationInfo.class)
 public class OregonWind extends HomeItemAdapter implements HomeItem, ValueItem {
+
+    public static class OregonCreationInfo implements AutoCreationInfo {
+        static final String[] CREATION_EVENTS = {"Oregon_Message"};
+        @Override
+        public String[] getCreationEvents() {
+            return CREATION_EVENTS;
+        }
+
+        @Override
+        public boolean canBeCreatedBy(Event e) {
+            return e.hasAttribute("Oregon.Wind");
+        }
+
+        @Override
+        public String getCreationIdentification(Event e) {
+            return String.format("Oregon Wind Sensor, Ch: %s, Id: %s",
+                    e.getAttribute("Oregon.Channel"), e.getAttribute("Oregon.Id"));
+        }
+    }
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"OregonWind\" Category=\"Gauges\" >"
