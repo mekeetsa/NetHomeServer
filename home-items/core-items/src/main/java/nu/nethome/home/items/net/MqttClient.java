@@ -45,7 +45,7 @@ import java.util.logging.Logger;
 public class MqttClient extends HomeItemAdapter implements HomeItem {
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
-            + "<HomeItem Class=\"MQTTCommandPort\" Category=\"Ports\" >"
+            + "<HomeItem Class=\"MqttClient\" Category=\"Ports\" >"
             + "  <Attribute Name=\"Port\" Type=\"String\" Get=\"getPort\" Set=\"setPort\" Default=\"1883\" />"
             + "  <Attribute Name=\"Address\" Type=\"String\" Get=\"getAddress\" Set=\"setAddress\" />"
             + "  <Attribute Name=\"BaseTopic\" Type=\"String\" Get=\"getBaseTopic\" Set=\"setBaseTopic\" />"
@@ -103,7 +103,7 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
     public void activate(HomeService server) {
         super.activate(server);
         try {
-            client = new org.eclipse.paho.client.mqttv3.MqttClient(address + ":" + port, "OpenNetHomeServer-Sub");
+            client = new org.eclipse.paho.client.mqttv3.MqttClient(address + ":" + port, "OpenNetHomeServer-Sub", null);
             client.setCallback(new SubscribeCallback());
             client.connect();
             client.subscribe(baseTopic);

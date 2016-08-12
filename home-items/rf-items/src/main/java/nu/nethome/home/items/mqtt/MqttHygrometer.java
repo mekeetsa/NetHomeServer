@@ -61,7 +61,7 @@ public class MqttHygrometer extends HomeItemAdapter implements HomeItem, ValueIt
         // Check if the event is an FineOffset_Message and in that case check if it is
         // intended for this thermometer.
         if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals("Mqtt_Message") &&
-                (event.getAttribute("*Mqtt.Topic").equals(name))) {
+                (event.getAttribute("Mqtt.Topic").equals(topic))) {
             return handleEvent(event);
         } else {
             return handleInit(event);
