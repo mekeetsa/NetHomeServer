@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005-2013, Stefan Strömberg <stefangs@nethome.nu>
+ * Copyright (C) 2005-2016, Stefan Strömberg <stefangs@nethome.nu>
  *
  * This file is part of OpenNetHome  (http://www.nethome.nu)
  *
@@ -21,6 +21,7 @@ package nu.nethome.home.items.net;
 
 import nu.nethome.home.impl.CommandLineExecutor;
 import nu.nethome.home.item.*;
+import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
 import nu.nethome.util.plugin.Plugin;
 
@@ -30,14 +31,18 @@ import java.util.logging.Logger;
 
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
-@HomeItemType("Gauges")
+@HomeItemType("Ports")
 public class MqttValueLogger extends HomeItemAdapter implements ValueItem, HomeItem {
 
 	private final String m_Model = ("<?xml version = \"1.0\"?> \n"
 			+ "<HomeItem Class=\"ValueLogger\" Category=\"Gauges\"  >"
-            + "  <Attribute Name=\"Value\" Type=\"String\" Get=\"getValue\" Default=\"true\" />"
+            + "  <Attribute Name=\"Value\" Type=\"String\" Get=\"getLastValue\" Default=\"true\" />"
             + "  <Attribute Name=\"ValueAction\" Type=\"Value\" Get=\"getValueAction\" 	Set=\"setValueAction\" />"
             + "  <Attribute Name=\"LogInterval\" Type=\"String\" Get=\"getLogInterval\" 	Set=\"setLogInterval\" />"
+            + "  <Attribute Name=\"Topic\" Type=\"String\" Get=\"getTopic\" 	Set=\"setTopic\" />"
+            + "  <Attribute Name=\"QOS\" Type=\"StringList\" Get=\"getQos\" 	Set=\"setQos\" >"
+            + "     <item>0</item>  <item>1</item> <item>2</item></Attribute>"
+            + "  <Attribute Name=\"Retain\" Type=\"Boolean\" Get=\"getRetain\" 	Set=\"setRetain\" />"
 			+ "</HomeItem> ");
 
 	private static Logger logger = Logger.getLogger(MqttValueLogger.class.getName());
@@ -45,6 +50,10 @@ public class MqttValueLogger extends HomeItemAdapter implements ValueItem, HomeI
     protected Timer timer;
     protected String valueAction = "";
     protected int logInterval = 60;
+    protected String topic = "";
+    protected int qos = 0;
+    protected boolean retain;
+    protected String lastValue = "";
 
 	public String getModel() {
 		return m_Model;
@@ -60,14 +69,27 @@ public class MqttValueLogger extends HomeItemAdapter implements ValueItem, HomeI
             public void run() {
                 logValue();
             }
-        }, 1000);
+        }, 0, logInterval * 1000);
     }
 
     private void logValue() {
+        String value = getValue();
+        if (!value.isEmpty() && !value.equals(lastValue)) {
+            Event mqtt_message = server.createEvent("Mqtt_Message", "");
+            mqtt_message.setAttribute("Direction", "Out");
+            mqtt_message.setAttribute("Mqtt.Topic", topic);
+            mqtt_message.setAttribute("Mqtt.Message", value);
+            mqtt_message.setAttribute("Mqtt.QOS", qos);
+            mqtt_message.setAttribute("Mqtt.Retain", retain ? "Yes" : "No");
+            lastValue = value;
+        }
     }
 
     @Override
     public void stop() {
+        if (timer != null) {
+            timer.cancel();
+        }
     }
 
     public String getValueAction() {
@@ -86,6 +108,42 @@ public class MqttValueLogger extends HomeItemAdapter implements ValueItem, HomeI
             return "";
         }
         return results[2].replace("%2C", ".");
+    }
+
+    public String getLogInterval() {
+        return getIntAttribute(logInterval);
+    }
+
+    public void setLogInterval(String logInterval) throws IllegalValueException {
+        this.logInterval = setIntAttribute(logInterval, 5, 15 * 60);
+    }
+
+    public String getTopic() {
+        return topic;
+    }
+
+    public void setTopic(String topic) {
+        this.topic = topic;
+    }
+
+    public String getQos() {
+        return getIntAttribute(qos);
+    }
+
+    public void setQos(String qos) throws IllegalValueException {
+        this.qos = setIntAttribute(qos, 0, 3);
+    }
+
+    public String getRetain() {
+        return retain ? "Yes" : "No";
+    }
+
+    public void setRetain(String retain) {
+        this.retain = retain.equalsIgnoreCase("Yes") || retain.equalsIgnoreCase("True");;
+    }
+
+    public String getLastValue() {
+        return lastValue;
     }
 }
 
