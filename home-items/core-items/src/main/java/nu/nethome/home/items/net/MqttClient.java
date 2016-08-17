@@ -46,16 +46,22 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"MqttClient\" Category=\"Ports\" >"
-            + "  <Attribute Name=\"Port\" Type=\"String\" Get=\"getPort\" Set=\"setPort\" Default=\"1883\" />"
+            + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\"  Default=\"true\" />"
+            + "  <Attribute Name=\"Port\" Type=\"String\" Get=\"getPort\" Set=\"setPort\" />"
             + "  <Attribute Name=\"Address\" Type=\"String\" Get=\"getAddress\" Set=\"setAddress\" />"
             + "  <Attribute Name=\"BaseTopic\" Type=\"String\" Get=\"getBaseTopic\" Set=\"setBaseTopic\" />"
             + "</HomeItem> ");
+    public static final String MQTT_MESSAGE_TYPE = "Mqtt_Message";
+    public static final String MQTT_MESSAGE = "Mqtt.Message";
+    public static final String MQTT_TOPIC = "Mqtt.Topic";
+    public static final String MQTT_QOS = "Mqtt.QOS";
+    public static final String MQTT_RETAIN = "Mqtt.Retain";
 
     /*
 	 * Externally visible attributes
      */
     protected int port = 1883;
-    protected String address = "tcp://localhost";
+    protected String address = "tcp://test.mosquitto.org";
     protected String baseTopic = "MyHome/#";
 
     /*
@@ -63,6 +69,7 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
      */
     private static Logger logger = Logger.getLogger(MqttClient.class.getName());
     protected org.eclipse.paho.client.mqttv3.MqttClient client;
+    private boolean connected = false;
 
     public MqttClient() {
     }
@@ -76,7 +83,13 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
     }
 
     public void setPort(String listenPort) {
-        this.port = Integer.parseInt(listenPort);
+        final int newPort = Integer.parseInt(listenPort);
+        if (this.port != newPort && isActivated()) {
+            disconnect();
+            this.port = newPort;
+            connect(true);
+        }
+        this.port = newPort;
     }
 
     public String getAddress() {
@@ -87,6 +100,11 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
         address = address.trim();
         if(!address.startsWith("tcp://")){
             address = "tcp://" + address;
+        }
+        if (!address.equals(this.address) && isActivated()) {
+            disconnect();
+            this.address = address;
+            connect(true);
         }
         this.address = address;
     }
@@ -102,19 +120,31 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
     @Override
     public void activate(HomeService server) {
         super.activate(server);
+        connect(true);
+    }
+
+    private void connect(boolean doLog) {
         try {
             client = new org.eclipse.paho.client.mqttv3.MqttClient(address + ":" + port, "OpenNetHomeServer-Sub", null);
             client.setCallback(new SubscribeCallback());
             client.connect();
             client.subscribe(baseTopic);
+            connected = true;
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Failed to connect to MQTT Server", e);
+            if (doLog) {
+                logger.log(Level.WARNING, "Failed to connect to MQTT Server", e);
+            }
+            connected = false;
         }
     }
 
     @Override
     public void stop() {
         super.stop();
+        disconnect();
+    }
+
+    private void disconnect() {
         if (client != null) {
             try {
                 client.disconnect();
@@ -125,19 +155,47 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
         }
     }
 
+    public boolean receiveEvent(Event event) {
+        if (event.isType("MinuteEvent") && !connected) {
+            disconnect();
+            connect(false);
+            return true;
+        } else if (event.isType(MQTT_MESSAGE_TYPE) && event.getAttribute("Direction").equals("Out") && connected) {
+            final MqttMessage mqttMessage = new MqttMessage(event.getAttribute(MQTT_MESSAGE).getBytes());
+            if (event.hasAttribute(MQTT_QOS)) {
+                mqttMessage.setQos(event.getAttributeInt(MQTT_QOS));
+            }
+            if (event.hasAttribute(MQTT_RETAIN)) {
+                mqttMessage.setRetained(event.getAttribute(MQTT_RETAIN).equalsIgnoreCase("yes"));
+            }
+            try {
+                client.publish(event.getAttribute(MQTT_TOPIC), mqttMessage);
+            } catch (MqttException e) {
+                connected = false;
+                logger.log(Level.WARNING, "Failed to send MQTT-message", e);
+            };
+        }
+        return false;
+    }
+
+    public String getState() {
+        return connected ? "Connected" : "Disconnected";
+    }
+
     public class SubscribeCallback implements MqttCallback {
 
         @Override
         public void connectionLost(Throwable cause) {
+            connected = false;
         }
 
         @Override
         public void messageArrived(String topic, MqttMessage message) {
             logger.fine("Message arrived. Topic: " + topic + " Message: " + message.toString());
-            Event mqtt_message = server.createEvent("Mqtt_Message", "");
+            Event mqtt_message = server.createEvent(MQTT_MESSAGE_TYPE, "");
             mqtt_message.setAttribute("Direction", "In");
-            mqtt_message.setAttribute("Mqtt.Topic", topic);
-            mqtt_message.setAttribute("Mqtt.Message", message.toString());
+            mqtt_message.setAttribute(MQTT_TOPIC, topic);
+            mqtt_message.setAttribute(MQTT_MESSAGE, message.toString());
             server.send(mqtt_message);
         }
         

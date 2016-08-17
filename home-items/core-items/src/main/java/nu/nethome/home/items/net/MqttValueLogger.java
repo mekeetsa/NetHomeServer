@@ -75,12 +75,13 @@ public class MqttValueLogger extends HomeItemAdapter implements ValueItem, HomeI
     private void logValue() {
         String value = getValue();
         if (!value.isEmpty() && !value.equals(lastValue)) {
-            Event mqtt_message = server.createEvent("Mqtt_Message", "");
+            Event mqtt_message = server.createEvent(MqttClient.MQTT_MESSAGE_TYPE, "");
             mqtt_message.setAttribute("Direction", "Out");
-            mqtt_message.setAttribute("Mqtt.Topic", topic);
-            mqtt_message.setAttribute("Mqtt.Message", value);
-            mqtt_message.setAttribute("Mqtt.QOS", qos);
-            mqtt_message.setAttribute("Mqtt.Retain", retain ? "Yes" : "No");
+            mqtt_message.setAttribute(MqttClient.MQTT_TOPIC, topic);
+            mqtt_message.setAttribute(MqttClient.MQTT_MESSAGE, value);
+            mqtt_message.setAttribute(MqttClient.MQTT_QOS, qos);
+            mqtt_message.setAttribute(MqttClient.MQTT_RETAIN, retain ? "Yes" : "No");
+            server.send(mqtt_message);
             lastValue = value;
         }
     }
