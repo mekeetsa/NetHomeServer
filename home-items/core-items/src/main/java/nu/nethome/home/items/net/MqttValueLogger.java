@@ -32,7 +32,7 @@ import java.util.logging.Logger;
 
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
-@HomeItemType("Ports")
+@HomeItemType("Gauges")
 public class MqttValueLogger extends HomeItemAdapter implements ValueItem, HomeItem {
 
 	private static final String MODEL = ("<?xml version = \"1.0\"?> \n"

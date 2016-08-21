@@ -25,10 +25,7 @@ import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
 import nu.nethome.util.plugin.Plugin;
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.*;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -49,6 +46,8 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\"  Default=\"true\" />"
             + "  <Attribute Name=\"Port\" Type=\"String\" Get=\"getPort\" Set=\"setPort\" />"
             + "  <Attribute Name=\"Address\" Type=\"String\" Get=\"getAddress\" Set=\"setAddress\" />"
+            + "  <Attribute Name=\"UserName\" Type=\"String\" Get=\"getUserName\" Set=\"setUserName\" />"
+            + "  <Attribute Name=\"Password\" Type=\"String\" Get=\"getPassword\" Set=\"setPassword\" />"
             + "  <Attribute Name=\"BaseTopic\" Type=\"String\" Get=\"getBaseTopic\" Set=\"setBaseTopic\" />"
             + "</HomeItem> ");
     public static final String MQTT_MESSAGE_TYPE = "Mqtt_Message";
@@ -63,6 +62,8 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
     protected int port = 1883;
     protected String address = "tcp://test.mosquitto.org";
     protected String baseTopic = "MyHome/#";
+    protected String userName = "";
+    protected String password = "";
 
     /*
 	 * Internal attributes
@@ -117,6 +118,22 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
         this.baseTopic = baseTopic;
     }
 
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     @Override
     public void activate(HomeService server) {
         super.activate(server);
@@ -127,7 +144,14 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
         try {
             client = new org.eclipse.paho.client.mqttv3.MqttClient(address + ":" + port, "OpenNetHomeServer-Sub", null);
             client.setCallback(new SubscribeCallback());
-            client.connect();
+            if (!userName.isEmpty()) {
+                MqttConnectOptions options = new MqttConnectOptions();
+                options.setUserName(userName);
+                options.setPassword(password.toCharArray());
+                client.connect(options);
+            } else {
+                client.connect();
+            }
             client.subscribe(baseTopic);
             connected = true;
         } catch (Exception e) {
