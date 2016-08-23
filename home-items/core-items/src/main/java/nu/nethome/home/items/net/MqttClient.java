@@ -123,6 +123,11 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
     }
 
     public void setUserName(String userName) {
+        if (!this.userName.equals(userName) && isActivated()) {
+            disconnect();
+            this.userName = userName;
+            connect(true);
+        }
         this.userName = userName;
     }
 
@@ -131,6 +136,11 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
     }
 
     public void setPassword(String password) {
+        if (!this.password.equals(password) && isActivated()) {
+            disconnect();
+            this.password = password;
+            connect(true);
+        }
         this.password = password;
     }
 
