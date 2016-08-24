@@ -44,6 +44,7 @@ public class MqttCommandPort extends HomeItemAdapter implements HomeItem {
             + "  <Action Name=\"enable\" 	Method=\"enable\" />"
             + "  <Action Name=\"disable\" 	Method=\"disable\" />"
             + "</HomeItem> ");
+    private static final String ATTRIBUTE_SEPARATOR = "\\_";
 
     private static Logger logger = Logger.getLogger(MqttCommandPort.class.getName());
 
@@ -90,7 +91,7 @@ public class MqttCommandPort extends HomeItemAdapter implements HomeItem {
         String topic = event.getAttribute("Mqtt.Topic");
         String[] split = topic.split("/");
         String itemPart = split[split.length - 1];
-        String[] itemParts = itemPart.split("\\.");
+        String[] itemParts = itemPart.split(ATTRIBUTE_SEPARATOR);
         String itemName = itemParts[0];
         String attributeName = null;
         if (itemParts.length == 2) {

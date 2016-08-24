@@ -221,6 +221,7 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
         @Override
         public void connectionLost(Throwable cause) {
             connected = false;
+            logger.log(Level.INFO, "Lost connection to MQTT server " + address + ". " + cause.getMessage(), cause);
         }
 
         @Override

@@ -14,6 +14,8 @@ import static org.mockito.Mockito.verify;
 public class MqttCommandPortTest {
 
     private static final String TEST_ITEM_NAME = "testItem";
+    private static final String ATTRIBUTE = "attribute";
+    private static final String ATTRIBUTE_SEPARATOR = "_";
     private MqttCommandPort mqttCommandPort;
     private HomeService service;
     private HomeItemProxy testItem;
@@ -47,7 +49,7 @@ public class MqttCommandPortTest {
     @Test
     public void findsCorrectHomeItemForAttributeWithThreeLevelTopic() throws Exception {
         mqttCommandPort.setTopic("test/more/levels");
-        receiveMqttMessage("On", "test/more/levels/" + TEST_ITEM_NAME + ".attribute");
+        receiveMqttMessage("On", "test/more/levels/" + TEST_ITEM_NAME + ATTRIBUTE_SEPARATOR + ATTRIBUTE);
 
         verify(service).openInstance(TEST_ITEM_NAME);
     }
@@ -63,9 +65,9 @@ public class MqttCommandPortTest {
     @Test
     public void setsAttributeValue() throws Exception {
         mqttCommandPort.setTopic("test");
-        receiveMqttMessage("On", "test/" + TEST_ITEM_NAME + ".attribute");
+        receiveMqttMessage("On", "test/" + TEST_ITEM_NAME + ATTRIBUTE_SEPARATOR + ATTRIBUTE);
 
-        verify(testItem).setAttributeValue("attribute", "On");
+        verify(testItem).setAttributeValue(ATTRIBUTE, "On");
     }
 
     private void receiveMqttMessage(String value, String topic) {
