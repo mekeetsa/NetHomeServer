@@ -188,6 +188,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("MqttThermometer", nu.nethome.home.items.mqtt.MqttThermometer.class),
             new HomeItemClassInfo("MqttHygrometer", nu.nethome.home.items.mqtt.MqttHygrometer.class),
             new HomeItemClassInfo("MqttRemapButton", nu.nethome.home.items.mqtt.MqttRemapButton.class),
+            new HomeItemClassInfo("MqttCommandPort", nu.nethome.home.items.mqtt.MqttCommandPort.class),
 
             // web-items
             new HomeItemClassInfo("Room", nu.nethome.home.items.infra.Room.class),
