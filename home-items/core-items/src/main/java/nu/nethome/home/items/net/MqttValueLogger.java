@@ -46,7 +46,8 @@ public class MqttValueLogger extends HomeItemAdapter implements ValueItem, HomeI
             + "     <item>0</item>  <item>1</item> <item>2</item></Attribute>"
             + "  <Attribute Name=\"Retain\" Type=\"Boolean\" Get=\"getRetain\" 	Set=\"setRetain\" />"
             + "  <Attribute Name=\"ReactOnEvent\" Type=\"Boolean\" Get=\"getReactOnEvent\" 	Set=\"setReactOnEvent\" />"
-			+ "</HomeItem> ");
+            + "  <Attribute Name=\"MqttClient\" Type=\"Item\" Get=\"getMqttClient\" 	Set=\"setMqttClient\" />"
+            + "</HomeItem> ");
 
 	private static Logger logger = Logger.getLogger(MqttValueLogger.class.getName());
     private CommandLineExecutor executor;
@@ -60,6 +61,7 @@ public class MqttValueLogger extends HomeItemAdapter implements ValueItem, HomeI
     private String valuePrefix = "";
     private boolean reactOnEvent;
     private FinalEventListener listener;
+    private String mqttClient = "";
 
     public String getModel() {
 		return MODEL;
@@ -106,6 +108,9 @@ public class MqttValueLogger extends HomeItemAdapter implements ValueItem, HomeI
             mqtt_message.setAttribute(MqttClient.MQTT_MESSAGE, valuePrefix + value);
             mqtt_message.setAttribute(MqttClient.MQTT_QOS, qos);
             mqtt_message.setAttribute(MqttClient.MQTT_RETAIN, retain ? "Yes" : "No");
+            if (!mqttClient.isEmpty()) {
+                mqtt_message.setAttribute("Mqtt.Client", mqttClient);
+            }
             server.send(mqtt_message);
             lastValue = value;
         }
@@ -199,6 +204,14 @@ public class MqttValueLogger extends HomeItemAdapter implements ValueItem, HomeI
 
     public void setValuePrefix(String valuePrefix) {
         this.valuePrefix = valuePrefix;
+    }
+
+    public String getMqttClient() {
+        return mqttClient;
+    }
+
+    public void setMqttClient(String mqttClient) {
+        this.mqttClient = mqttClient;
     }
 }
 

@@ -166,7 +166,7 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
             connected = true;
         } catch (Exception e) {
             if (doLog) {
-                logger.log(Level.WARNING, "Failed to connect to MQTT Server", e);
+                logger.log(Level.WARNING, "Failed to connect to MQTT Server: " + e.getMessage(), e);
             }
             connected = false;
         }
@@ -179,14 +179,14 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
     }
 
     private void disconnect() {
-        if (client != null) {
+        if (client != null && client.isConnected()) {
             try {
                 client.disconnect();
             } catch (MqttException ex) {
-                logger.log(Level.WARNING, "MQTT refused to disconnect", ex);
+                logger.log(Level.INFO, "MQTT failed to disconnect", ex);
             }
-            client = null;
         }
+        client = null;
     }
 
     public boolean receiveEvent(Event event) {
@@ -194,7 +194,7 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
             disconnect();
             connect(false);
             return true;
-        } else if (event.isType(MQTT_MESSAGE_TYPE) && event.getAttribute("Direction").equals("Out") && connected) {
+        } else if (isMqttMessageForThisClient(event) && connected) {
             final MqttMessage mqttMessage = new MqttMessage(event.getAttribute(MQTT_MESSAGE).getBytes());
             if (event.hasAttribute(MQTT_QOS)) {
                 mqttMessage.setQos(event.getAttributeInt(MQTT_QOS));
@@ -212,6 +212,11 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
         return false;
     }
 
+    private boolean isMqttMessageForThisClient(Event event) {
+        boolean forUs = !event.hasAttribute("Mqtt.Client") || event.getAttribute("Mqtt.Client").equals(this.name) || (event.getAttributeInt("Mqtt.Client") == this.id);
+        return event.isType(MQTT_MESSAGE_TYPE) && event.getAttribute("Direction").equals("Out") && forUs;
+    }
+
     public String getState() {
         return connected ? "Connected" : "Disconnected";
     }
@@ -221,7 +226,7 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
         @Override
         public void connectionLost(Throwable cause) {
             connected = false;
-            logger.log(Level.INFO, "Lost connection to MQTT server " + address + ". " + cause.getMessage(), cause);
+            logger.log(Level.INFO, "Lost connection to MQTT server " + address + ": " + cause.getMessage(), cause);
         }
 
         @Override
