@@ -1,15 +1,16 @@
-package nu.nethome.home.items.mqtt;
+package nu.nethome.home.items.net;
 
 import nu.nethome.home.impl.InternalEvent;
 import nu.nethome.home.item.HomeItemProxy;
+import nu.nethome.home.item.IllegalValueException;
 import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.mockito.Mockito.*;
 
 public class MqttCommandPortTest {
 
@@ -68,6 +69,36 @@ public class MqttCommandPortTest {
         receiveMqttMessage("On", "test/" + TEST_ITEM_NAME + ATTRIBUTE_SEPARATOR + ATTRIBUTE);
 
         verify(testItem).setAttributeValue(ATTRIBUTE, "On");
+    }
+
+    static final String separators[] = {"\\", "_", "A" , ",", ".", ";", ":", "!", "#", "¤", "%", "&", "(", ")", "=", "?", "z", "5", "_", "|", "ö", "'", "\"" };
+
+    @Test
+    public void handlesDifferentAttributeSeparators() throws Exception {
+        mqttCommandPort.setTopic("test");
+        int i = 0;
+        for (String s : separators) {
+            mqttCommandPort.setAttributeSeparator(s);
+            receiveMqttMessage("On", "test/" + TEST_ITEM_NAME + s + ATTRIBUTE);
+            i++;
+            verify(testItem, times(i)).setAttributeValue(ATTRIBUTE, "On");
+        }
+    }
+
+    static final String badSeparators[] = {"/", "aa", ""};
+
+    @Test
+    public void handlesBadAttributeSeparators() throws Exception {
+        mqttCommandPort.setTopic("test");
+        int i = 0;
+        for (String s : badSeparators) {
+            try {
+                mqttCommandPort.setAttributeSeparator(s);
+                assertThat(true, is(false));
+            } catch (IllegalValueException e) {
+                assertThat(e.getValue(), is(s));
+            }
+        }
     }
 
     private void receiveMqttMessage(String value, String topic) {

@@ -25,6 +25,7 @@ import nu.nethome.home.item.HomeItemInfo;
 import nu.nethome.home.items.UPnPScanner;
 import nu.nethome.home.items.UsbScanner;
 import nu.nethome.home.items.net.ArpScanner;
+import nu.nethome.home.items.net.MqttCommandPort;
 import nu.nethome.home.items.rollertrol.RollerTrolBlindGSeries;
 import nu.nethome.home.items.tellstick.Tellstick;
 import nu.nethome.home.items.web.proxy.HomeCloudConnection;
@@ -188,7 +189,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("MqttThermometer", nu.nethome.home.items.mqtt.MqttThermometer.class),
             new HomeItemClassInfo("MqttHygrometer", nu.nethome.home.items.mqtt.MqttHygrometer.class),
             new HomeItemClassInfo("MqttRemapButton", nu.nethome.home.items.mqtt.MqttRemapButton.class),
-            new HomeItemClassInfo("MqttCommandPort", nu.nethome.home.items.mqtt.MqttCommandPort.class),
+            new HomeItemClassInfo("MqttCommandPort", MqttCommandPort.class),
 
             // web-items
             new HomeItemClassInfo("Room", nu.nethome.home.items.infra.Room.class),

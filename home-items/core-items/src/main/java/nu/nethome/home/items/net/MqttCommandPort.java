@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package nu.nethome.home.items.mqtt;
+package nu.nethome.home.items.net;
 
 import nu.nethome.home.impl.CommandLineExecutor;
 import nu.nethome.home.item.*;
@@ -41,10 +41,10 @@ public class MqttCommandPort extends HomeItemAdapter implements HomeItem {
             + "<HomeItem Class=\"MqttCommandPort\" Category=\"Controls\" >"
             + "  <Attribute Name=\"State\" 	Type=\"String\" Get=\"getState\" Init=\"setState\" Default=\"true\" />"
             + "  <Attribute Name=\"Topic\" 	Type=\"String\" Get=\"getTopic\" Set=\"setTopic\" />"
+            + "  <Attribute Name=\"AttributeSeparator\" 	Type=\"String\" Get=\"getAttributeSeparator\" Set=\"setAttributeSeparator\" />"
             + "  <Action Name=\"enable\" 	Method=\"enable\" />"
             + "  <Action Name=\"disable\" 	Method=\"disable\" />"
             + "</HomeItem> ");
-    private static final String ATTRIBUTE_SEPARATOR = "\\_";
 
     private static Logger logger = Logger.getLogger(MqttCommandPort.class.getName());
 
@@ -52,6 +52,7 @@ public class MqttCommandPort extends HomeItemAdapter implements HomeItem {
     private CommandLineExecutor commandExecutor;
     private boolean isEnabled = true;
     private String topic = "MyHome/Indoor/Floor1/Livingroom/Lamp";
+    private String attributeSeparator = "_";
 
     public MqttCommandPort() {
     }
@@ -91,7 +92,7 @@ public class MqttCommandPort extends HomeItemAdapter implements HomeItem {
         String topic = event.getAttribute("Mqtt.Topic");
         String[] split = topic.split("/");
         String itemPart = split[split.length - 1];
-        String[] itemParts = itemPart.split(ATTRIBUTE_SEPARATOR);
+        String[] itemParts = itemPart.split(this.quote(attributeSeparator));
         String itemName = itemParts[0];
         String attributeName = null;
         if (itemParts.length == 2) {
@@ -110,6 +111,14 @@ public class MqttCommandPort extends HomeItemAdapter implements HomeItem {
             } catch (IllegalValueException e) {
                 logger.info("MqttCommandPort failed to set attribute " + attributeName + " in item " + itemPart + " to value " + message);
             }
+        }
+    }
+
+    private String quote(String attributeSeparator) {
+        if (Character.isLetterOrDigit(attributeSeparator.charAt(0))) {
+            return attributeSeparator;
+        } else {
+            return "\\" + attributeSeparator;
         }
     }
 
@@ -141,4 +150,15 @@ public class MqttCommandPort extends HomeItemAdapter implements HomeItem {
         isEnabled = false;
     }
 
+    public String getAttributeSeparator() {
+        return attributeSeparator;
+    }
+
+    public void setAttributeSeparator(String attributeSeparator) throws IllegalValueException {
+        if (attributeSeparator.length() == 1 && !attributeSeparator.equals("/")) {
+            this.attributeSeparator = attributeSeparator;
+        } else {
+            throw new IllegalValueException("Bad separator", attributeSeparator);
+        }
+    }
 }
