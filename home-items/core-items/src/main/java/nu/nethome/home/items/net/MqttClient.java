@@ -164,6 +164,7 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
             }
             client.subscribe(baseTopic);
             connected = true;
+            logger.info("Connected to MQTT Server " + address);
         } catch (Exception e) {
             if (doLog) {
                 logger.log(Level.WARNING, "Failed to connect to MQTT Server: " + e.getMessage(), e);
