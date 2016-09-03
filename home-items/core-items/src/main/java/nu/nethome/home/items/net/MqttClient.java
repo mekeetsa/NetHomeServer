@@ -46,6 +46,7 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\"  Default=\"true\" />"
             + "  <Attribute Name=\"Port\" Type=\"String\" Get=\"getPort\" Set=\"setPort\" />"
             + "  <Attribute Name=\"Address\" Type=\"String\" Get=\"getAddress\" Set=\"setAddress\" />"
+            + "  <Attribute Name=\"ClientName\" Type=\"String\" Get=\"getClientName\" Set=\"setClientName\" />"
             + "  <Attribute Name=\"UserName\" Type=\"String\" Get=\"getUserName\" Set=\"setUserName\" />"
             + "  <Attribute Name=\"Password\" Type=\"String\" Get=\"getPassword\" Set=\"setPassword\" />"
             + "  <Attribute Name=\"BaseTopic\" Type=\"String\" Get=\"getBaseTopic\" Set=\"setBaseTopic\" />"
@@ -55,6 +56,7 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
     public static final String MQTT_TOPIC = "Mqtt.Topic";
     public static final String MQTT_QOS = "Mqtt.QOS";
     public static final String MQTT_RETAIN = "Mqtt.Retain";
+    private static final int KEEP_ALIVE_INTERVAL_SECONDS = 60;
 
     /*
 	 * Externally visible attributes
@@ -64,6 +66,7 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
     protected String baseTopic = "MyHome/#";
     protected String userName = "";
     protected String password = "";
+    protected String clientName = "OpenNetHomeServer";
 
     /*
 	 * Internal attributes
@@ -144,6 +147,14 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
         this.password = password;
     }
 
+    public String getClientName() {
+        return clientName;
+    }
+
+    public void setClientName(String clientName) {
+        this.clientName = clientName;
+    }
+
     @Override
     public void activate(HomeService server) {
         super.activate(server);
@@ -152,12 +163,13 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
 
     private void connect(boolean doLog) {
         try {
-            client = new org.eclipse.paho.client.mqttv3.MqttClient(address + ":" + port, "OpenNetHomeServer-Sub", null);
+            client = new org.eclipse.paho.client.mqttv3.MqttClient(address + ":" + port, clientName, null);
             client.setCallback(new SubscribeCallback());
             if (!userName.isEmpty()) {
                 MqttConnectOptions options = new MqttConnectOptions();
                 options.setUserName(userName);
                 options.setPassword(password.toCharArray());
+                options.setKeepAliveInterval(KEEP_ALIVE_INTERVAL_SECONDS);
                 client.connect(options);
             } else {
                 client.connect();
@@ -180,13 +192,19 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
     }
 
     private void disconnect() {
-        if (client != null && client.isConnected()) {
-            try {
-                client.disconnect();
-            } catch (MqttException ex) {
-                logger.log(Level.INFO, "MQTT failed to disconnect", ex);
+        if (client != null)
+            if (client.isConnected()) {
+                try {
+                    client.disconnectForcibly();
+                } catch (MqttException ex) {
+                    logger.log(Level.INFO, "MQTT failed to disconnect", ex);
+                }
+                try {
+                    client.close();
+                } catch (MqttException ex) {
+                    logger.log(Level.INFO, "MQTT failed to close", ex);
+                }
             }
-        }
         client = null;
     }
 
