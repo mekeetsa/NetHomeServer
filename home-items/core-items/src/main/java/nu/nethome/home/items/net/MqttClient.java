@@ -27,6 +27,7 @@ import nu.nethome.home.system.HomeService;
 import nu.nethome.util.plugin.Plugin;
 import org.eclipse.paho.client.mqttv3.*;
 
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -66,7 +67,7 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
     protected String baseTopic = "MyHome/#";
     protected String userName = "";
     protected String password = "";
-    protected String clientName = "OpenNetHomeServer";
+    protected String clientName;
 
     /*
 	 * Internal attributes
@@ -76,6 +77,7 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
     private boolean connected = false;
 
     public MqttClient() {
+        clientName = "OpenNetHomeServer-" + new Random().nextInt(10000);
     }
 
     public String getModel() {
@@ -152,6 +154,11 @@ public class MqttClient extends HomeItemAdapter implements HomeItem {
     }
 
     public void setClientName(String clientName) {
+        if (!this.clientName.equals(clientName) && isActivated()) {
+            disconnect();
+            this.clientName = clientName;
+            connect(true);
+        }
         this.clientName = clientName;
     }
 
