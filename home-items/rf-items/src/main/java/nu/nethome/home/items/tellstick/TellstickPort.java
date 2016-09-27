@@ -82,7 +82,7 @@ public class TellstickPort {
             if ((System.getProperty("os.name").toUpperCase().indexOf("LINUX") != -1) &&
                     (System.getProperty("gnu.io.rxtx.SerialPorts") == null)) {
                 System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyS0:/dev/ttyS1:/dev/ttyS2:" + "" +
-                        "/dev/ttyUSB0:/dev/ttyUSB1:/dev/ttyUSB2:/dev/ttyUSB3:/dev/ttyUSB4:" +
+                        "/dev/ttyUSB0:/dev/ttyUSB1:/dev/ttyUSB2:/dev/ttyUSB3:/dev/ttyUSB4:/dev/ttyUSB5:" +
                         "/dev/ttyACM0:/dev/ttyACM1:/dev/ttyACM2");
             }
 
