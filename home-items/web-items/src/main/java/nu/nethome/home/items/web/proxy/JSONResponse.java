@@ -26,24 +26,40 @@ import org.json.JSONObject;
 /**
  *
  */
-public class JSONData {
+public class JSONResponse {
     private final JSONObject object;
     private final JSONArray array;
+    private final int resultCode;
+    private final String unstructuredData;
 
-    public JSONData(String data)  {
-        if (data.trim().startsWith("[")) {
+    public JSONResponse(String data, int resultCode)  {
+        this.resultCode = resultCode;
+        String trimmed = data.trim();
+        if (trimmed.startsWith("[")) {
             array = new JSONArray(data);
             object = null;
-        } else if (data.trim().startsWith("{")) {
+            unstructuredData = null;
+        } else if (trimmed.startsWith("{")) {
             object = new JSONObject(data);
             array = null;
+            unstructuredData = null;
         } else {
-            throw new JSONException("Data not object or array");
+            object = null;
+            array = null;
+            unstructuredData = data;
         }
     }
 
     public boolean isObject() {
         return object != null;
+    }
+
+    public boolean isArray() {
+        return array != null;
+    }
+
+    public boolean isEmpty() {
+        return object == null && array == null;
     }
 
     public JSONObject getObject() throws JSONException {
@@ -60,12 +76,17 @@ public class JSONData {
         return array;
     }
 
+    public int getResultCode() {
+        return resultCode;
+    }
+
     @Override
     public String toString() {
         if (isObject()) {
             return object.toString(3);
-        } else {
+        } else if (isArray()){
             return array.toString(3);
         }
+        return unstructuredData;
     }
 }

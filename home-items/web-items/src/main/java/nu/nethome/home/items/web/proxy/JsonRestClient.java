@@ -26,24 +26,25 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.ProtocolException;
 import java.net.URL;
 
 public class JsonRestClient {
 
-    public JSONData get(String baseUrl, String resource, JSONObject argument) throws IOException {
-        return new JSONData(performRequest(baseUrl, resource, argument != null ?argument.toString() : "", "GET"));
+    private static final int READ_TIMEOUT = 60000;
+
+    public JSONResponse get(String baseUrl, String resource, JSONObject argument) throws IOException {
+        return performRequest(baseUrl, resource, argument != null ?argument.toString() : "", "GET", "");
     }
 
-    public JSONData put(String baseUrl, String resource, JSONObject argument) throws IOException {
-        return new JSONData(performRequest(baseUrl, resource, argument != null ?argument.toString() : "", "PUT"));
+    public JSONResponse put(String baseUrl, String resource, JSONObject argument) throws IOException {
+        return performRequest(baseUrl, resource, argument != null ?argument.toString() : "", "PUT", "");
     }
 
-    public JSONData post(String baseUrl, String resource, JSONObject argument) throws IOException {
-        return new JSONData(performRequest(baseUrl, resource, argument != null ?argument.toString() : "", "POST"));
+    public JSONResponse post(String baseUrl, String resource, JSONObject argument, String sessionId) throws IOException {
+        return performRequest(baseUrl, resource, argument != null ?argument.toString() : "", "POST", sessionId);
     }
 
-    private String performRequest(String baseUrl, String resource, String body, String method) throws IOException {
+    private JSONResponse performRequest(String baseUrl, String resource, String body, String method, String sessionId) throws IOException {
         HttpURLConnection connection = null;
         DataOutputStream wr = null;
         BufferedReader rd = null;
@@ -58,9 +59,12 @@ public class JsonRestClient {
             connection = (HttpURLConnection) serverAddress.openConnection();
             connection.setRequestMethod(method);
             connection.setDoOutput(true);
-            connection.setReadTimeout(15000);
+            connection.setReadTimeout(READ_TIMEOUT);
             connection.setInstanceFollowRedirects(false);
             connection.setRequestProperty("Content-Type", "application/json");
+            if (!sessionId.isEmpty()) {
+                connection.setRequestProperty("id", sessionId);
+            }
             connection.setUseCaches(false);
             if (body.length() > 0) {
                 connection.setRequestProperty("Content-Length", "" + Integer.toString(body.getBytes().length));
@@ -68,12 +72,14 @@ public class JsonRestClient {
                 wr.writeBytes(body);
                 wr.flush();
                 wr.close();
+                wr = null;
             }
             connection.connect();
-            if (connection.getResponseCode() < 200 || connection.getResponseCode() > 299) {
-                throw new ProtocolException("Bad HTTP response code: " + connection.getResponseCode());
+            if (connection.getResponseCode() <= 299) {
+                rd = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            } else {
+                rd = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
             }
-            rd = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
             while ((line = rd.readLine()) != null) {
                 sb.append(line);
@@ -91,6 +97,6 @@ public class JsonRestClient {
                 connection.disconnect();
             }
         }
-        return sb.toString();
+        return new JSONResponse(sb.toString(), connection.getResponseCode());
     }
 }

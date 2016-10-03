@@ -18,4 +18,14 @@ public class HttpRequest {
         headers = h;
         loginCredential = json.getString("loginCredential");
     }
+
+    private HttpRequest() {
+        url = "";
+        headers = new String[0];
+        loginCredential = "";
+    }
+
+    public static HttpRequest empty() {
+        return new HttpRequest();
+    }
 }
