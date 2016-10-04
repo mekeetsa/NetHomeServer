@@ -123,8 +123,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     String charset = java.nio.charset.StandardCharsets.UTF_8.name();
 
     public void run() {
-        HttpResponse noResponse = new HttpResponse(account, "", new String[0], CHALLENGE);
-        HttpResponse lastHttpResponse = noResponse;
+        HttpResponse lastHttpResponse = HttpResponse.empty();
         while (isRunning) {
             try {
                 if (accountKeyIsBad) {
@@ -135,14 +134,14 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
                 connected = true;
                 pollResource = String.format(CLOUD_POLL_RESOURCE, loginResp.accountId, loginResp.server);
                 while (isRunning) {
-                    lastHttpResponse = proxyHttpRequest(noResponse, lastHttpResponse, loginResp.Id);
+                    lastHttpResponse = proxyHttpRequest(lastHttpResponse, loginResp.Id);
                 }
                 connected = false;
             } catch (ConnectionException | IOException | InterruptedException e) {
                 connected = false;
                 if (isRunning) {
                     logger.fine("Failed Communicating with cloud: " + e);
-                    lastHttpResponse = noResponse;
+                    lastHttpResponse = HttpResponse.empty();
                     try {
                         Thread.sleep(RETRY_INTERVAL_MS);
                     } catch (InterruptedException e1) {
@@ -153,15 +152,15 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         }
     }
 
-    private HttpResponse proxyHttpRequest(HttpResponse noResponse, HttpResponse previousLocalHttpResponse, String sessionId) throws IOException, ConnectionException {
+    private HttpResponse proxyHttpRequest(HttpResponse previousLocalHttpResponse, String sessionId) throws IOException, ConnectionException {
         final HttpRequest request = postPreviousResponseToCloudAndFetchNewRequest(previousLocalHttpResponse, sessionId);
         HttpResponse nextLocalHttpResponse;
         if (request.url.isEmpty()) {
             final String loginCredential = request.loginCredential;
             if (!loginCredential.isEmpty()) {
-                nextLocalHttpResponse = verifyLoginRequest(noResponse, loginCredential);
+                nextLocalHttpResponse = verifyLoginRequest(loginCredential);
             } else {
-                nextLocalHttpResponse = noResponse;
+                nextLocalHttpResponse = HttpResponse.empty();
             }
         } else {
             nextLocalHttpResponse = performLocalRequest(request);
@@ -170,7 +169,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         return nextLocalHttpResponse;
     }
 
-    private HttpResponse verifyLoginRequest(HttpResponse noResponse, String loginCredential) throws ConnectionException {
+    private HttpResponse verifyLoginRequest(String loginCredential) throws ConnectionException {
         HttpResponse httpResponse;
         String expectedCredential = this.account + this.password + CHALLENGE;
         MessageDigest digest = null;
@@ -183,9 +182,9 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         String expectedHashString = Hex.encodeHexString(hash);
         if (expectedHashString.equals(loginCredential)) {
             String sessionId = UUID.randomUUID().toString();
-            httpResponse = new HttpResponse(account, "", new String[0], CHALLENGE, sessionId);
+            httpResponse = HttpResponse.loginSucceeded(CHALLENGE, sessionId);
         } else {
-            httpResponse = noResponse;
+            httpResponse = HttpResponse.loginFailed(CHALLENGE);
         }
         return httpResponse;
     }
@@ -231,7 +230,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
                 baf.append(buffer, 0, read);
             }
         } catch (IOException e) {
-            return new HttpResponse(account, "", new String[0], CHALLENGE);
+            return new HttpResponse("", new String[0], CHALLENGE);
         }
 
         Map<String, List<String>> map = connection.getHeaderFields();
@@ -242,7 +241,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
                     " ,Value : " + entry.getValue());
             headers[i++] = entry.getKey() + ":" + entry.getValue().get(0);
         }
-        httpResponse = new HttpResponse(account, new String(Base64.encodeBase64(baf.toByteArray())), headers, CHALLENGE);
+        httpResponse = new HttpResponse(new String(Base64.encodeBase64(baf.toByteArray())), headers, CHALLENGE);
         return httpResponse;
     }
 
