@@ -19,6 +19,12 @@ public class HttpRequest {
         loginCredential = json.getString("loginCredential");
     }
 
+    public HttpRequest(String url, String[] headers, String loginCredential) {
+        this.url = url;
+        this.headers = headers;
+        this.loginCredential = loginCredential;
+    }
+
     private HttpRequest() {
         url = "";
         headers = new String[0];
@@ -27,5 +33,13 @@ public class HttpRequest {
 
     public static HttpRequest empty() {
         return new HttpRequest();
+    }
+
+    public JSONObject toJson() {
+        final JSONObject jsonObject = new JSONObject();
+        jsonObject.put("url", url);
+        jsonObject.put("headers", new JSONArray(headers));
+        jsonObject.put("loginCredential", loginCredential);
+        return jsonObject;
     }
 }

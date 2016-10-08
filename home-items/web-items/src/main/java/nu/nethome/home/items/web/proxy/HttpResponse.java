@@ -30,10 +30,6 @@ public class HttpResponse {
         this.sessionToken = "";
     }
 
-    //public HttpResponse(JSONObject json) {
-    //    body = json.getString("body");
-    //}
-
     public JSONObject toJson() {
         final JSONObject jsonObject = new JSONObject();
         jsonObject.put("body", body);

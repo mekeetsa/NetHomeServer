@@ -63,8 +63,8 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
 
     private static final String CHALLENGE = "challenge";
     private static final int RETRY_INTERVAL_MS = 5000;
-    private static final String LOGIN_RESOURCE = "api/server-sessions";
-    private static final String CLOUD_POLL_RESOURCE = "api/accounts/%d/servers/%d/poll";
+    static final String LOGIN_RESOURCE = "api/server-sessions";
+    static final String CLOUD_POLL_RESOURCE = "api/accounts/%d/servers/%d/poll";
 
     protected String serviceURL = "https://cloud.opennethome.org/";
     protected String localURL = "http://127.0.0.1:8020/";
@@ -81,7 +81,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     private static Logger logger = Logger.getLogger(HomeCloudConnection.class.getName());
     protected Thread listenThread;
     protected boolean isRunning = false;
-    private JsonRestClient jsonRestClient;
+    JsonRestClient jsonRestClient;
     private String pollResource;
 
     public HomeCloudConnection() {
@@ -123,32 +123,34 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     String charset = java.nio.charset.StandardCharsets.UTF_8.name();
 
     public void run() {
-        HttpResponse lastHttpResponse = HttpResponse.empty();
         while (isRunning) {
             try {
-                if (accountKeyIsBad) {
-                    Thread.sleep(RETRY_INTERVAL_MS);
-                    continue;
-                }
-                final loginResp loginResp = loginToCloud(new LoginReq(account, accountKey));
-                connected = true;
-                pollResource = String.format(CLOUD_POLL_RESOURCE, loginResp.accountId, loginResp.server);
-                while (isRunning) {
-                    lastHttpResponse = proxyHttpRequest(lastHttpResponse, loginResp.Id);
-                }
-                connected = false;
+                connectAndProxyCloudRequests();
             } catch (ConnectionException | IOException | InterruptedException e) {
-                connected = false;
-                if (isRunning) {
-                    logger.fine("Failed Communicating with cloud: " + e);
-                    lastHttpResponse = HttpResponse.empty();
-                    try {
-                        Thread.sleep(RETRY_INTERVAL_MS);
-                    } catch (InterruptedException e1) {
-                        return;
-                    }
+                logger.fine("Failed Communicating with cloud: " + e);
+            }
+            connected = false;
+            if (isRunning) {
+                try {
+                    Thread.sleep(RETRY_INTERVAL_MS);
+                } catch (InterruptedException e1) {
+                    return;
                 }
             }
+        }
+    }
+
+    void connectAndProxyCloudRequests() throws InterruptedException, IOException, ConnectionException {
+        if (accountKeyIsBad) {
+            Thread.sleep(RETRY_INTERVAL_MS);
+        } else {
+            final LoginResp loginResp = loginToCloud(new LoginReq(account, accountKey));
+            connected = true;
+            HttpResponse lastHttpResponse = HttpResponse.empty();
+            while (isRunning) {
+                lastHttpResponse = proxyHttpRequest(lastHttpResponse, loginResp.Id);
+            }
+            connected = false;
         }
     }
 
@@ -189,10 +191,12 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         return httpResponse;
     }
 
-    private loginResp loginToCloud(LoginReq loginReq) throws IOException, ConnectionException {
+    private LoginResp loginToCloud(LoginReq loginReq) throws IOException, ConnectionException {
         final JSONResponse result = jsonRestClient.post(serviceURL, LOGIN_RESOURCE, loginReq.toJson(), "");
         if (result.getResultCode() == HttpURLConnection.HTTP_CREATED) {
-            return new loginResp(result.getObject());
+            LoginResp loginResp = new LoginResp(result.getObject());
+            pollResource = String.format(CLOUD_POLL_RESOURCE, loginResp.accountId, loginResp.server);
+            return loginResp;
         } else if (result.getResultCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
             accountKeyIsBad = true;
         }
@@ -209,7 +213,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         throw new ConnectionException("Got unexpected return code: " + result.getResultCode() + "from cloud server");
     }
 
-    private HttpResponse performLocalRequest(HttpRequest request) throws IOException {
+    HttpResponse performLocalRequest(HttpRequest request) throws IOException {
         HttpResponse httpResponse;
         HttpURLConnection connection = (HttpURLConnection) new URL(localURL + request.url).openConnection();
         for (String header : request.headers) {
@@ -278,7 +282,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         accountKeyIsBad = false;
     }
 
-    private class ConnectionException extends Exception {
+    class ConnectionException extends Exception {
         public ConnectionException(String message) {
             super(message);
         }
