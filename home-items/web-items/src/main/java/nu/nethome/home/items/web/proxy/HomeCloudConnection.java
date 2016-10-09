@@ -61,7 +61,6 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
             + "  <Attribute Name=\"MessageCount\" Type=\"String\" Get=\"getMessageCount\" />"
             + "</HomeItem> ");
 
-    private static final String CHALLENGE = "challenge";
     private static final int RETRY_INTERVAL_MS = 5000;
     static final String LOGIN_RESOURCE = "api/server-sessions";
     static final String CLOUD_POLL_RESOURCE = "api/accounts/%d/servers/%d/poll";
@@ -70,6 +69,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     protected String localURL = "http://127.0.0.1:8020/";
     protected String password = "";
     protected String account = "0";
+    protected String currentChallenge = UUID.randomUUID().toString();;
     private String accountKey = "";
     protected int messageCount = 0;
     private boolean accountKeyIsBad = false;
@@ -83,6 +83,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     protected boolean isRunning = false;
     JsonRestClient jsonRestClient;
     private String pollResource;
+    private String currentSessionToken;
 
     public HomeCloudConnection() {
         account = Integer.toString(new Random().nextInt(10000));
@@ -157,23 +158,34 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     private HttpResponse proxyHttpRequest(HttpResponse previousLocalHttpResponse, String sessionId) throws IOException, ConnectionException {
         final HttpRequest request = postPreviousResponseToCloudAndFetchNewRequest(previousLocalHttpResponse, sessionId);
         HttpResponse nextLocalHttpResponse;
-        if (request.url.isEmpty()) {
-            final String loginCredential = request.loginCredential;
-            if (!loginCredential.isEmpty()) {
-                nextLocalHttpResponse = verifyLoginRequest(loginCredential);
-            } else {
-                nextLocalHttpResponse = HttpResponse.empty();
-            }
+        if (request.isProxyRequest()) {
+            nextLocalHttpResponse = proxyIfAuthenticated(request);
+        } else if (request.isAuthenticationRequest()) {
+            nextLocalHttpResponse = verifyLoginRequest(request.loginCredential);
         } else {
-            nextLocalHttpResponse = performLocalRequest(request);
-            messageCount++;
+            nextLocalHttpResponse = HttpResponse.empty();
         }
         return nextLocalHttpResponse;
     }
 
+    private HttpResponse proxyIfAuthenticated(HttpRequest request) throws IOException {
+        HttpResponse nextLocalHttpResponse;
+        if (isAuthenticated(request)) {
+            nextLocalHttpResponse = performLocalRequest(request);
+            messageCount++;
+        } else {
+            nextLocalHttpResponse = HttpResponse.unauthorized();
+        }
+        return nextLocalHttpResponse;
+    }
+
+    private boolean isAuthenticated(HttpRequest request) {
+        return request.sessionToken.equals(this.currentSessionToken);
+    }
+
     private HttpResponse verifyLoginRequest(String loginCredential) throws ConnectionException {
         HttpResponse httpResponse;
-        String expectedCredential = this.account + this.password + CHALLENGE;
+        String expectedCredential = this.account + this.password + currentChallenge;
         MessageDigest digest = null;
         try {
             digest = MessageDigest.getInstance("SHA-256");
@@ -183,12 +195,21 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         byte[] hash = digest.digest(expectedCredential.getBytes(StandardCharsets.UTF_8));
         String expectedHashString = Hex.encodeHexString(hash);
         if (expectedHashString.equals(loginCredential)) {
-            String sessionId = UUID.randomUUID().toString();
-            httpResponse = HttpResponse.loginSucceeded(CHALLENGE, sessionId);
+            currentSessionToken = generateSessionToken();
+            updateChallenge();
+            httpResponse = HttpResponse.loginSucceeded(currentChallenge, currentSessionToken);
         } else {
-            httpResponse = HttpResponse.loginFailed(CHALLENGE);
+            httpResponse = HttpResponse.loginFailed(currentChallenge);
         }
         return httpResponse;
+    }
+
+    String generateSessionToken() {
+        return UUID.randomUUID().toString();
+    }
+
+    private void updateChallenge() {
+        currentChallenge = UUID.randomUUID().toString();
     }
 
     private LoginResp loginToCloud(LoginReq loginReq) throws IOException, ConnectionException {
@@ -234,7 +255,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
                 baf.append(buffer, 0, read);
             }
         } catch (IOException e) {
-            return new HttpResponse("", new String[0], CHALLENGE);
+            return new HttpResponse("", new String[0], currentChallenge);
         }
 
         Map<String, List<String>> map = connection.getHeaderFields();
@@ -245,7 +266,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
                     " ,Value : " + entry.getValue());
             headers[i++] = entry.getKey() + ":" + entry.getValue().get(0);
         }
-        httpResponse = new HttpResponse(new String(Base64.encodeBase64(baf.toByteArray())), headers, CHALLENGE);
+        httpResponse = new HttpResponse(new String(Base64.encodeBase64(baf.toByteArray())), headers, currentChallenge);
         return httpResponse;
     }
 

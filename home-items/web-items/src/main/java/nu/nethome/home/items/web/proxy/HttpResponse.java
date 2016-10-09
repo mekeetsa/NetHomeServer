@@ -52,4 +52,8 @@ public class HttpResponse {
     public static HttpResponse loginSucceeded(String challenge, String sessionId) {
         return new HttpResponse("", new String[0], challenge, sessionId);
     }
+
+    public static HttpResponse unauthorized() {
+        return new HttpResponse("UNAUTHORIZED", new String[0], "", "");
+    }
 }

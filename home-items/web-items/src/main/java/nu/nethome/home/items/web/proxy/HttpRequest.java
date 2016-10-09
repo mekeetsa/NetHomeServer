@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class HttpRequest {
+    public final String sessionToken;
     public final String url;
     public final String[] headers;
     public final String loginCredential;
@@ -17,18 +18,21 @@ public class HttpRequest {
         }
         headers = h;
         loginCredential = json.getString("loginCredential");
+        sessionToken = json.getString("sessionToken");
     }
 
-    public HttpRequest(String url, String[] headers, String loginCredential) {
+    public HttpRequest(String url, String[] headers, String loginCredential, String sessionToken) {
         this.url = url;
         this.headers = headers;
         this.loginCredential = loginCredential;
+        this.sessionToken = sessionToken;
     }
 
     private HttpRequest() {
         url = "";
         headers = new String[0];
         loginCredential = "";
+        sessionToken = "";
     }
 
     public static HttpRequest empty() {
@@ -40,6 +44,15 @@ public class HttpRequest {
         jsonObject.put("url", url);
         jsonObject.put("headers", new JSONArray(headers));
         jsonObject.put("loginCredential", loginCredential);
+        jsonObject.put("sessionToken", sessionToken);
         return jsonObject;
+    }
+
+    public boolean isProxyRequest() {
+        return !url.isEmpty();
+    }
+
+    public boolean isAuthenticationRequest() {
+        return !loginCredential.isEmpty() && !isProxyRequest();
     }
 }
