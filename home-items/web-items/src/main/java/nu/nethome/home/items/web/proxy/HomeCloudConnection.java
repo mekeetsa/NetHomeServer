@@ -46,8 +46,6 @@ import java.util.logging.Logger;
 @Plugin
 @HomeItemType("Ports")
 public class HomeCloudConnection extends HomeItemAdapter implements Runnable, HomeItem {
-    // TODO: Verify session id
-    // TODO: Generate dynamic challenge
     // TODO: Handle POST and DELETE
     // TODO: Transfer error codes
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
@@ -161,7 +159,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         if (request.isProxyRequest()) {
             nextLocalHttpResponse = proxyIfAuthenticated(request);
         } else if (request.isAuthenticationRequest()) {
-            nextLocalHttpResponse = verifyLoginRequest(request.loginCredential);
+            nextLocalHttpResponse = verifyAuthenticationRequest(request.loginCredential);
         } else {
             nextLocalHttpResponse = HttpResponse.empty();
         }
@@ -183,9 +181,10 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         return request.sessionToken.equals(this.currentSessionToken);
     }
 
-    private HttpResponse verifyLoginRequest(String loginCredential) throws ConnectionException {
+    private HttpResponse verifyAuthenticationRequest(String loginCredential) throws ConnectionException {
         HttpResponse httpResponse;
         String expectedCredential = this.account + this.password + currentChallenge;
+        updateChallenge();
         MessageDigest digest = null;
         try {
             digest = MessageDigest.getInstance("SHA-256");
@@ -196,7 +195,6 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         String expectedHashString = Hex.encodeHexString(hash);
         if (expectedHashString.equals(loginCredential)) {
             currentSessionToken = generateSessionToken();
-            updateChallenge();
             httpResponse = HttpResponse.loginSucceeded(currentChallenge, currentSessionToken);
         } else {
             httpResponse = HttpResponse.loginFailed(currentChallenge);
@@ -242,7 +240,8 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
             connection.setRequestProperty(parts[0].trim(), parts[1].trim());
         }
         ByteArrayBuffer baf = new ByteArrayBuffer(50);
-        try (InputStream response = connection.getInputStream()) {
+        int responseCode = connection.getResponseCode();
+        try (InputStream response = responseCode < 300 ? connection.getInputStream() : connection.getErrorStream()) {
             BufferedInputStream bis = new BufferedInputStream(response);
             int read;
             int bufSize = 512;
@@ -255,18 +254,16 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
                 baf.append(buffer, 0, read);
             }
         } catch (IOException e) {
-            return new HttpResponse("", new String[0], currentChallenge);
+            return HttpResponse.empty();
         }
 
         Map<String, List<String>> map = connection.getHeaderFields();
         String headers[] = new String[map.size()];
         int i = 0;
         for (Map.Entry<String, List<String>> entry : map.entrySet()) {
-            System.out.println("Key : " + entry.getKey() +
-                    " ,Value : " + entry.getValue());
             headers[i++] = entry.getKey() + ":" + entry.getValue().get(0);
         }
-        httpResponse = new HttpResponse(new String(Base64.encodeBase64(baf.toByteArray())), headers, currentChallenge);
+        httpResponse = new HttpResponse(new String(Base64.encodeBase64(baf.toByteArray())), headers, "");
         return httpResponse;
     }
 
