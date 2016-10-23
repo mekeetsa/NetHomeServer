@@ -45,6 +45,10 @@ public class HttpResponse {
         return EMPTY;
     }
 
+    public static HttpResponse challenge(String challenge) {
+        return new HttpResponse("", new String[0], challenge, null);
+    }
+
     public static HttpResponse loginFailed(String challenge) {
         return new HttpResponse("", new String[0], challenge, "");
     }

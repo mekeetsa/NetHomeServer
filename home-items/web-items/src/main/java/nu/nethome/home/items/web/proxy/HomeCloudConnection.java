@@ -145,7 +145,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         } else {
             final LoginResp loginResp = loginToCloud(new LoginReq(account, accountKey));
             connected = true;
-            HttpResponse lastHttpResponse = HttpResponse.empty();
+            HttpResponse lastHttpResponse = HttpResponse.challenge(updateChallenge());
             while (isRunning) {
                 lastHttpResponse = proxyHttpRequest(lastHttpResponse, loginResp.Id);
             }
@@ -206,8 +206,9 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         return UUID.randomUUID().toString();
     }
 
-    private void updateChallenge() {
+    private String updateChallenge() {
         currentChallenge = UUID.randomUUID().toString();
+        return currentChallenge;
     }
 
     private LoginResp loginToCloud(LoginReq loginReq) throws IOException, ConnectionException {
