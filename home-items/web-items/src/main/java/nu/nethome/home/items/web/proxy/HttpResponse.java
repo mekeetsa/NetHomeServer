@@ -27,7 +27,7 @@ public class HttpResponse {
         this.body = "";
         this.headers = new String[0];
         this.challenge = "";
-        this.sessionToken = "";
+        this.sessionToken = null;
     }
 
     public JSONObject toJson() {

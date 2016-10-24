@@ -18,7 +18,11 @@ public class HttpRequest {
         }
         headers = h;
         loginCredential = json.getString("loginCredential");
-        sessionToken = json.getString("sessionToken");
+        if (json.has("sessionToken")) {
+            sessionToken = json.getString("sessionToken");
+        } else {
+            sessionToken = "";
+        }
     }
 
     public HttpRequest(String url, String[] headers, String loginCredential, String sessionToken) {
