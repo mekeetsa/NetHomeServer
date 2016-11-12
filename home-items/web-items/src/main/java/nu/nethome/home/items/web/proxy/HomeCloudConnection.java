@@ -145,7 +145,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         } else {
             final LoginResp loginResp = loginToCloud(new LoginReq(account, accountKey));
             connected = true;
-            HttpResponse lastHttpResponse = HttpResponse.challenge(updateChallenge());
+            HttpResponse lastHttpResponse = HttpResponse.challenge(currentChallenge);
             while (isRunning) {
                 lastHttpResponse = proxyHttpRequest(lastHttpResponse, loginResp.Id);
             }
