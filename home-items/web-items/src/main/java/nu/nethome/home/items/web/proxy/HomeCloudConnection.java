@@ -67,7 +67,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     protected String localURL = "http://127.0.0.1:8020/";
     protected String password = "";
     protected String account = "0";
-    protected String currentChallenge = UUID.randomUUID().toString();;
+    protected String currentChallenge = UUID.randomUUID().toString();
     private String accountKey = "";
     protected int messageCount = 0;
     private boolean accountKeyIsBad = false;

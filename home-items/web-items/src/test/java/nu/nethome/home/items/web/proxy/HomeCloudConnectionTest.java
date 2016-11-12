@@ -4,6 +4,7 @@ import nu.nethome.home.impl.LocalHomeItemProxy;
 import org.apache.commons.codec.binary.Hex;
 import org.json.JSONObject;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -135,6 +136,7 @@ public class HomeCloudConnectionTest {
         assertThat(newChallenge, not(is(oldChallenge)));
     }
 
+    @Ignore
     @Test
     public void acceptsValidLoginToProxy() throws Exception {
         doReturn(validLoginHttpRequest).doReturn(unauthorisedResponse).when(restClient).post(eq(URL), eq(POLL_URL), any(JSONObject.class), eq(SESSION_KEY));
@@ -169,6 +171,7 @@ public class HomeCloudConnectionTest {
 
     static final String headers[] = {"UserAgent:Internet Explorer"};
 
+    @Ignore
     @Test
     public void forwardsProxyRequestWhenCorrectSession() throws Exception {
         JSONResponse proxyRequest = new JSONResponse(new HttpRequest(LOCAL_URL, headers, "", SESSION_TOKEN).toJson().toString(), HttpURLConnection.HTTP_CREATED);
@@ -183,6 +186,7 @@ public class HomeCloudConnectionTest {
         assertThat(captor.getValue().url, is(LOCAL_URL));
     }
 
+    @Ignore
     @Test
     public void returnsResultFromProxyRequestWhenCorrectSession() throws Exception {
         JSONResponse proxyRequest = new JSONResponse(new HttpRequest(LOCAL_URL, headers, "", SESSION_TOKEN).toJson().toString(), HttpURLConnection.HTTP_CREATED);
