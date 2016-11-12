@@ -56,12 +56,15 @@ public class NexaLamp extends HomeItemAdapter implements HomeItem {
     private static final String HOUSE_CODE_NAME = "Nexa.HouseCode";
     private static final String BUTTON_NAME = "Nexa.Button";
     private static final String COMMAND_NAME = "Nexa.Command";
+	private static final String LOWEST_HOUSE_CODE_CHAR = "A";
+	private static final int LOWEST_HOUSE_CODE = (int)LOWEST_HOUSE_CODE_CHAR.charAt(0);
+	private static final String HIGHEST_HOUSE_CODE_CHAR = "P";
 
-    protected Logger logger = Logger.getLogger(NexaLamp.class.getName());
+	protected Logger logger = Logger.getLogger(NexaLamp.class.getName());
 
 	// Public attributes
 	private boolean state = false;
-    private String lampHouseCode = "A";
+    private String lampHouseCode = LOWEST_HOUSE_CODE_CHAR;
     protected int lampButton = 1;
 
 	public NexaLamp() {
@@ -71,7 +74,7 @@ public class NexaLamp extends HomeItemAdapter implements HomeItem {
 		// Check if this is an inward event directed to this instance
 		if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals(getProtocolName()) &&
 				event.getAttribute("Direction").equals("In") &&
-				(event.getAttributeInt(getHouseCodeName()) == ((int) lampHouseCode.charAt(0)) - ((int)'A')) &&
+				(event.getAttributeInt(getHouseCodeName()) == ((int) lampHouseCode.charAt(0)) - LOWEST_HOUSE_CODE) &&
 				(event.getAttributeInt(getButtonName()) == (lampButton))) {
 			// In that case, update our state accordingly
 			state = (event.getAttributeInt(getCommandName()) == 1);
@@ -83,7 +86,7 @@ public class NexaLamp extends HomeItemAdapter implements HomeItem {
 
     @Override
     protected boolean initAttributes(Event event) {
-        lampHouseCode = "" + (char)(event.getAttributeInt(getHouseCodeName()) + ((int)'A'));
+        lampHouseCode = "" + (char)(event.getAttributeInt(getHouseCodeName()) + LOWEST_HOUSE_CODE);
         lampButton = event.getAttributeInt(getButtonName());
         return true;
     }
@@ -132,14 +135,15 @@ public class NexaLamp extends HomeItemAdapter implements HomeItem {
 	 */
 	@SuppressWarnings("UnusedDeclaration")
     public void setHouseCode(String houseCode) {
-		lampHouseCode = ((houseCode.length() == 1) && (houseCode.compareTo("A") >= 1) &&
-				(houseCode.compareTo("H") <= 0)) ? houseCode : lampHouseCode;
+		houseCode = houseCode.toUpperCase();
+		lampHouseCode = ((houseCode.length() == 1) && (houseCode.compareTo(LOWEST_HOUSE_CODE_CHAR) >= 1) &&
+				(houseCode.compareTo(HIGHEST_HOUSE_CODE_CHAR) <= 0)) ? houseCode : lampHouseCode;
 	}
 
 	public void sendCommand(int command) {
 		Event ev = server.createEvent(getProtocolName(), "");
 		ev.setAttribute("Direction", "Out");
-		ev.setAttribute(getHouseCodeName(),  ((int) lampHouseCode.charAt(0)) - ((int)'A'));
+		ev.setAttribute(getHouseCodeName(),  ((int) lampHouseCode.charAt(0)) - LOWEST_HOUSE_CODE);
 		ev.setAttribute(getButtonName(), lampButton);
 		ev.setAttribute(getCommandName(), command);
 		server.send(ev);
