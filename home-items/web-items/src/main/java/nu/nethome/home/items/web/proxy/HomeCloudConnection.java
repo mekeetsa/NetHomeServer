@@ -61,7 +61,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
 
     private static final int RETRY_INTERVAL_MS = 5000;
     static final String LOGIN_RESOURCE = "api/server-sessions";
-    static final String CLOUD_POLL_RESOURCE = "api/accounts/%d/servers/%d/poll";
+    static final String CLOUD_POLL_RESOURCE = "api/servers/%s/poll";
 
     protected String serviceURL = "https://cloud.opennethome.org/";
     protected String localURL = "http://127.0.0.1:8020/";
@@ -215,7 +215,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         final JSONResponse result = jsonRestClient.post(serviceURL, LOGIN_RESOURCE, loginReq.toJson(), "");
         if (result.getResultCode() == HttpURLConnection.HTTP_CREATED) {
             LoginResp loginResp = new LoginResp(result.getObject());
-            pollResource = String.format(CLOUD_POLL_RESOURCE, loginResp.accountId, loginResp.server);
+            pollResource = String.format(CLOUD_POLL_RESOURCE, loginResp.server);
             return loginResp;
         } else if (result.getResultCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
             accountKeyIsBad = true;

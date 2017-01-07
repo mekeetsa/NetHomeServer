@@ -27,8 +27,8 @@ public class HomeCloudConnectionTest {
     private static final String URL = "https://foo.fie/fum";
     private static final String SESSION_KEY = "asdfwqer";
     private static final int ACCOUNT_ID = 17;
-    private static final int SERVER_ID = 5;
-    private static final String POLL_URL = String.format(HomeCloudConnection.CLOUD_POLL_RESOURCE, ACCOUNT_ID, SERVER_ID);
+    private static final String SERVER_ID = "SERVER_ID";
+    private static final String POLL_URL = String.format(HomeCloudConnection.CLOUD_POLL_RESOURCE, SERVER_ID);
     private static final String USER_PASSWORD = "USER_PASSWORD";
     private static final String LOCAL_URL = "/foo/fum";
     private static final String SESSION_TOKEN = "453245-3453245-3453245";
@@ -87,7 +87,7 @@ public class HomeCloudConnectionTest {
     }
 
     private void loginToCloud() throws IOException {
-        LoginResp resp = new LoginResp(SESSION_KEY , ACCOUNT, ACCOUNT_ID, SERVER_ID);
+        LoginResp resp = new LoginResp(SESSION_KEY, SERVER_ID);
         JSONResponse response = new JSONResponse(resp.toJson().toString(), HttpURLConnection.HTTP_CREATED);
         doReturn(response).when(restClient).post(eq(URL), eq(HomeCloudConnection.LOGIN_RESOURCE), any(JSONObject.class), eq(""));
         try {
