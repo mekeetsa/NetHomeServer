@@ -56,6 +56,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
             + "  <Attribute Name=\"Account\" Type=\"String\" Get=\"getAccount\" Set=\"setAccount\" />"
             + "  <Attribute Name=\"AccountKey\" Type=\"String\" Get=\"getAccountKey\" Set=\"setAccountKey\" />"
             + "  <Attribute Name=\"ServerNumber\" Type=\"String\" Get=\"getServerNumber\" Set=\"setServerNumber\" />"
+            + "  <Attribute Name=\"ServerName\" Type=\"String\" Get=\"getServerName\" Set=\"setServerName\" />"
             + "  <Attribute Name=\"UserPassword\" Type=\"Password\" Get=\"getPassword\" Set=\"setPassword\" />"
             + "  <Attribute Name=\"MessageCount\" Type=\"String\" Get=\"getMessageCount\" />"
             + "</HomeItem> ");
@@ -71,6 +72,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     protected String currentChallenge = UUID.randomUUID().toString();
     protected String accountKey = "";
     protected int serverNumber = 1;
+    protected String serverName = "No Name";
     protected int messageCount = 0;
     private boolean accountKeyIsBad = false;
 
@@ -145,7 +147,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         if (accountKeyIsBad) {
             Thread.sleep(RETRY_INTERVAL_MS);
         } else {
-            final LoginResp loginResp = loginToCloud(new LoginReq(account, accountKey, serverNumber));
+            final LoginResp loginResp = loginToCloud(new LoginReq(account, accountKey, serverNumber, serverName));
             connected = true;
             HttpResponse lastHttpResponse = HttpResponse.challenge(currentChallenge);
             while (isRunning) {
@@ -309,6 +311,14 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     public void setAccountKey(String accountKey) {
         this.accountKey = accountKey;
         accountKeyIsBad = false;
+    }
+
+    public String getServerName() {
+        return serverName;
+    }
+
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
     }
 
     class ConnectionException extends Exception {
