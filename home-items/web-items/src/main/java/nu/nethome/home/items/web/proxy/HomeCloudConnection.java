@@ -54,7 +54,8 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
             + "  <Attribute Name=\"ServiceURL\" Type=\"String\" Get=\"getServiceURL\" Set=\"setServiceURL\" />"
             + "  <Attribute Name=\"LocalURL\" Type=\"String\" Get=\"getLocalURL\" Set=\"setLocalURL\" />"
             + "  <Attribute Name=\"Account\" Type=\"String\" Get=\"getAccount\" Set=\"setAccount\" />"
-            + "  <Attribute Name=\"AccountKey\" Type=\"Password\" Get=\"getAccountKey\" Set=\"setAccountKey\" />"
+            + "  <Attribute Name=\"AccountKey\" Type=\"String\" Get=\"getAccountKey\" Set=\"setAccountKey\" />"
+            + "  <Attribute Name=\"ServerNumber\" Type=\"String\" Get=\"getServerNumber\" Set=\"setServerNumber\" />"
             + "  <Attribute Name=\"UserPassword\" Type=\"Password\" Get=\"getPassword\" Set=\"setPassword\" />"
             + "  <Attribute Name=\"MessageCount\" Type=\"String\" Get=\"getMessageCount\" />"
             + "</HomeItem> ");
@@ -68,7 +69,8 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     protected String password = "";
     protected String account = "0";
     protected String currentChallenge = UUID.randomUUID().toString();
-    private String accountKey = "";
+    protected String accountKey = "";
+    protected int serverNumber = 1;
     protected int messageCount = 0;
     private boolean accountKeyIsBad = false;
 
@@ -143,7 +145,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         if (accountKeyIsBad) {
             Thread.sleep(RETRY_INTERVAL_MS);
         } else {
-            final LoginResp loginResp = loginToCloud(new LoginReq(account, accountKey));
+            final LoginResp loginResp = loginToCloud(new LoginReq(account, accountKey, serverNumber));
             connected = true;
             HttpResponse lastHttpResponse = HttpResponse.challenge(currentChallenge);
             while (isRunning) {
@@ -286,6 +288,14 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getServerNumber() {
+        return Integer.toString(serverNumber);
+    }
+
+    public void setServerNumber(String number) {
+        this.serverNumber = Integer.parseInt(number);
     }
 
     public String getState() {

@@ -5,16 +5,19 @@ import org.json.JSONObject;
 public class LoginReq {
     public final String account;
     public final String password;
+    public final int serverNumber;
 
-    public LoginReq(String account, String password) {
+    public LoginReq(String account, String password, int serverNumber) {
         this.account = account;
         this.password = password;
+        this.serverNumber = serverNumber;
     }
 
     public JSONObject toJson() {
         final JSONObject jsonObject = new JSONObject();
         jsonObject.put("account", account);
         jsonObject.put("password", password);
+        jsonObject.put("server", serverNumber);
         return jsonObject;
     }
 }
