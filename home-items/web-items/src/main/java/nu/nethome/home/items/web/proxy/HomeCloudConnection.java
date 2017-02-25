@@ -22,6 +22,7 @@ package nu.nethome.home.items.web.proxy;
 import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
+import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
@@ -64,6 +65,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     private static final int RETRY_INTERVAL_MS = 5000;
     static final String LOGIN_RESOURCE = "api/server-sessions";
     static final String CLOUD_POLL_RESOURCE = "api/servers/%s/poll";
+    private static final String CLOUD_ACCOUNT = "Cloud-Account";
 
     protected String serviceURL = "https://cloud.opennethome.org/";
     protected String localURL = "http://127.0.0.1:8020/";
@@ -105,6 +107,15 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     public void stop() {
         isRunning = false;
         super.stop();
+    }
+
+    @Override
+    public boolean receiveEvent(Event event) {
+        if (event.isType("Logout_Message") && event.getAttribute(Event.EVENT_VALUE_ATTRIBUTE).equals(account)) {
+            currentSessionToken = "";
+            return true;
+        }
+        return false;
     }
 
     public void setServiceURL(String serviceURL) {
@@ -244,6 +255,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
             String parts[] = header.split(":");
             connection.setRequestProperty(parts[0].trim(), parts[1].trim());
         }
+        connection.setRequestProperty(CLOUD_ACCOUNT, this.account);
         ByteArrayBuffer baf = new ByteArrayBuffer(50);
         int responseCode = connection.getResponseCode();
         try (InputStream response = responseCode < 300 ? connection.getInputStream() : connection.getErrorStream()) {
