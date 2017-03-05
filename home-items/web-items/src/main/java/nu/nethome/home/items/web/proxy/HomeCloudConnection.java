@@ -280,7 +280,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         for (Map.Entry<String, List<String>> entry : map.entrySet()) {
             headers[i++] = entry.getKey() + ":" + entry.getValue().get(0);
         }
-        httpResponse = new HttpResponse(new String(Base64.encodeBase64(baf.toByteArray())), headers, "");
+        httpResponse = new HttpResponse(new String(Base64.encodeBase64(baf.toByteArray())), headers, "", null, responseCode);
         return httpResponse;
     }
 

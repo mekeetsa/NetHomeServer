@@ -2,6 +2,7 @@ package nu.nethome.home.items.web.proxy;
 
 import org.json.JSONObject;
 
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -11,16 +12,18 @@ public class HttpResponse {
     public final String[] headers;
     public final String challenge;
     public final String sessionToken;
+    private final int resultCode;
 
     public HttpResponse(String body, String[] headers, String challenge) {
-        this(body, headers, challenge, null);
+        this(body, headers, challenge, null, HttpURLConnection.HTTP_OK);
     }
 
-    public HttpResponse(String body, String[] headers, String challenge, String sessionToken) {
+    public HttpResponse(String body, String[] headers, String challenge, String sessionToken, int resultCode) {
         this.body = body;
         this.headers = headers;
         this.challenge = challenge;
         this.sessionToken = sessionToken;
+        this.resultCode = resultCode;
     }
 
     private HttpResponse() {
@@ -28,6 +31,7 @@ public class HttpResponse {
         this.headers = new String[0];
         this.challenge = "";
         this.sessionToken = null;
+        this.resultCode = HttpURLConnection.HTTP_OK;
     }
 
     public JSONObject toJson() {
@@ -35,6 +39,7 @@ public class HttpResponse {
         jsonObject.put("body", body);
         jsonObject.put("headers", Arrays.asList(headers));
         jsonObject.put("challenge", challenge);
+        jsonObject.put("resultCode", resultCode);
         if (sessionToken != null) {
             jsonObject.put("sessionToken", sessionToken);
         }
@@ -46,18 +51,18 @@ public class HttpResponse {
     }
 
     public static HttpResponse challenge(String challenge) {
-        return new HttpResponse("", new String[0], challenge, null);
+        return new HttpResponse("", new String[0], challenge, null, HttpURLConnection.HTTP_OK);
     }
 
     public static HttpResponse loginFailed(String challenge) {
-        return new HttpResponse("", new String[0], challenge, "");
+        return new HttpResponse("", new String[0], challenge, "", HttpURLConnection.HTTP_OK);
     }
 
     public static HttpResponse loginSucceeded(String challenge, String sessionId) {
-        return new HttpResponse("", new String[0], challenge, sessionId);
+        return new HttpResponse("", new String[0], challenge, sessionId, HttpURLConnection.HTTP_OK);
     }
 
     public static HttpResponse unauthorized() {
-        return new HttpResponse("UNAUTHORIZED", new String[0], "", "");
+        return new HttpResponse("", new String[0], "", "", HttpURLConnection.HTTP_UNAUTHORIZED);
     }
 }
