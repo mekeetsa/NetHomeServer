@@ -5,6 +5,8 @@ import org.json.JSONObject;
 
 public class HttpRequest {
     public final String sessionToken;
+    public final String method;
+    public final String body;
     public final String url;
     public final String[] headers;
     public final String loginCredential;
@@ -23,13 +25,21 @@ public class HttpRequest {
         } else {
             sessionToken = "";
         }
+        method = json.getString("method");
+        body = json.getString("body");
     }
 
     public HttpRequest(String url, String[] headers, String loginCredential, String sessionToken) {
+        this(url, headers, loginCredential, sessionToken, "GET", "");
+    }
+
+    public HttpRequest(String url, String[] headers, String loginCredential, String sessionToken, String method, String body) {
         this.url = url;
         this.headers = headers;
         this.loginCredential = loginCredential;
         this.sessionToken = sessionToken;
+        this.method = method;
+        this.body = body;
     }
 
     private HttpRequest() {
@@ -37,6 +47,8 @@ public class HttpRequest {
         headers = new String[0];
         loginCredential = "";
         sessionToken = "";
+        method = "GET";
+        body = "";
     }
 
     public static HttpRequest empty() {

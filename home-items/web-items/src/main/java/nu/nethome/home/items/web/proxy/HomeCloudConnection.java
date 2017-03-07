@@ -255,7 +255,12 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
             String parts[] = header.split(":");
             connection.setRequestProperty(parts[0].trim(), parts[1].trim());
         }
+        connection.setRequestMethod(request.method);
         connection.setRequestProperty(CLOUD_ACCOUNT, this.account);
+        if (!request.body.isEmpty()) {
+            connection.setDoOutput(true);
+            connection.getOutputStream().write(Base64.decodeBase64(request.body));
+        }
         ByteArrayBuffer baf = new ByteArrayBuffer(50);
         int responseCode = connection.getResponseCode();
         try (InputStream response = responseCode < 300 ? connection.getInputStream() : connection.getErrorStream()) {
