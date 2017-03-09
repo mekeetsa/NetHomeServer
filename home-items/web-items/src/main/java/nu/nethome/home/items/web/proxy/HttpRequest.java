@@ -61,6 +61,8 @@ public class HttpRequest {
         jsonObject.put("headers", new JSONArray(headers));
         jsonObject.put("loginCredential", loginCredential);
         jsonObject.put("sessionToken", sessionToken);
+        jsonObject.put("method", method);
+        jsonObject.put("body", body);
         return jsonObject;
     }
 

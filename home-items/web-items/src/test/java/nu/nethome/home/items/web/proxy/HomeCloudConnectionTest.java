@@ -93,6 +93,7 @@ public class HomeCloudConnectionTest {
         try {
             homeCloudConnection.connectAndProxyCloudRequests();
         } catch (Exception e) {
+            System.out.print(e.toString());
         }
         verify(restClient).post(eq(URL), eq(HomeCloudConnection.LOGIN_RESOURCE), any(JSONObject.class), eq(""));
     }
@@ -106,7 +107,6 @@ public class HomeCloudConnectionTest {
 
         verify(restClient, times(2)).post(eq(URL), eq(POLL_URL), jsonCaptor.capture(), eq(SESSION_KEY));    // Polls cloud twice
         verify(homeCloudConnection, times(0)).performLocalRequest(any(HttpRequest.class));                  // Performs no local requests
-        assertThat(jsonCaptor.getAllValues().get(1).get("body").toString(), is("UNAUTHORIZED"));
     }
 
     @Test
