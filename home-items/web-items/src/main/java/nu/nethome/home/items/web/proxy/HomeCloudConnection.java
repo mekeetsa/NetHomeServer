@@ -36,10 +36,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Logger;
 
 
@@ -280,12 +277,14 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         }
 
         Map<String, List<String>> map = connection.getHeaderFields();
-        String headers[] = new String[map.size()];
+        List<String> headers = new ArrayList<>();
         int i = 0;
         for (Map.Entry<String, List<String>> entry : map.entrySet()) {
-            headers[i++] = entry.getKey() + ":" + entry.getValue().get(0);
+            if (entry.getKey() != null && entry.getValue().get(0) != null) {
+                headers.add(entry.getKey() + ":" + entry.getValue().get(0));
+            }
         }
-        httpResponse = new HttpResponse(new String(Base64.encodeBase64(baf.toByteArray())), headers, "", null, responseCode);
+        httpResponse = new HttpResponse(new String(Base64.encodeBase64(baf.toByteArray())), headers.toArray(new String[headers.size()]), "", null, responseCode);
         return httpResponse;
     }
 
