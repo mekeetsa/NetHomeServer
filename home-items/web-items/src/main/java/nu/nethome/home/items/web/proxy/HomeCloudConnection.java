@@ -280,7 +280,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         List<String> headers = new ArrayList<>();
         int i = 0;
         for (Map.Entry<String, List<String>> entry : map.entrySet()) {
-            if (entry.getKey() != null && entry.getValue().get(0) != null) {
+            if (entry.getKey() != null && entry.getValue().get(0) != null && !entry.getKey().equalsIgnoreCase("Transfer-Encoding")) {
                 headers.add(entry.getKey() + ":" + entry.getValue().get(0));
             }
         }
