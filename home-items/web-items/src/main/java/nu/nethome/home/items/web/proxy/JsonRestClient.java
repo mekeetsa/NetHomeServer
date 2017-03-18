@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.Charset;
 
 public class JsonRestClient {
 
@@ -67,9 +68,10 @@ public class JsonRestClient {
             }
             connection.setUseCaches(false);
             if (body.length() > 0) {
-                connection.setRequestProperty("Content-Length", "" + Integer.toString(body.getBytes().length));
+                byte[] data = body.getBytes("UTF8");
+                connection.setRequestProperty("Content-Length", Integer.toString(data.length));
                 wr = new DataOutputStream(connection.getOutputStream());
-                wr.writeBytes(body);
+                wr.write(data);
                 wr.flush();
                 wr.close();
                 wr = null;
