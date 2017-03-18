@@ -317,7 +317,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     }
 
     public String getState() {
-        return connected ? "Connected" : "Not Connected";
+        return accountKeyIsBad ? "Authentication Failure" : connected ? "Connected" : "Not Connected";
     }
 
     public String getAccountKey() {

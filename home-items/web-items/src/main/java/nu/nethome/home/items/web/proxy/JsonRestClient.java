@@ -79,13 +79,15 @@ public class JsonRestClient {
             connection.connect();
             if (connection.getResponseCode() <= 299) {
                 rd = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            } else {
+            } else if (connection.getErrorStream() != null){
                 rd = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
             }
 
-            while ((line = rd.readLine()) != null) {
-                sb.append(line);
-                sb.append('\n');
+            if (rd != null) {
+                while ((line = rd.readLine()) != null) {
+                    sb.append(line);
+                    sb.append('\n');
+                }
             }
 
         } finally {
