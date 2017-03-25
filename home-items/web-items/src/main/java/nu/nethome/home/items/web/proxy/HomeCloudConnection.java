@@ -57,6 +57,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
             + "  <Attribute Name=\"ServerName\" Type=\"String\" Get=\"getServerName\" Set=\"setServerName\" />"
             + "  <Attribute Name=\"UserPassword\" Type=\"Password\" Get=\"getPassword\" Set=\"setPassword\" />"
             + "  <Attribute Name=\"MessageCount\" Type=\"String\" Get=\"getMessageCount\" />"
+            + "  <Action Name=\"Reconnect\" 	Method=\"reconnect\" />"
             + "</HomeItem> ");
 
     private static final int RETRY_INTERVAL_MS = 5000;
@@ -64,16 +65,17 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     static final String CLOUD_POLL_RESOURCE = "api/servers/%s/poll";
     private static final String CLOUD_ACCOUNT = "Cloud-Account";
 
-    protected String serviceURL = "https://cloud.opennethome.org/";
-    protected String localURL = "http://127.0.0.1:8020/";
-    protected String password = "";
-    protected String account = "0";
-    protected String currentChallenge = UUID.randomUUID().toString();
-    protected String accountKey = "";
-    protected int serverNumber = 1;
-    protected String serverName = "No Name";
-    protected int messageCount = 0;
+    private String serviceURL = "https://cloud.opennethome.org/";
+    private String localURL = "http://127.0.0.1:8020/";
+    private String password = "";
+    private String account = "0";
+    String currentChallenge = UUID.randomUUID().toString();
+    private String accountKey = "";
+    private int serverNumber = 1;
+    private String serverName = "No Name";
+    private int messageCount = 0;
     private boolean accountKeyIsBad = false;
+    private boolean doReconnect = false;
 
     private boolean connected = false;
     /*
@@ -141,13 +143,14 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
                 logger.fine("Failed Communicating with cloud: " + e);
             }
             connected = false;
-            if (isRunning) {
+            if (isRunning & !doReconnect) {
                 try {
                     Thread.sleep(RETRY_INTERVAL_MS);
                 } catch (InterruptedException e1) {
                     return;
                 }
             }
+            doReconnect = false;
         }
     }
 
@@ -158,7 +161,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
             final LoginResp loginResp = loginToCloud(new LoginReq(account, accountKey, serverNumber, serverName));
             connected = true;
             HttpResponse lastHttpResponse = HttpResponse.challenge(currentChallenge);
-            while (isRunning) {
+            while (isRunning & !doReconnect) {
                 lastHttpResponse = proxyHttpRequest(lastHttpResponse, loginResp.Id);
             }
             connected = false;
@@ -334,7 +337,16 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     }
 
     public void setServerName(String serverName) {
+        if (!serverName.equals(this.serverName) && connected) {
+            doReconnect = true;
+        }
         this.serverName = serverName;
+    }
+
+    public String reconnect() {
+        accountKeyIsBad = false;
+        doReconnect = true;
+        return "";
     }
 
     class ConnectionException extends Exception {
