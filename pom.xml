@@ -110,6 +110,11 @@
                 <artifactId>SunriseSunsetCalculator</artifactId>
                 <version>1.0</version>
             </dependency>
+            <dependency>
+                <groupId>de.idyl</groupId>
+                <artifactId>winzipaes</artifactId>
+                <version>1.0.1</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
