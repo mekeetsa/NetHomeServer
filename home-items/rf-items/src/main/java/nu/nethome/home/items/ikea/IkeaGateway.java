@@ -23,6 +23,10 @@ import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
+import org.eclipse.californium.core.coap.CoAP;
+import org.eclipse.californium.core.coap.MediaTypeRegistry;
+import org.eclipse.californium.core.coap.Request;
+import org.eclipse.californium.core.coap.Response;
 import org.eclipse.californium.core.network.CoapEndpoint;
 import org.eclipse.californium.core.network.Endpoint;
 import org.eclipse.californium.core.network.EndpointManager;
@@ -34,6 +38,8 @@ import org.eclipse.californium.scandium.dtls.pskstore.InMemoryPskStore;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.logging.Logger;
 
 /**
@@ -43,6 +49,12 @@ import java.util.logging.Logger;
 @Plugin
 @HomeItemType(value = "Hardware")
 public class IkeaGateway extends HomeItemAdapter {
+
+    public static final String IKEA_MESSAGE = "IKEA_Message";
+    public static final String IKEA_RESOURCE = "IKEA.Resource";
+    public static final String IKEA_METHOD = "IKEA.Method";
+    public static final String IKEA_BODY = "IKEA.Body";
+    public static final String IKEA_ID = "IKEA.Id";
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"IkeaGateway\"  Category=\"Hardware\" >"
@@ -67,7 +79,6 @@ public class IkeaGateway extends HomeItemAdapter {
     private String state = "Disconnected";
     private Endpoint dtlsEndpoint;
 
-
     @Override
     public String getModel() {
         return MODEL;
@@ -81,9 +92,7 @@ public class IkeaGateway extends HomeItemAdapter {
     private void setupDtlsEndpoint() {
         DtlsConnectorConfig.Builder builder = new DtlsConnectorConfig.Builder(new InetSocketAddress(0));
         InMemoryPskStore pskStore = new InMemoryPskStore();
-        pskStore.addKnownPeer(new InetSocketAddress(getAddress(), DESTINATION_PORT),
-                "",
-                securityCode.getBytes());
+        pskStore.addKnownPeer(new InetSocketAddress(getAddress(), DESTINATION_PORT),"", securityCode.getBytes());
         builder.setPskStore(pskStore);
         builder.setSupportedCipherSuites(new CipherSuite[]{CipherSuite.TLS_PSK_WITH_AES_128_CCM_8});
         DTLSConnector dtlsconnector = new DTLSConnector(builder.build(), null);
@@ -100,6 +109,7 @@ public class IkeaGateway extends HomeItemAdapter {
         if (dtlsEndpoint != null) {
             dtlsEndpoint.stop();
             dtlsEndpoint.destroy();
+            dtlsEndpoint = null;
         }
     }
 
@@ -120,13 +130,51 @@ public class IkeaGateway extends HomeItemAdapter {
 
     @Override
     public boolean receiveEvent(Event event) {
-        if (event.getAttribute(Event.EVENT_TYPE_ATTRIBUTE).equals("XXXXX") &&
-                event.getAttribute("Direction").equals("Out")) {
+        if (event.isType(IKEA_MESSAGE) && event.getAttribute("Direction").equals("Out")) {
+            sendCoapsMessage(event.getAttribute(IKEA_RESOURCE),
+                    event.getAttribute(IKEA_METHOD),
+                    event.getAttribute(IKEA_BODY),
+                    event.getAttribute(IKEA_ID));
             //...
             return true;
         }
         return false;
     }
+
+    private void sendCoapsMessage(String resource, String method, String body, String id) {
+        Request request = requestFromType(method);
+        String uri = String.format("coaps://%s%s", address, resource);
+        request.setURI(uri);
+        request.setPayload(body);
+        request.getOptions().setContentFormat(MediaTypeRegistry.TEXT_PLAIN);
+
+        request.send();
+
+        Response response = null;
+        try {
+            response = request.waitForResponse();
+            int code = response.getCode().value;
+        } catch (InterruptedException e) {
+            logger.info("Failed to receive CoAP response: " + e.getMessage());
+            return;
+        }
+    }
+
+    private static Request requestFromType(String method) {
+        if (method.equalsIgnoreCase("GET")) {
+            return Request.newGet();
+        } else if (method.equalsIgnoreCase("POST")) {
+            return Request.newPost();
+        } else if (method.equalsIgnoreCase("PUT")) {
+            return Request.newPut();
+        } else if (method.equalsIgnoreCase("DELETE")) {
+            return Request.newDelete();
+        } else {
+            logger.info("Unknown CoOP method: " + method + ", defaulting to GET");
+            return Request.newGet();
+        }
+    }
+
 
     public String getSecurityCode() {
         return securityCode;
