@@ -167,7 +167,7 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
     protected void sendOnCommand(int brightness, int temperature, int hue, int saturation) {
         Event ev = createEvent();
         ev.setAttribute(IkeaGateway.IKEA_METHOD, "PUT");
-        ev.setAttribute(IkeaGateway.IKEA_BODY, "{\"3311\":[{\"5850\":1}]}");
+        ev.setAttribute(IkeaGateway.IKEA_BODY, String.format("{\"3311\":[{\"5850\":1, \"5851\":%d}]}", percentToIkea(brightness)));
         server.send(ev);
         isOn = true;
     }
