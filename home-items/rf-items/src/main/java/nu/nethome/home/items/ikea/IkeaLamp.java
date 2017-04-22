@@ -160,10 +160,10 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
         return (brightness * 100) / 254;
     }
     private int percentToX(int temperature) {
-        return 25000 + temperature * 80;
+        return X_MIN + (temperature * (X_MAX - X_MIN)) / 100;
     }
     private int percentToY(int temperature) {
-        return 25000 + (100 - temperature) * 20;
+        return Y_MIN + (temperature * (Y_MAX - Y_MIN)) / 100;
     }
 
     protected void sendOffCommand() {
