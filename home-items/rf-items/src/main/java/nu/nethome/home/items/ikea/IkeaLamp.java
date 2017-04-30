@@ -25,6 +25,7 @@ import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import static nu.nethome.home.items.ikea.IkeaGateway.*;
@@ -117,7 +118,10 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
         JSONObject info = node.getJSONObject("3");
         this.lampModel = info.getString("1");
         this.lampVersion = info.getString("3");
-        // TODO: set state, dim and so on
+        JSONArray lights = node.getJSONArray("3311");
+        JSONObject light = lights.getJSONObject(0);
+        this.isOn = light.getInt("5850") != 0;
+        this.currentBrightness = ikeaTopercent(light.getInt("5851"));
     }
 
     private String getColorFromEvent(Event event) {
@@ -360,12 +364,6 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
 
     public String getCurrentBrightness() {
         return Integer.toString(currentBrightness);
-    }
-
-    private void requestLampStatusUpdate() {
-        Event event = server.createEvent("ReportHueLamp", "");
-        event.setAttribute("Hue.Lamp", lampId);
-        server.send(event);
     }
 
     public String getDimStep() {
