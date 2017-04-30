@@ -25,6 +25,9 @@ import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
+import org.json.JSONObject;
+
+import static nu.nethome.home.items.ikea.IkeaGateway.*;
 
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
@@ -32,7 +35,7 @@ import nu.nethome.util.plugin.Plugin;
 public class IkeaLamp extends HomeItemAdapter implements HomeItem {
 
     public static class IkeaCreationInfo implements AutoCreationInfo {
-        static final String[] CREATION_EVENTS = {IkeaGateway.IKEA_MESSAGE};
+        static final String[] CREATION_EVENTS = {IkeaGateway.IKEA_NODE_MESSAGE};
         @Override
         public String[] getCreationEvents() {
             return CREATION_EVENTS;
@@ -40,12 +43,13 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
 
         @Override
         public boolean canBeCreatedBy(Event e) {
-            return e.isType(IkeaGateway.IKEA_MESSAGE);
+            return e.isType(IkeaGateway.IKEA_NODE_MESSAGE) &&
+                    (e.getAttributeInt(IkeaGateway.IKEA_NODE_TYPE) == 2);
         }
 
         @Override
         public String getCreationIdentification(Event e) {
-            return String.format("Ikea lamp %s: \"%s\"",e.getAttribute("Hue.Lamp"), e.getAttribute("Hue.Name"));
+            return String.format("Ikea lamp %d: \"%s\"",e.getAttributeInt(IKEA_NODE_ID), e.getAttribute(IkeaGateway.IKEA_NODE_NAME));
         }
     }
 
@@ -99,15 +103,9 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
 
     @Override
     public boolean receiveEvent(Event event) {
-        if (event.isType(IkeaGateway.IKEA_MESSAGE) &&
+        if (event.isType(IkeaGateway.IKEA_NODE_MESSAGE) &&
                 event.getAttribute("Direction").equals("In") &&
-                event.getAttribute("Hue.Lamp").equals(lampId)) {
-            String command = event.getAttribute("Hue.Command");
-            if (command.equals("On")) {
-                isOn = true;
-            } else if (command.equals("Off")) {
-                isOn = false;
-            }
+                event.getAttribute(IkeaGateway.IKEA_NODE_ID).equals(lampId)) {
             updateAttributes(event);
             return true;
         }
@@ -115,6 +113,11 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
     }
 
     private void updateAttributes(Event event) {
+        JSONObject node = new JSONObject(event.getAttribute(Event.EVENT_VALUE_ATTRIBUTE));
+        JSONObject info = node.getJSONObject("3");
+        this.lampModel = info.getString("1");
+        this.lampVersion = info.getString("3");
+        // TODO: set state, dim and so on
     }
 
     private String getColorFromEvent(Event event) {
@@ -130,7 +133,7 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
 
     @Override
     protected boolean initAttributes(Event event) {
-        lampId = event.getAttribute("Hue.Lamp");
+        lampId = event.getAttribute(IkeaGateway.IKEA_NODE_ID);
         updateAttributes(event);
         return true;
     }

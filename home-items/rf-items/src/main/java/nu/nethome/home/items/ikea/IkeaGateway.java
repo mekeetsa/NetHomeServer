@@ -23,8 +23,10 @@ import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
+import org.json.JSONObject;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -40,6 +42,11 @@ public class IkeaGateway extends HomeItemAdapter {
     public static final String IKEA_METHOD = "IKEA.Method";
     public static final String IKEA_BODY = "IKEA.Body";
     public static final String IKEA_ID = "IKEA.Id";
+
+    public static final String IKEA_NODE_MESSAGE = "IKEA_NodeMessage";
+    public static final String IKEA_NODE_TYPE = "IKEA.NodeType";
+    public static final String IKEA_NODE_ID = "IKEA.NodeId";
+    public static final String IKEA_NODE_NAME = "IKEA.NodeName";
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"IkeaGateway\"  Category=\"Hardware\" >"
@@ -101,10 +108,23 @@ public class IkeaGateway extends HomeItemAdapter {
                     event.getAttribute(IKEA_METHOD),
                     event.getAttribute(IKEA_BODY),
                     event.getAttribute(IKEA_ID));
-            client.getNodes(address);
             return true;
+        } else if (event.isType("ReportItems")) {
+            reportNodes();
         }
         return false;
+    }
+
+    private void reportNodes() {
+        List<JSONObject> nodes = client.getNodes(address);
+        for (JSONObject node : nodes) {
+            Event event = server.createEvent(IKEA_NODE_MESSAGE, node.toString());
+            event.setAttribute("Direction", "In");
+            event.setAttribute(IKEA_NODE_TYPE, node.getInt("5750"));
+            event.setAttribute(IKEA_NODE_ID, node.getInt("9003"));
+            event.setAttribute(IKEA_NODE_NAME, node.getString("9001"));
+            server.send(event);
+        }
     }
 
     private void sendCoapsMessage(String resource, String method, String body, String id) {
