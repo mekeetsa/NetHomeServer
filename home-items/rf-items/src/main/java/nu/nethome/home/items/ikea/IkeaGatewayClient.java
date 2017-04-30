@@ -1,5 +1,6 @@
 package nu.nethome.home.items.ikea;
 
+import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.coap.Response;
@@ -10,14 +11,20 @@ import org.eclipse.californium.scandium.DTLSConnector;
 import org.eclipse.californium.scandium.config.DtlsConnectorConfig;
 import org.eclipse.californium.scandium.dtls.cipher.CipherSuite;
 import org.eclipse.californium.scandium.dtls.pskstore.InMemoryPskStore;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
  */
 public class IkeaGatewayClient {
+
+    private final String NODES = "/15001";
 
     private InMemoryPskStore pskStore;
     private CoapEndpoint dtlsEndpoint;
@@ -49,7 +56,7 @@ public class IkeaGatewayClient {
         }
     }
 
-    public Response sendCoapsMessage(String uri, String method, String body) {
+    public Response sendCoapMessage(String uri, String method, String body) {
         Request request = requestFromType(method);
         request.setURI(uri);
         request.setPayload(body);
@@ -65,6 +72,46 @@ public class IkeaGatewayClient {
             return null;
         }
     }
+
+    public JSONData getJsonMessage(String uri) {
+        Request request = Request.newGet();
+        request.setURI(uri);
+        request.getOptions().setContentFormat(MediaTypeRegistry.TEXT_PLAIN);
+
+        request.send();
+
+        Response response;
+        try {
+            response = request.waitForResponse();
+            if (response != null &&
+                    response.getPayloadSize() > 0 &&
+                    CoAP.ResponseCode.isSuccess(response.getCode())) {
+                return new JSONData(response.getPayloadString());
+            } else {
+                return null;
+            }
+        } catch (InterruptedException e) {
+            return null;
+        }
+    }
+
+    public List<JSONObject> getNodes(String address) {
+        ArrayList<JSONObject> result = new ArrayList<>();
+        JSONData nodelist = getJsonMessage(String.format("coaps://%s%s", address, NODES));
+        if (nodelist != null && !nodelist.isObject()) {
+            JSONArray jsonArray = nodelist.getArray();
+            for (int i = 0; i < jsonArray.length(); i++) {
+                int nodeId = jsonArray.getInt(i);
+                JSONData nodeInfo = getJsonMessage(String.format("coaps://%s%s/%d", address, NODES, nodeId));
+                if (nodeInfo != null && nodeInfo.isObject()) {
+                    result.add(nodeInfo.getObject());
+                    System.out.printf("%s\n", nodeInfo.getObject().toString(3));
+                }
+            }
+        }
+        return result;
+    }
+
 
     private static Request requestFromType(String method) {
         if (method.equalsIgnoreCase("GET")) {

@@ -23,23 +23,8 @@ import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
-import org.eclipse.californium.core.coap.CoAP;
-import org.eclipse.californium.core.coap.MediaTypeRegistry;
-import org.eclipse.californium.core.coap.Request;
-import org.eclipse.californium.core.coap.Response;
-import org.eclipse.californium.core.network.CoapEndpoint;
-import org.eclipse.californium.core.network.Endpoint;
-import org.eclipse.californium.core.network.EndpointManager;
-import org.eclipse.californium.core.network.config.NetworkConfig;
-import org.eclipse.californium.scandium.DTLSConnector;
-import org.eclipse.californium.scandium.config.DtlsConnectorConfig;
-import org.eclipse.californium.scandium.dtls.cipher.CipherSuite;
-import org.eclipse.californium.scandium.dtls.pskstore.InMemoryPskStore;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.logging.Logger;
 
 /**
@@ -116,6 +101,7 @@ public class IkeaGateway extends HomeItemAdapter {
                     event.getAttribute(IKEA_METHOD),
                     event.getAttribute(IKEA_BODY),
                     event.getAttribute(IKEA_ID));
+            client.getNodes(address);
             return true;
         }
         return false;
@@ -123,7 +109,7 @@ public class IkeaGateway extends HomeItemAdapter {
 
     private void sendCoapsMessage(String resource, String method, String body, String id) {
         String uri = String.format("coaps://%s%s", address, resource);
-        client.sendCoapsMessage(uri, method, body);
+        client.sendCoapMessage(uri, method, body);
     }
 
     public String getSecurityCode() {
