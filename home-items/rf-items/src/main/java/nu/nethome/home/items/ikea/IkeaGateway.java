@@ -77,7 +77,7 @@ public class IkeaGateway extends HomeItemAdapter {
     private int refreshInterval = 5;
     private int refreshCounter = 0;
     private String state = "Disconnected";
-    private Endpoint dtlsEndpoint;
+    private IkeaGatewayClient client = new IkeaGatewayClient();
 
     @Override
     public String getModel() {
@@ -86,42 +86,23 @@ public class IkeaGateway extends HomeItemAdapter {
 
     @Override
     public void activate() {
-        setupDtlsEndpoint();
+        client.start();
+        setPresharedKeyIfAvaliable();
     }
 
-    private void setupDtlsEndpoint() {
-        DtlsConnectorConfig.Builder builder = new DtlsConnectorConfig.Builder(new InetSocketAddress(0));
-        InMemoryPskStore pskStore = new InMemoryPskStore();
-        pskStore.addKnownPeer(new InetSocketAddress(getAddress(), DESTINATION_PORT),"", securityCode.getBytes());
-        builder.setPskStore(pskStore);
-        builder.setSupportedCipherSuites(new CipherSuite[]{CipherSuite.TLS_PSK_WITH_AES_128_CCM_8});
-        DTLSConnector dtlsconnector = new DTLSConnector(builder.build(), null);
-        try {
-            dtlsEndpoint = new CoapEndpoint(dtlsconnector, NetworkConfig.getStandard());
-            dtlsEndpoint.start();
-            EndpointManager.getEndpointManager().setDefaultSecureEndpoint(dtlsEndpoint);
-        } catch (IOException e) {
-            dtlsEndpoint = null;
-        }
-    }
-
-    private void tearDownDtlsEndpoint() {
-        if (dtlsEndpoint != null) {
-            dtlsEndpoint.stop();
-            dtlsEndpoint.destroy();
-            dtlsEndpoint = null;
+    private void setPresharedKeyIfAvaliable() {
+        if (!securityCode.isEmpty() && !address.isEmpty()) {
+            client.setRouterKey(new InetSocketAddress(getAddress(), DESTINATION_PORT),"", securityCode.getBytes());
         }
     }
 
     @Override
     public void stop() {
-        tearDownDtlsEndpoint();
+        client.stop();
         super.stop();
     }
 
     public void reconnect() {
-        tearDownDtlsEndpoint();
-        setupDtlsEndpoint();
     }
 
     public void findBridge() {
@@ -135,53 +116,26 @@ public class IkeaGateway extends HomeItemAdapter {
                     event.getAttribute(IKEA_METHOD),
                     event.getAttribute(IKEA_BODY),
                     event.getAttribute(IKEA_ID));
-            //...
             return true;
         }
         return false;
     }
 
     private void sendCoapsMessage(String resource, String method, String body, String id) {
-        Request request = requestFromType(method);
         String uri = String.format("coaps://%s%s", address, resource);
-        request.setURI(uri);
-        request.setPayload(body);
-        request.getOptions().setContentFormat(MediaTypeRegistry.TEXT_PLAIN);
-
-        request.send();
-
-        Response response = null;
-        try {
-            response = request.waitForResponse();
-            int code = response.getCode().value;
-        } catch (InterruptedException e) {
-            logger.info("Failed to receive CoAP response: " + e.getMessage());
-            return;
-        }
+        client.sendCoapsMessage(uri, method, body);
     }
-
-    private static Request requestFromType(String method) {
-        if (method.equalsIgnoreCase("GET")) {
-            return Request.newGet();
-        } else if (method.equalsIgnoreCase("POST")) {
-            return Request.newPost();
-        } else if (method.equalsIgnoreCase("PUT")) {
-            return Request.newPut();
-        } else if (method.equalsIgnoreCase("DELETE")) {
-            return Request.newDelete();
-        } else {
-            logger.info("Unknown CoOP method: " + method + ", defaulting to GET");
-            return Request.newGet();
-        }
-    }
-
 
     public String getSecurityCode() {
         return securityCode;
     }
 
     public void setSecurityCode(String securityCode) {
+        String oldCode = this.securityCode;
         this.securityCode = securityCode;
+        if (oldCode != securityCode && isActivated()) {
+            setPresharedKeyIfAvaliable();
+        }
     }
 
     public String getAddress() {
@@ -189,7 +143,11 @@ public class IkeaGateway extends HomeItemAdapter {
     }
 
     public void setAddress(String address) {
+        String oldAddress = this.address;
         this.address = address;
+        if (oldAddress != address && isActivated()) {
+            setPresharedKeyIfAvaliable();
+        }
     }
 
     public String getBridgeIdentity() {
