@@ -14,8 +14,12 @@ import org.eclipse.californium.scandium.dtls.pskstore.InMemoryPskStore;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceInfo;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -110,6 +114,24 @@ public class IkeaGatewayClient {
             }
         }
         return result;
+    }
+
+    public String findGateway() {
+        try {
+            // Create a JmDNS instance
+            JmDNS jmdns = JmDNS.create(InetAddress.getLocalHost());
+            ServiceInfo serviceInfo = jmdns.getServiceInfo("_coap._udp.local", "QU", 1000L);
+            System.out.printf("%s\n", serviceInfo.toString());
+
+
+        } catch (UnknownHostException e) {
+            System.out.println(e.getMessage());
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }  catch (Throwable e) {
+            System.out.println(e.getMessage());
+        }
+        return "";
     }
 
 

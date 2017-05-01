@@ -31,6 +31,9 @@ import java.util.logging.Logger;
 
 /**
  * Represents a IKEA Trådfri Gateway and handles communications with it
+ * TODO: Discovery of gateway
+ * TODO: Color/Non Color Lamp
+ * TODO: Warmer Dim
  */
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
@@ -108,6 +111,7 @@ public class IkeaGateway extends HomeItemAdapter {
                     event.getAttribute(IKEA_METHOD),
                     event.getAttribute(IKEA_BODY),
                     event.getAttribute(IKEA_ID));
+            client.findGateway();
             return true;
         } else if (event.isType("ReportItems")) {
             reportNodes();
