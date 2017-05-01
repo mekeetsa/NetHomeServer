@@ -66,7 +66,7 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
     private int dimStep = 10;
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
-            + "<HomeItem Class=\"IkeaLamp\" Category=\"Lamps\" >"
+            + "<HomeItem Class=\"IkeaLamp\" Category=\"Lamps\"  Morphing=\"%s\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"Identity\" Type=\"String\" Get=\"getLampId\" 	Set=\"setLampId\" />"
             + "  <Attribute Name=\"LampModel\" Type=\"String\" Get=\"getLampModel\" 	Init=\"setLampModel\" />"
@@ -74,7 +74,7 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
             + "  <Attribute Name=\"Version\" Type=\"String\" Get=\"getLampVersion\" 	Init=\"setLampVersion\" />"
             + "  <Attribute Name=\"Brightness\" Type=\"String\" Get=\"getCurrentBrightness\"  />"
             + "  <Attribute Name=\"OnBrightness\" Type=\"String\" Get=\"getBrightness\" 	Set=\"setBrightness\" />"
-            + "  <Attribute Name=\"ColorTemperature\" Type=\"String\" Get=\"getColor\" 	Set=\"setColor\" />"
+            + "%s"
             + "  <Attribute Name=\"DimLevel1\" Type=\"String\" Get=\"getDimLevel1\" 	Set=\"setDimLevel1\" />"
             + "  <Attribute Name=\"DimLevel2\" Type=\"String\" Get=\"getDimLevel2\" 	Set=\"setDimLevel2\" />"
             + "  <Attribute Name=\"DimLevel3\" Type=\"String\" Get=\"getDimLevel3\" 	Set=\"setDimLevel3\" />"
@@ -91,6 +91,9 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
             + "  <Attribute Name=\"DimStep\" Type=\"String\" Get=\"getDimStep\" 	Set=\"setDimStep\" />"
             + "</HomeItem> ");
 
+    private static final String COLOR_MODEL =
+            "  <Attribute Name=\"ColorTemperature\" Type=\"String\" Get=\"getColor\" 	Set=\"setColor\" />";
+
     private String lampModel = "";
     private String lampType = "";
     private String lampVersion = "";
@@ -99,7 +102,8 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
     }
 
     public String getModel() {
-        return MODEL;
+        return String.format(MODEL, isActivated() ? "false" : "true",
+                (lampType.equals("1") || !isActivated()) ? COLOR_MODEL : "");
     }
 
     @Override
