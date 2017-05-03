@@ -20,6 +20,7 @@
 package nu.nethome.home.impl;
 
 import nu.nethome.home.item.*;
+import nu.nethome.home.items.MDNSScanner;
 import nu.nethome.home.items.UPnPScanner;
 import nu.nethome.home.items.UsbScanner;
 import nu.nethome.home.system.*;
@@ -539,12 +540,16 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
     private void addSingletonItems(List<HomeItem> loadedItems) {
         boolean hasUpnpScanner = false;
         boolean hasUsbScanner = false;
+        boolean hasMDNSScanner = false;
         for (HomeItem loadedItem : loadedItems) {
             if (loadedItem instanceof UPnPScanner) {
                 hasUpnpScanner = true;
             }
             if (loadedItem instanceof UsbScanner) {
                 hasUsbScanner = true;
+            }
+            if (loadedItem instanceof MDNSScanner) {
+                hasMDNSScanner = true;
             }
         }
         if (!hasUpnpScanner) {
@@ -556,6 +561,11 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
             UsbScanner usbScanner = new UsbScanner();
             usbScanner.setName("USB_Scanner");
             loadedItems.add(usbScanner);
+        }
+        if (!hasMDNSScanner) {
+            MDNSScanner mdnsScanner = new MDNSScanner();
+            mdnsScanner.setName("MDNS_Scanner");
+            loadedItems.add(mdnsScanner);
         }
     }
 

@@ -19,6 +19,7 @@
 
 package nu.nethome.home.items.ikea;
 
+import nu.nethome.home.item.AutoCreationInfo;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.system.Event;
@@ -29,6 +30,10 @@ import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.logging.Logger;
 
+import static nu.nethome.home.items.MDNSScanner.MDNS_CREATION_MESSAGE;
+import static nu.nethome.home.items.MDNSScanner.MDNS_SERVICE_NAME;
+import static nu.nethome.home.items.MDNSScanner.MDNS_SERVICE_TYPE;
+
 /**
  * Represents a IKEA Trådfri Gateway and handles communications with it
  * TODO: Discovery of gateway
@@ -37,8 +42,32 @@ import java.util.logging.Logger;
  */
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
-@HomeItemType(value = "Hardware")
+@HomeItemType(value = "Hardware", creationInfo = IkeaGateway.IkeaCreationInfo.class)
 public class IkeaGateway extends HomeItemAdapter {
+
+    public static class IkeaCreationInfo implements AutoCreationInfo {
+        static final String[] CREATION_EVENTS = {MDNS_CREATION_MESSAGE};
+        @Override
+        public String[] getCreationEvents() {
+            return CREATION_EVENTS;
+        }
+
+        @Override
+        public boolean canBeCreatedBy(Event e) {
+            return isIkeaGatewaymDNSEvent(e);
+        }
+
+        @Override
+        public String getCreationIdentification(Event e) {
+            return String.format("IKEA Trådfri gateway: \"%s\"",e.getAttribute(MDNS_SERVICE_NAME));
+        }
+    }
+
+    private static boolean isIkeaGatewaymDNSEvent(Event e) {
+        return e.getAttribute(MDNS_SERVICE_TYPE).equals("_coap._udp.local.") &&
+                e.getAttribute(MDNS_SERVICE_NAME).startsWith("gw");
+    }
+
 
     public static final String IKEA_MESSAGE = "IKEA_Message";
     public static final String IKEA_RESOURCE = "IKEA.Resource";
