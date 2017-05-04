@@ -102,8 +102,8 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
     }
 
     public String getModel() {
-        return String.format(MODEL, isActivated() ? "false" : "true",
-                (lampType.equals("1") || !isActivated()) ? COLOR_MODEL : "");
+        return String.format(MODEL, isActivated() && false ? "false" : "true",
+                (!lampType.equals("0") || !isActivated()) ? COLOR_MODEL : "");
     }
 
     @Override

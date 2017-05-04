@@ -22,6 +22,7 @@ package nu.nethome.home.items.ikea;
 import nu.nethome.home.item.AutoCreationInfo;
 import nu.nethome.home.item.HomeItemAdapter;
 import nu.nethome.home.item.HomeItemType;
+import nu.nethome.home.items.MDNSScanner;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
 import org.json.JSONObject;
@@ -36,8 +37,9 @@ import static nu.nethome.home.items.MDNSScanner.MDNS_SERVICE_TYPE;
 
 /**
  * Represents a IKEA Trådfri Gateway and handles communications with it
- * TODO: Discovery of gateway
+ * DONE: Discovery of gateway
  * TODO: Color/Non Color Lamp
+ * TODO: Non dim and non colour if not set
  * TODO: Warmer Dim
  */
 @SuppressWarnings("UnusedDeclaration")
@@ -135,6 +137,9 @@ public class IkeaGateway extends HomeItemAdapter {
 
     @Override
     public boolean receiveEvent(Event event) {
+        if (!isActivated()) {
+            return handleInit(event);
+        }
         if (event.isType(IKEA_MESSAGE) && event.getAttribute("Direction").equals("Out")) {
             sendCoapsMessage(event.getAttribute(IKEA_RESOURCE),
                     event.getAttribute(IKEA_METHOD),
@@ -144,9 +149,20 @@ public class IkeaGateway extends HomeItemAdapter {
             return true;
         } else if (event.isType("ReportItems")) {
             reportNodes();
+        } else if (event.isType(MDNS_CREATION_MESSAGE) && event.getAttribute(MDNSScanner.MDNS_LOCATION).equals(address)) {
+            setAddress(event.getAttribute(MDNSScanner.MDNS_LOCATION));
+            return true;
         }
         return false;
     }
+
+    @Override
+    protected boolean initAttributes(Event event) {
+        setAddress(event.getAttribute(MDNSScanner.MDNS_LOCATION));
+        setBridgeIdentity(event.getAttribute(MDNSScanner.MDNS_SERVICE_NAME));
+        return true;
+    }
+
 
     private void reportNodes() {
         List<JSONObject> nodes = client.getNodes(address);
