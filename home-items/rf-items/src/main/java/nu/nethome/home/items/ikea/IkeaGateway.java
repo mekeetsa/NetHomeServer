@@ -38,8 +38,8 @@ import static nu.nethome.home.items.MDNSScanner.MDNS_SERVICE_TYPE;
 /**
  * Represents a IKEA Trådfri Gateway and handles communications with it
  * DONE: Discovery of gateway
- * TODO: Color/Non Color Lamp
- * TODO: Non dim and non colour if not set
+ * DONE: Color/Non Color Lamp
+ * DONE: Non dim and non colour if not set
  * TODO: Warmer Dim
  */
 @SuppressWarnings("UnusedDeclaration")

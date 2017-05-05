@@ -45,7 +45,8 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
         @Override
         public boolean canBeCreatedBy(Event e) {
             return e.isType(IkeaGateway.IKEA_NODE_MESSAGE) &&
-                    (e.getAttributeInt(IkeaGateway.IKEA_NODE_TYPE) == 2);
+                    (e.getAttributeInt(IkeaGateway.IKEA_NODE_TYPE) == 2) &&
+                    !hasColor(e);
         }
 
         @Override
@@ -54,32 +55,21 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
         }
     }
 
-    private static int X_MIN = 24930;
-    private static int X_MAX = 33135;
-    private static int Y_MIN = 24694;
-    private static int Y_MAX = 27211;
-
-    private String lampId = "";
-    private int onBrightness = -1;
-    private int currentBrightness = 100;
-    private int colorTemperature = -1;
-    private boolean isOn;
-    private String dimLevel1 = "0";
-    private String dimLevel2 = "33";
-    private String dimLevel3 = "66";
-    private String dimLevel4 = "100";
-    private int dimStep = 10;
+    protected static boolean hasColor(Event event) {
+        JSONObject node = new JSONObject(event.getAttribute(Event.EVENT_VALUE_ATTRIBUTE));
+        JSONArray lights = node.getJSONArray("3311");
+        JSONObject light = lights.getJSONObject(0);
+        return light.has("5706") && !light.getString("5706").isEmpty();
+    }
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
-            + "<HomeItem Class=\"IkeaLamp\" Category=\"Lamps\"  Morphing=\"%s\" >"
+            + "<HomeItem Class=\"IkeaLamp\" Category=\"Lamps\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"Identity\" Type=\"String\" Get=\"getLampId\" 	Set=\"setLampId\" />"
             + "  <Attribute Name=\"LampModel\" Type=\"String\" Get=\"getLampModel\" 	Init=\"setLampModel\" />"
-            + "  <Attribute Name=\"Type\" Type=\"String\" Get=\"getLampType\" 	Init=\"setLampType\" />"
             + "  <Attribute Name=\"Version\" Type=\"String\" Get=\"getLampVersion\" 	Init=\"setLampVersion\" />"
             + "  <Attribute Name=\"Brightness\" Type=\"String\" Get=\"getCurrentBrightness\"  />"
             + "  <Attribute Name=\"OnBrightness\" Type=\"String\" Get=\"getBrightness\" 	Set=\"setBrightness\" />"
-            + "%s"
             + "  <Attribute Name=\"DimLevel1\" Type=\"String\" Get=\"getDimLevel1\" 	Set=\"setDimLevel1\" />"
             + "  <Attribute Name=\"DimLevel2\" Type=\"String\" Get=\"getDimLevel2\" 	Set=\"setDimLevel2\" />"
             + "  <Attribute Name=\"DimLevel3\" Type=\"String\" Get=\"getDimLevel3\" 	Set=\"setDimLevel3\" />"
@@ -96,19 +86,29 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
             + "  <Attribute Name=\"DimStep\" Type=\"String\" Get=\"getDimStep\" 	Set=\"setDimStep\" />"
             + "</HomeItem> ");
 
-    private static final String COLOR_MODEL =
-            "  <Attribute Name=\"ColorTemperature\" Type=\"String\" Get=\"getColor\" 	Set=\"setColor\" />";
+    private static int X_MIN = 24930;
+    private static int X_MAX = 33135;
+    private static int Y_MIN = 24694;
+    private static int Y_MAX = 27211;
 
+    private String lampId = "";
+    private int onBrightness = -1;
+    private int currentBrightness = 100;
+    protected int colorTemperature = -1;
+    protected boolean isOn;
+    private String dimLevel1 = "0";
+    private String dimLevel2 = "33";
+    private String dimLevel3 = "66";
+    private String dimLevel4 = "100";
+    private int dimStep = 10;
     private String lampModel = "";
-    private String lampType = "";
     private String lampVersion = "";
 
     public IkeaLamp() {
     }
 
     public String getModel() {
-        return String.format(MODEL, isActivated() && false ? "false" : "true",
-                (!lampType.equals("0") || !isActivated()) ? COLOR_MODEL : "");
+        return MODEL;
     }
 
     @Override
@@ -147,6 +147,7 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
         light.put("5850", 1);
         if (brightness >= 0) {
             light.put("5851", percentToIkea(brightness));
+            currentBrightness = brightness;
         }
         if (temperature >= 0) {
             light.put("5709", percentToX(temperature));
@@ -155,7 +156,6 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
         ev.setAttribute(IkeaGateway.IKEA_BODY, String.format("{\"3311\":[%s]}", light.toString()));
         server.send(ev);
         isOn = true;
-        currentBrightness = brightness;
     }
 
     private int percentToIkea(int brightness) {
@@ -230,24 +230,6 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
         this.lampId = lampId;
     }
 
-    public String getColor() {
-        return colorTemperature < 0 ? "" : Integer.toString(colorTemperature);
-    }
-
-    public void setColor(String color) {
-        if (color.length() == 0) {
-            colorTemperature = -1;
-        } else {
-            int newColorTemperature = Integer.parseInt(color);
-            if ((newColorTemperature >= 0) && (newColorTemperature <= 100) && (newColorTemperature != colorTemperature)) {
-                colorTemperature = newColorTemperature;
-                if (isOn) {
-                    on();
-                }
-            }
-        }
-    }
-
     public String getState() {
         return isOn ? "On" : "Off";
     }
@@ -264,14 +246,6 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
         this.lampModel = lampModel;
     }
 
-    public String getLampType() {
-        return lampType;
-    }
-
-    public void setLampType(String lampType) {
-        this.lampType = lampType;
-    }
-
     public String getLampVersion() {
         return lampVersion;
     }
@@ -284,18 +258,12 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
         sendOnCommand(dimLevel1);
     }
 
-    private void sendOnCommand(String dimAndColor) {
+    protected void sendOnCommand(String dimAndColor) {
         int dimLevel;
-        int colorTemperature = this.colorTemperature;
-
-        String[] colourParts = dimAndColor.split(":");
-        if (colourParts.length == 2) {
-            dimLevel = Integer.parseInt(colourParts[0].trim());
-            colorTemperature = Integer.parseInt(colourParts[1].trim());
-        } else if (colourParts.length == 1  && !dimAndColor.isEmpty()) {
-            dimLevel = Integer.parseInt(colourParts[0].trim());
+        if (!dimAndColor.isEmpty()) {
+            dimLevel = Integer.parseInt(dimAndColor.trim());
         } else  {
-            dimLevel = 0;
+            dimLevel = -1;
         }
         sendOnCommand(dimLevel, colorTemperature);
     }
@@ -354,8 +322,8 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
 
     public void dim() {
         currentBrightness -= dimStep;
-        if (currentBrightness < 0) {
-            currentBrightness = 0;
+        if (currentBrightness < 1) {
+            currentBrightness = 1;
         }
         sendOnCommand(currentBrightness, colorTemperature);
     }

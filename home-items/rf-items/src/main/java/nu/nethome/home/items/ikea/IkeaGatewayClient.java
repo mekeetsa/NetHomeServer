@@ -107,7 +107,6 @@ public class IkeaGatewayClient {
                 JSONData nodeInfo = getJsonMessage(String.format("coaps://%s%s/%d", address, NODES, nodeId));
                 if (nodeInfo != null && nodeInfo.isObject()) {
                     result.add(nodeInfo.getObject());
-                    System.out.printf("%s\n", nodeInfo.getObject().toString(3));
                 }
             }
         }
