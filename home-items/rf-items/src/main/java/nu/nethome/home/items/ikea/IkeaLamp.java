@@ -54,10 +54,15 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
         }
     }
 
+    private static int X_MIN = 24930;
+    private static int X_MAX = 33135;
+    private static int Y_MIN = 24694;
+    private static int Y_MAX = 27211;
+
     private String lampId = "";
-    private int onBrightness = 100;
+    private int onBrightness = -1;
     private int currentBrightness = 100;
-    private int colorTemperature = 0;
+    private int colorTemperature = -1;
     private boolean isOn;
     private String dimLevel1 = "0";
     private String dimLevel2 = "33";
@@ -128,17 +133,6 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
         this.currentBrightness = ikeaTopercent(light.getInt("5851"));
     }
 
-    private String getColorFromEvent(Event event) {
-        int brightness = ikeaTopercent(event.getAttributeInt("Hue.Brightness"));
-        if (event.hasAttribute("Hue.Hue")) {
-        int hue = event.getAttributeInt("Hue.Hue");
-        int saturation = event.getAttributeInt("Hue.Saturation");
-        return String.format("%d,%d,%d", brightness, hue, saturation);
-        } else {
-            return Integer.toString(brightness);
-        }
-    }
-
     @Override
     protected boolean initAttributes(Event event) {
         lampId = event.getAttribute(IkeaGateway.IKEA_NODE_ID);
@@ -149,20 +143,20 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
     protected void sendOnCommand(int brightness, int temperature) {
         Event ev = createEvent();
         ev.setAttribute(IkeaGateway.IKEA_METHOD, "PUT");
-        ev.setAttribute(IkeaGateway.IKEA_BODY, String.format("{\"3311\":[{\"5850\":1, \"5851\":%d, \"5709\":%d,\"5710\":%d}]}",
-                percentToIkea(brightness),
-                percentToX(temperature),
-                percentToY(temperature)));
+        JSONObject light = new JSONObject();
+        light.put("5850", 1);
+        if (brightness >= 0) {
+            light.put("5851", percentToIkea(brightness));
+        }
+        if (temperature >= 0) {
+            light.put("5709", percentToX(temperature));
+            light.put("5710", percentToY(temperature));
+        }
+        ev.setAttribute(IkeaGateway.IKEA_BODY, String.format("{\"3311\":[%s]}", light.toString()));
         server.send(ev);
         isOn = true;
         currentBrightness = brightness;
     }
-
-    private static int X_MIN = 24930;
-    private static int X_MAX = 33135;
-
-    private static int Y_MIN = 24694;
-    private static int Y_MAX = 27211;
 
     private int percentToIkea(int brightness) {
         return (brightness * 254) / 100;
@@ -212,7 +206,7 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
 
     public void setBrightness(String level) {
         if (level.length() == 0) {
-            onBrightness = 100;
+            onBrightness = -1;
         } else {
             int newDimLevel = Integer.parseInt(level);
             if ((newDimLevel >= 0) && (newDimLevel <= 100) && (newDimLevel != onBrightness)) {
@@ -225,7 +219,7 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
     }
 
     public String getBrightness() {
-        return Integer.toString(onBrightness);
+        return onBrightness < 0 ? "" : Integer.toString(onBrightness);
     }
 
     public String getLampId() {
@@ -237,12 +231,12 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
     }
 
     public String getColor() {
-        return Integer.toString(colorTemperature);
+        return colorTemperature < 0 ? "" : Integer.toString(colorTemperature);
     }
 
     public void setColor(String color) {
         if (color.length() == 0) {
-            colorTemperature = 100;
+            colorTemperature = -1;
         } else {
             int newColorTemperature = Integer.parseInt(color);
             if ((newColorTemperature >= 0) && (newColorTemperature <= 100) && (newColorTemperature != colorTemperature)) {
