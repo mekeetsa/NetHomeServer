@@ -112,9 +112,6 @@ public class IkeaGatewayClient {
         }
         return result;
     }
-    public String findGateway() {
-        return "";
-    }
 
     private static Request requestFromType(String method) {
         if (method.equalsIgnoreCase("GET")) {

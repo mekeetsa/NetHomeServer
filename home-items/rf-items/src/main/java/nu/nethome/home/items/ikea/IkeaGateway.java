@@ -84,11 +84,8 @@ public class IkeaGateway extends HomeItemAdapter {
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"Address\" Type=\"String\" Get=\"getAddress\" Set=\"setAddress\" />"
             + "  <Attribute Name=\"Identity\" Type=\"String\" Get=\"getBridgeIdentity\" Init=\"setBridgeIdentity\" />"
-            + "  <Attribute Name=\"DeviceName\" Type=\"String\" Get=\"getDeviceName\"  />"
             + "  <Attribute Name=\"SecurityCode\" Type=\"String\" Get=\"getSecurityCode\" Init=\"setSecurityCode\" />"
             + "  <Attribute Name=\"RefreshInterval\" Type=\"String\" Get=\"getRefreshInterval\" Set=\"setRefreshInterval\" />"
-            + "  <Action Name=\"findBridge\" Method=\"findBridge\" />"
-            + "  <Action Name=\"reconnect\" Method=\"reconnect\" />"
             + "</HomeItem> ");
 
     private static Logger logger = Logger.getLogger(IkeaGateway.class.getName());
@@ -99,7 +96,7 @@ public class IkeaGateway extends HomeItemAdapter {
     private String bridgeIdentity = "";
     private int refreshInterval = 5;
     private int refreshCounter = 0;
-    private String state = "Disconnected";
+    private String state = "";
     private IkeaGatewayClient client = new IkeaGatewayClient();
 
     @Override
@@ -125,13 +122,6 @@ public class IkeaGateway extends HomeItemAdapter {
         super.stop();
     }
 
-    public void reconnect() {
-    }
-
-    public void findBridge() {
-
-    }
-
     @Override
     public boolean receiveEvent(Event event) {
         if (!isActivated()) {
@@ -142,7 +132,6 @@ public class IkeaGateway extends HomeItemAdapter {
                     event.getAttribute(IKEA_METHOD),
                     event.getAttribute(IKEA_BODY),
                     event.getAttribute(IKEA_ID));
-            client.findGateway();
             return true;
         } else if (event.isType("ReportItems")) {
             reportNodes();
