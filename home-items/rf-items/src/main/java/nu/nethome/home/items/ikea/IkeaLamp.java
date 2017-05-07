@@ -129,8 +129,10 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
         this.lampVersion = info.getString("3");
         JSONArray lights = node.getJSONArray("3311");
         JSONObject light = lights.getJSONObject(0);
-        this.isOn = light.getInt("5850") != 0;
-        this.currentBrightness = ikeaTopercent(light.getInt("5851"));
+        this.isOn = light.has("5850") && light.getInt("5850") != 0;
+        if (light.has("5851")) {
+            this.currentBrightness = ikeaTopercent(light.getInt("5851"));
+        }
     }
 
     @Override

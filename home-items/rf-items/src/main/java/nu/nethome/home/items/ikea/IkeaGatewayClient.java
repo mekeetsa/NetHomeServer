@@ -25,6 +25,7 @@ import java.util.logging.Logger;
  */
 public class IkeaGatewayClient {
 
+    private static final long MESSAGE_TIMEOUT = 1000L;
     private final String NODES = "/15001";
     private static Logger logger = Logger.getLogger(IkeaGatewayClient.class.getName());
 
@@ -68,7 +69,7 @@ public class IkeaGatewayClient {
 
         Response response;
         try {
-            response = request.waitForResponse();
+            response = request.waitForResponse(MESSAGE_TIMEOUT);
             return response;
         } catch (InterruptedException e) {
             return null;
@@ -84,7 +85,7 @@ public class IkeaGatewayClient {
 
         Response response;
         try {
-            response = request.waitForResponse();
+            response = request.waitForResponse(MESSAGE_TIMEOUT);
             if (response != null &&
                     response.getPayloadSize() > 0 &&
                     CoAP.ResponseCode.isSuccess(response.getCode())) {
