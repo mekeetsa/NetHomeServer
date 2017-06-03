@@ -31,6 +31,7 @@ public class IkeaGatewayClient {
 
     private InMemoryPskStore pskStore;
     private CoapEndpoint dtlsEndpoint;
+    private boolean isConnected;
 
     public void start() {
         DtlsConnectorConfig.Builder builder = new DtlsConnectorConfig.Builder(new InetSocketAddress(0));
@@ -59,56 +60,64 @@ public class IkeaGatewayClient {
         }
     }
 
-    public Response sendCoapMessage(String uri, String method, String body) {
+    public JSONData sendCoapMessage(String uri, String method, String body) {
         Request request = requestFromType(method);
         request.setURI(uri);
-        request.setPayload(body);
+        if (!isGetRequest(request)) {
+            request.setPayload(body);
+        }
         request.getOptions().setContentFormat(MediaTypeRegistry.TEXT_PLAIN);
 
         request.send();
 
-        Response response;
-        try {
-            response = request.waitForResponse(MESSAGE_TIMEOUT);
-            return response;
-        } catch (InterruptedException e) {
+        if (isGetRequest(request)) {
+            Response response;
+            try {
+                response = request.waitForResponse(MESSAGE_TIMEOUT);
+                if (response != null &&
+                        response.getPayloadSize() > 0 &&
+                        CoAP.ResponseCode.isSuccess(response.getCode())) {
+                    isConnected = true;
+                    JSONData jsonData = new JSONData(response.getPayloadString());
+                    return jsonData;
+                } else {
+                    isConnected = false;
+                    return null;
+                }
+            } catch (InterruptedException e) {
+                return null;
+            }
+        } else {
             return null;
         }
+    }
+
+    private boolean isGetRequest(Request request) {
+        return request.getCode() == CoAP.Code.GET;
     }
 
     public JSONData getJsonMessage(String uri) {
-        Request request = Request.newGet();
-        request.setURI(uri);
-        request.getOptions().setContentFormat(MediaTypeRegistry.TEXT_PLAIN);
-
-        request.send();
-
-        Response response;
-        try {
-            response = request.waitForResponse(MESSAGE_TIMEOUT);
-            if (response != null &&
-                    response.getPayloadSize() > 0 &&
-                    CoAP.ResponseCode.isSuccess(response.getCode())) {
-                return new JSONData(response.getPayloadString());
-            } else {
-                return null;
-            }
-        } catch (InterruptedException e) {
-            return null;
-        }
+        return sendCoapMessage(uri, "GET", "");
     }
 
-    public List<JSONObject> getNodes(String address) {
-        ArrayList<JSONObject> result = new ArrayList<>();
+    public List<Integer> getNodeIds(String address) {
+        ArrayList<Integer> result = new ArrayList<>();
         JSONData nodelist = getJsonMessage(String.format("coaps://%s%s", address, NODES));
         if (nodelist != null && !nodelist.isObject()) {
             JSONArray jsonArray = nodelist.getArray();
             for (int i = 0; i < jsonArray.length(); i++) {
-                int nodeId = jsonArray.getInt(i);
-                JSONData nodeInfo = getJsonMessage(String.format("coaps://%s%s/%d", address, NODES, nodeId));
-                if (nodeInfo != null && nodeInfo.isObject()) {
-                    result.add(nodeInfo.getObject());
-                }
+                result.add(jsonArray.getInt(i));
+            }
+        }
+        return result;
+    }
+
+    public List<JSONObject> getNodes(String address) {
+        ArrayList<JSONObject> result = new ArrayList<>();
+        for (int nodeId : getNodeIds(address)) {
+            JSONData nodeInfo = getJsonMessage(String.format("coaps://%s%s/%d", address, NODES, nodeId));
+            if (nodeInfo != null && nodeInfo.isObject()) {
+                result.add(nodeInfo.getObject());
             }
         }
         return result;
@@ -128,4 +137,7 @@ public class IkeaGatewayClient {
         }
     }
 
+    public boolean isConnected() {
+        return isConnected;
+    }
 }

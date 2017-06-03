@@ -35,6 +35,9 @@ import static nu.nethome.home.items.ikea.IkeaGateway.*;
 @HomeItemType(value = "Lamps", creationInfo = IkeaLamp.IkeaCreationInfo.class)
 public class IkeaLamp extends HomeItemAdapter implements HomeItem {
 
+    private static final String ONOFF = "5850";
+    private static final String DIMMER = "5851";
+
     public static class IkeaCreationInfo implements AutoCreationInfo {
         static final String[] CREATION_EVENTS = {IkeaGateway.IKEA_NODE_MESSAGE};
         @Override
@@ -129,9 +132,9 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
         this.lampVersion = info.getString("3");
         JSONArray lights = node.getJSONArray("3311");
         JSONObject light = lights.getJSONObject(0);
-        this.isOn = light.has("5850") && light.getInt("5850") != 0;
-        if (light.has("5851")) {
-            this.currentBrightness = ikeaTopercent(light.getInt("5851"));
+        this.isOn = light.has(ONOFF) && light.getInt(ONOFF) != 0;
+        if (light.has(DIMMER)) {
+            this.currentBrightness = ikeaTopercent(light.getInt(DIMMER));
         }
     }
 
@@ -146,9 +149,9 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
         Event ev = createEvent();
         ev.setAttribute(IkeaGateway.IKEA_METHOD, "PUT");
         JSONObject light = new JSONObject();
-        light.put("5850", 1);
+        light.put(ONOFF, 1);
         if (brightness >= 0) {
-            light.put("5851", percentToIkea(brightness));
+            light.put(DIMMER, percentToIkea(brightness));
             currentBrightness = brightness;
         }
         if (temperature >= 0) {
@@ -176,7 +179,7 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
     protected void sendOffCommand() {
         Event ev = createEvent();
         ev.setAttribute(IkeaGateway.IKEA_METHOD, "PUT");
-        ev.setAttribute(IkeaGateway.IKEA_BODY, "{\"3311\":[{\"5850\":0}]}");
+        ev.setAttribute(IkeaGateway.IKEA_BODY, "{\"3311\":[{\"" + ONOFF + "\":0}]}");
         server.send(ev);
         isOn = false;
     }

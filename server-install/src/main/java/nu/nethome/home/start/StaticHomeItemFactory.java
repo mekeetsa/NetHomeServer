@@ -130,6 +130,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("UPnPScanner", UPnPScanner.class),
             new HomeItemClassInfo("H2DatabaseTCPServer", nu.nethome.home.items.net.H2DatabaseTCPServer.class),
             new HomeItemClassInfo("UsbScanner", UsbScanner.class),
+            new HomeItemClassInfo("MDNSScanner", nu.nethome.home.items.MDNSScanner.class),
 
             // rf-items
             new HomeItemClassInfo("UPMThermometer", nu.nethome.home.items.upm.UPMThermometer.class),

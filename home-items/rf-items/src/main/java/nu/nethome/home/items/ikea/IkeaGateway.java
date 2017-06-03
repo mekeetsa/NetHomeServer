@@ -38,6 +38,7 @@ import static nu.nethome.home.items.MDNSScanner.MDNS_SERVICE_TYPE;
 /**
  * Represents a IKEA Trådfri Gateway and handles communications with it
  * TODO: Warmer Dim
+ * TODO: Auto refresh
  */
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
@@ -72,7 +73,6 @@ public class IkeaGateway extends HomeItemAdapter {
     public static final String IKEA_RESOURCE = "IKEA.Resource";
     public static final String IKEA_METHOD = "IKEA.Method";
     public static final String IKEA_BODY = "IKEA.Body";
-    public static final String IKEA_ID = "IKEA.Id";
 
     public static final String IKEA_NODE_MESSAGE = "IKEA_NodeMessage";
     public static final String IKEA_NODE_TYPE = "IKEA.NodeType";
@@ -84,8 +84,8 @@ public class IkeaGateway extends HomeItemAdapter {
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"Address\" Type=\"String\" Get=\"getAddress\" Set=\"setAddress\" />"
             + "  <Attribute Name=\"Identity\" Type=\"String\" Get=\"getBridgeIdentity\" Init=\"setBridgeIdentity\" />"
-            + "  <Attribute Name=\"SecurityCode\" Type=\"String\" Get=\"getSecurityCode\" Init=\"setSecurityCode\" />"
-            + "  <Attribute Name=\"RefreshInterval\" Type=\"String\" Get=\"getRefreshInterval\" Set=\"setRefreshInterval\" />"
+            + "  <Attribute Name=\"SecurityCode\" Type=\"Password\" Get=\"getSecurityCode\" Init=\"setSecurityCode\" />"
+            + "  <Attribute Name=\"NodeCount\" Type=\"String\" Get=\"getNodeCount\" />"
             + "</HomeItem> ");
 
     private static Logger logger = Logger.getLogger(IkeaGateway.class.getName());
@@ -98,6 +98,7 @@ public class IkeaGateway extends HomeItemAdapter {
     private int refreshCounter = 0;
     private String state = "";
     private IkeaGatewayClient client = new IkeaGatewayClient();
+    private int nodeCount = 0;
 
     @Override
     public String getModel() {
@@ -113,6 +114,7 @@ public class IkeaGateway extends HomeItemAdapter {
     private void setPresharedKeyIfAvaliable() {
         if (!securityCode.isEmpty() && !address.isEmpty()) {
             client.setRouterKey(new InetSocketAddress(getAddress(), DESTINATION_PORT),"", securityCode.getBytes());
+            nodeCount = client.getNodeIds(address).size();
         }
     }
 
@@ -131,7 +133,7 @@ public class IkeaGateway extends HomeItemAdapter {
             sendCoapsMessage(event.getAttribute(IKEA_RESOURCE),
                     event.getAttribute(IKEA_METHOD),
                     event.getAttribute(IKEA_BODY),
-                    event.getAttribute(IKEA_ID));
+                    event.getAttribute(IKEA_NODE_ID));
             return true;
         } else if (event.isType("ReportItems")) {
             reportNodes();
@@ -152,6 +154,7 @@ public class IkeaGateway extends HomeItemAdapter {
 
     private void reportNodes() {
         List<JSONObject> nodes = client.getNodes(address);
+        nodeCount = nodes.size();
         for (JSONObject node : nodes) {
             Event event = server.createEvent(IKEA_NODE_MESSAGE, node.toString());
             event.setAttribute("Direction", "In");
@@ -164,7 +167,14 @@ public class IkeaGateway extends HomeItemAdapter {
 
     private void sendCoapsMessage(String resource, String method, String body, String id) {
         String uri = String.format("coaps://%s%s", address, resource);
-        client.sendCoapMessage(uri, method, body);
+        JSONData jsonResponse = client.sendCoapMessage(uri, method, body);
+        if (!id.isEmpty() && jsonResponse != null) {
+            Event event = server.createEvent(IKEA_MESSAGE, "");
+            event.setAttribute("Direction", "In");
+            event.setAttribute(IKEA_NODE_TYPE, id);
+            event.setAttribute(IKEA_BODY, event.getAttribute(IKEA_BODY));
+            server.send(event);
+        }
     }
 
     public String getSecurityCode() {
@@ -210,7 +220,10 @@ public class IkeaGateway extends HomeItemAdapter {
     }
 
     public String getState() {
-        return state;
+        return client.isConnected() ? "Connected" : "Not Connected";
     }
 
+    public String getNodeCount() {
+        return Integer.toString(nodeCount);
+    }
 }
