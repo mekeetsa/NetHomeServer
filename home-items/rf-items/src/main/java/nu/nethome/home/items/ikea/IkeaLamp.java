@@ -19,14 +19,13 @@
 
 package nu.nethome.home.items.ikea;
 
-import nu.nethome.home.item.AutoCreationInfo;
-import nu.nethome.home.item.HomeItem;
-import nu.nethome.home.item.HomeItemAdapter;
-import nu.nethome.home.item.HomeItemType;
+import nu.nethome.home.item.*;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.util.Date;
 
 import static nu.nethome.home.items.ikea.IkeaGateway.*;
 
@@ -37,6 +36,13 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
 
     private static final String ONOFF = "5850";
     private static final String DIMMER = "5851";
+    private static final int MAX_UPDATE_WAIT_TIME_SECONDS = 10;
+    private static final int MS_PER_S = 1000;
+    private static final int NOT_SET = -1;
+    private static final String COLOR_X = "5709";
+    private static final String COLOR_Y = "5710";
+    private static final String LIGHT = "3311";
+    private static final String DEVICE = "3";
 
     public static class IkeaCreationInfo implements AutoCreationInfo {
         static final String[] CREATION_EVENTS = {IkeaGateway.IKEA_NODE_MESSAGE};
@@ -60,7 +66,7 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
 
     protected static boolean hasColor(Event event) {
         JSONObject node = new JSONObject(event.getAttribute(Event.EVENT_VALUE_ATTRIBUTE));
-        JSONArray lights = node.getJSONArray("3311");
+        JSONArray lights = node.getJSONArray(LIGHT);
         JSONObject light = lights.getJSONObject(0);
         return light.has("5706") && !light.getString("5706").isEmpty();
     }
@@ -71,12 +77,14 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
             + "  <Attribute Name=\"Identity\" Type=\"String\" Get=\"getLampId\" 	Set=\"setLampId\" />"
             + "  <Attribute Name=\"LampModel\" Type=\"String\" Get=\"getLampModel\" 	Init=\"setLampModel\" />"
             + "  <Attribute Name=\"Version\" Type=\"String\" Get=\"getLampVersion\" 	Init=\"setLampVersion\" />"
-            + "  <Attribute Name=\"Brightness\" Type=\"String\" Get=\"getCurrentBrightness\"  />"
+            + "  <Attribute Name=\"Brightness\" Type=\"String\" Get=\"getCurrentBrightness\"  Unit=\"%\"/>"
             + "  <Attribute Name=\"OnBrightness\" Type=\"String\" Get=\"getBrightness\" 	Set=\"setBrightness\" />"
             + "  <Attribute Name=\"DimLevel1\" Type=\"String\" Get=\"getDimLevel1\" 	Set=\"setDimLevel1\" />"
             + "  <Attribute Name=\"DimLevel2\" Type=\"String\" Get=\"getDimLevel2\" 	Set=\"setDimLevel2\" />"
             + "  <Attribute Name=\"DimLevel3\" Type=\"String\" Get=\"getDimLevel3\" 	Set=\"setDimLevel3\" />"
             + "  <Attribute Name=\"DimLevel4\" Type=\"String\" Get=\"getDimLevel4\" 	Set=\"setDimLevel4\" />"
+            + "  <Attribute Name=\"DimStep\" Type=\"String\" Get=\"getDimStep\" 	Set=\"setDimStep\" />"
+            + "  <Attribute Name=\"RefreshInterval\" Type=\"String\" Get=\"getRefreshInterval\"  Set=\"setRefreshInterval\"  Unit=\"Minutes\"/>"
             + "  <Action Name=\"toggle\" 	Method=\"toggle\" Default=\"true\" />"
             + "  <Action Name=\"on\" 	Method=\"on\" />"
             + "  <Action Name=\"off\" 	Method=\"off\" />"
@@ -86,18 +94,18 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
             + "  <Action Name=\"dim2\" 	Method=\"dim2\" />"
             + "  <Action Name=\"dim3\" 	Method=\"dim3\" />"
             + "  <Action Name=\"dim4\" 	Method=\"dim4\" />"
-            + "  <Attribute Name=\"DimStep\" Type=\"String\" Get=\"getDimStep\" 	Set=\"setDimStep\" />"
+            + "  <Action Name=\"Update\" 	Method=\"fetchCurrentState\" />"
             + "</HomeItem> ");
 
-    private static int X_MIN = 24930;
-    private static int X_MAX = 33135;
-    private static int Y_MIN = 24694;
-    private static int Y_MAX = 27211;
+    private static final int X_MIN = 24930;
+    private static final int X_MAX = 33135;
+    private static final int Y_MIN = 24694;
+    private static final int Y_MAX = 27211;
 
     private String lampId = "";
-    private int onBrightness = -1;
+    private int onBrightness = NOT_SET;
     private int currentBrightness = 100;
-    protected int colorTemperature = -1;
+    protected int colorTemperature = NOT_SET;
     protected boolean isOn;
     private String dimLevel1 = "0";
     private String dimLevel2 = "33";
@@ -106,6 +114,8 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
     private int dimStep = 10;
     private String lampModel = "";
     private String lampVersion = "";
+    private int refreshInterval = 10;
+    private int refreshCounter = 0;
 
     public IkeaLamp() {
     }
@@ -116,21 +126,39 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
 
     @Override
     public boolean receiveEvent(Event event) {
-        if (event.isType(IkeaGateway.IKEA_NODE_MESSAGE) &&
+        if ((event.isType(IkeaGateway.IKEA_NODE_MESSAGE) || event.isType(IkeaGateway.IKEA_MESSAGE)) &&
                 event.getAttribute("Direction").equals("In") &&
                 event.getAttribute(IkeaGateway.IKEA_NODE_ID).equals(lampId)) {
             updateAttributes(event);
+            return true;
+        } else if ((event.isType("MinuteEvent") && (++refreshCounter >= refreshInterval) && isActivated())) {
+            refreshCounter = 0;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    sleepRandomTime();
+                    fetchCurrentState();
+                }
+            }).run();
             return true;
         }
         return handleInit(event);
     }
 
+    private void sleepRandomTime() {
+        try {
+            Thread.sleep((Integer.parseInt(lampId) % MAX_UPDATE_WAIT_TIME_SECONDS) * MS_PER_S);
+        } catch (InterruptedException e) {
+            // Ignore
+        }
+    }
+
     private void updateAttributes(Event event) {
         JSONObject node = new JSONObject(event.getAttribute(Event.EVENT_VALUE_ATTRIBUTE));
-        JSONObject info = node.getJSONObject("3");
+        JSONObject info = node.getJSONObject(DEVICE);
         this.lampModel = info.getString("1");
         this.lampVersion = info.getString("3");
-        JSONArray lights = node.getJSONArray("3311");
+        JSONArray lights = node.getJSONArray(LIGHT);
         JSONObject light = lights.getJSONObject(0);
         this.isOn = light.has(ONOFF) && light.getInt(ONOFF) != 0;
         if (light.has(DIMMER)) {
@@ -150,17 +178,25 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
         ev.setAttribute(IkeaGateway.IKEA_METHOD, "PUT");
         JSONObject light = new JSONObject();
         light.put(ONOFF, 1);
-        if (brightness >= 0) {
+        if (brightness != NOT_SET) {
             light.put(DIMMER, percentToIkea(brightness));
             currentBrightness = brightness;
         }
         if (temperature >= 0) {
-            light.put("5709", percentToX(temperature));
-            light.put("5710", percentToY(temperature));
+            light.put(COLOR_X, percentToX(temperature));
+            light.put(COLOR_Y, percentToY(temperature));
         }
-        ev.setAttribute(IkeaGateway.IKEA_BODY, String.format("{\"3311\":[%s]}", light.toString()));
+        ev.setAttribute(IkeaGateway.IKEA_BODY, String.format("{\"" + LIGHT + "\":[%s]}", light.toString()));
         server.send(ev);
         isOn = true;
+    }
+
+    public String fetchCurrentState() {
+        Event ev = createEvent();
+        ev.setAttribute(IkeaGateway.IKEA_METHOD, "GET");
+        ev.setAttribute(IkeaGateway.IKEA_NODE_ID, lampId);
+        server.send(ev);
+        return "";
     }
 
     private int percentToIkea(int brightness) {
@@ -179,7 +215,7 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
     protected void sendOffCommand() {
         Event ev = createEvent();
         ev.setAttribute(IkeaGateway.IKEA_METHOD, "PUT");
-        ev.setAttribute(IkeaGateway.IKEA_BODY, "{\"3311\":[{\"" + ONOFF + "\":0}]}");
+        ev.setAttribute(IkeaGateway.IKEA_BODY, "{\"" + LIGHT + "\":[{\"" + ONOFF + "\":0}]}");
         server.send(ev);
         isOn = false;
     }
@@ -211,7 +247,7 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
 
     public void setBrightness(String level) {
         if (level.length() == 0) {
-            onBrightness = -1;
+            onBrightness = NOT_SET;
         } else {
             int newDimLevel = Integer.parseInt(level);
             if ((newDimLevel >= 0) && (newDimLevel <= 100) && (newDimLevel != onBrightness)) {
@@ -224,7 +260,7 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
     }
 
     public String getBrightness() {
-        return onBrightness < 0 ? "" : Integer.toString(onBrightness);
+        return onBrightness == NOT_SET ? "" : Integer.toString(onBrightness);
     }
 
     public String getLampId() {
@@ -268,7 +304,7 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
         if (!dimAndColor.isEmpty()) {
             dimLevel = Integer.parseInt(dimAndColor.trim());
         } else  {
-            dimLevel = -1;
+            dimLevel = NOT_SET;
         }
         sendOnCommand(dimLevel, colorTemperature);
     }
@@ -345,5 +381,12 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
         this.dimStep = Integer.parseInt(dimStep);
     }
 
+    public String getRefreshInterval() {
+        return getIntAttribute(refreshInterval);
+    }
+
+    public void setRefreshInterval(String refreshInterval) throws IllegalValueException {
+        this.refreshInterval = setIntAttribute(refreshInterval, 1, Integer.MAX_VALUE);
+    }
 }
 

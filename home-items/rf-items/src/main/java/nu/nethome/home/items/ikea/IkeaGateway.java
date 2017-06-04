@@ -38,7 +38,6 @@ import static nu.nethome.home.items.MDNSScanner.MDNS_SERVICE_TYPE;
 /**
  * Represents a IKEA Trådfri Gateway and handles communications with it
  * TODO: Warmer Dim
- * TODO: Auto refresh
  */
 @SuppressWarnings("UnusedDeclaration")
 @Plugin
@@ -169,10 +168,9 @@ public class IkeaGateway extends HomeItemAdapter {
         String uri = String.format("coaps://%s%s", address, resource);
         JSONData jsonResponse = client.sendCoapMessage(uri, method, body);
         if (!id.isEmpty() && jsonResponse != null) {
-            Event event = server.createEvent(IKEA_MESSAGE, "");
+            Event event = server.createEvent(IKEA_MESSAGE, jsonResponse.toString());
             event.setAttribute("Direction", "In");
-            event.setAttribute(IKEA_NODE_TYPE, id);
-            event.setAttribute(IKEA_BODY, event.getAttribute(IKEA_BODY));
+            event.setAttribute(IKEA_NODE_ID, id);
             server.send(event);
         }
     }

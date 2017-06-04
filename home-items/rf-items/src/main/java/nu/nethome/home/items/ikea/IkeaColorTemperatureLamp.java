@@ -61,13 +61,15 @@ public class IkeaColorTemperatureLamp extends IkeaLamp implements HomeItem {
             + "  <Attribute Name=\"Identity\" Type=\"String\" Get=\"getLampId\" 	Set=\"setLampId\" />"
             + "  <Attribute Name=\"LampModel\" Type=\"String\" Get=\"getLampModel\" 	Init=\"setLampModel\" />"
             + "  <Attribute Name=\"Version\" Type=\"String\" Get=\"getLampVersion\" 	Init=\"setLampVersion\" />"
-            + "  <Attribute Name=\"Brightness\" Type=\"String\" Get=\"getCurrentBrightness\"  />"
+            + "  <Attribute Name=\"Brightness\" Type=\"String\" Get=\"getCurrentBrightness\"  Unit=\"%\" />"
             + "  <Attribute Name=\"OnBrightness\" Type=\"String\" Get=\"getBrightness\" 	Set=\"setBrightness\" />"
             + "  <Attribute Name=\"ColorTemperature\" Type=\"String\" Get=\"getColor\" 	Set=\"setColor\" />"
             + "  <Attribute Name=\"DimLevel1\" Type=\"String\" Get=\"getDimLevel1\" 	Set=\"setDimLevel1\" />"
             + "  <Attribute Name=\"DimLevel2\" Type=\"String\" Get=\"getDimLevel2\" 	Set=\"setDimLevel2\" />"
             + "  <Attribute Name=\"DimLevel3\" Type=\"String\" Get=\"getDimLevel3\" 	Set=\"setDimLevel3\" />"
             + "  <Attribute Name=\"DimLevel4\" Type=\"String\" Get=\"getDimLevel4\" 	Set=\"setDimLevel4\" />"
+            + "  <Attribute Name=\"DimStep\" Type=\"String\" Get=\"getDimStep\" 	Set=\"setDimStep\" />"
+            + "  <Attribute Name=\"RefreshInterval\" Type=\"String\" Get=\"getRefreshInterval\"  Set=\"setRefreshInterval\"  Unit=\"Minutes\"/>"
             + "  <Action Name=\"toggle\" 	Method=\"toggle\" Default=\"true\" />"
             + "  <Action Name=\"on\" 	Method=\"on\" />"
             + "  <Action Name=\"off\" 	Method=\"off\" />"
@@ -77,7 +79,7 @@ public class IkeaColorTemperatureLamp extends IkeaLamp implements HomeItem {
             + "  <Action Name=\"dim2\" 	Method=\"dim2\" />"
             + "  <Action Name=\"dim3\" 	Method=\"dim3\" />"
             + "  <Action Name=\"dim4\" 	Method=\"dim4\" />"
-            + "  <Attribute Name=\"DimStep\" Type=\"String\" Get=\"getDimStep\" 	Set=\"setDimStep\" />"
+            + "  <Action Name=\"Update\" 	Method=\"fetchCurrentState\" />"
             + "</HomeItem> ");
 
     public IkeaColorTemperatureLamp() {
