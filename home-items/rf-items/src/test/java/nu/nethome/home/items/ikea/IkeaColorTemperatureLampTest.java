@@ -5,8 +5,7 @@ import nu.nethome.home.items.util.TstHomeService;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
-
-import static nu.nethome.home.items.ikea.Constants.COLOR_X;
+import static nu.nethome.home.items.ikea.IkeaColorTemperatureLamp.COLOR_X;
 import static nu.nethome.home.items.ikea.IkeaGateway.IKEA_BODY;
 import static nu.nethome.home.items.ikea.IkeaLamp.LIGHT;
 import static org.hamcrest.core.Is.is;

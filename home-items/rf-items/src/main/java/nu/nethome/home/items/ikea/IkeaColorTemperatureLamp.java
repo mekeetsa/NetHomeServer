@@ -35,8 +35,8 @@ import static nu.nethome.home.items.ikea.IkeaGateway.IKEA_NODE_ID;
 @HomeItemType(value = "Lamps", creationInfo = IkeaColorTemperatureLamp.IkeaCreationInfo.class)
 public class IkeaColorTemperatureLamp extends IkeaLamp implements HomeItem {
 
-    private static final String COLOR_X = "5709";
-    private static final String COLOR_Y = "5710";
+    protected static final String COLOR_X = "5709";
+    protected static final String COLOR_Y = "5710";
     private static final int X_MIN = 24930;
     private static final int X_MAX = 33135;
     private static final int Y_MIN = 24694;
