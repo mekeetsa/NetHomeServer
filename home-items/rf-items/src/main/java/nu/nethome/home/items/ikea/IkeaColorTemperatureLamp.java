@@ -35,6 +35,13 @@ import static nu.nethome.home.items.ikea.IkeaGateway.IKEA_NODE_ID;
 @HomeItemType(value = "Lamps", creationInfo = IkeaColorTemperatureLamp.IkeaCreationInfo.class)
 public class IkeaColorTemperatureLamp extends IkeaLamp implements HomeItem {
 
+    private static final String COLOR_X = "5709";
+    private static final String COLOR_Y = "5710";
+    private static final int X_MIN = 24930;
+    private static final int X_MAX = 33135;
+    private static final int Y_MIN = 24694;
+    private static final int Y_MAX = 27211;
+
     public static class IkeaCreationInfo implements AutoCreationInfo {
         static final String[] CREATION_EVENTS = {IkeaGateway.IKEA_NODE_MESSAGE};
         @Override
@@ -69,7 +76,8 @@ public class IkeaColorTemperatureLamp extends IkeaLamp implements HomeItem {
             + "  <Attribute Name=\"DimLevel3\" Type=\"String\" Get=\"getDimLevel3\" 	Set=\"setDimLevel3\" />"
             + "  <Attribute Name=\"DimLevel4\" Type=\"String\" Get=\"getDimLevel4\" 	Set=\"setDimLevel4\" />"
             + "  <Attribute Name=\"DimStep\" Type=\"String\" Get=\"getDimStep\" 	Set=\"setDimStep\" />"
-            + "  <Attribute Name=\"RefreshInterval\" Type=\"String\" Get=\"getRefreshInterval\"  Set=\"setRefreshInterval\"  Unit=\"Minutes\"/>"
+            + "  <Attribute Name=\"RefreshInterval\" Type=\"String\" Get=\"getRefreshInterval\"  Set=\"setRefreshInterval\"  Unit=\"Minutes\" />"
+            + "  <Attribute Name=\"WarmDim\" Type=\"Boolean\" Get=\"getWarmOnDim\" 	Set=\"setWarmOnDim\" />"
             + "  <Action Name=\"toggle\" 	Method=\"toggle\" Default=\"true\" />"
             + "  <Action Name=\"on\" 	Method=\"on\" />"
             + "  <Action Name=\"off\" 	Method=\"off\" />"
@@ -82,20 +90,22 @@ public class IkeaColorTemperatureLamp extends IkeaLamp implements HomeItem {
             + "  <Action Name=\"Update\" 	Method=\"fetchCurrentState\" />"
             + "</HomeItem> ");
 
+    private boolean warmOnDim;
+
     public IkeaColorTemperatureLamp() {
     }
 
     public String getModel() {
-        return String.format(MODEL);
+        return MODEL;
     }
 
     public String getColor() {
-        return colorTemperature < 0 ? "" : Integer.toString(colorTemperature);
+        return colorTemperature == NOT_SET ? "" : Integer.toString(colorTemperature);
     }
 
     public void setColor(String color) {
         if (color.length() == 0) {
-            colorTemperature = -1;
+            colorTemperature = NOT_SET;
         } else {
             int newColorTemperature = Integer.parseInt(color);
             if ((newColorTemperature >= 0) && (newColorTemperature <= 100) && (newColorTemperature != colorTemperature)) {
@@ -106,6 +116,29 @@ public class IkeaColorTemperatureLamp extends IkeaLamp implements HomeItem {
             }
         }
     }
+
+    protected JSONObject createLightObject(int brightness, int temperature) {
+        JSONObject light = super.createLightObject(brightness, temperature);
+        if (temperature != NOT_SET) {
+            int temp;
+            if (warmOnDim) {
+                temp = ((100-temperature) * (100 - brightness)) / 100 + temperature;
+            } else {
+                temp = temperature;
+            }
+            light.put(COLOR_X, percentToX(temp));
+            light.put(COLOR_Y, percentToY(temp));
+        }
+        return light;
+    }
+
+    protected static int percentToX(int temperature) {
+        return X_MIN + (temperature * (X_MAX - X_MIN)) / 100;
+    }
+    protected static int percentToY(int temperature) {
+        return Y_MIN + (temperature * (Y_MAX - Y_MIN)) / 100;
+    }
+
 
     protected void sendOnCommand(String dimAndColor) {
         int dimLevel;
@@ -123,5 +156,12 @@ public class IkeaColorTemperatureLamp extends IkeaLamp implements HomeItem {
         sendOnCommand(dimLevel, colorTemperature);
     }
 
+    public String getWarmOnDim() {
+        return getBooleanAttribute(warmOnDim);
+    }
+
+    public void setWarmOnDim(String warmOnDim) {
+        this.warmOnDim = setBooleanAttribute(warmOnDim);
+    }
 }
 

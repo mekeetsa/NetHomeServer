@@ -34,15 +34,13 @@ import static nu.nethome.home.items.ikea.IkeaGateway.*;
 @HomeItemType(value = "Lamps", creationInfo = IkeaLamp.IkeaCreationInfo.class)
 public class IkeaLamp extends HomeItemAdapter implements HomeItem {
 
-    private static final String ONOFF = "5850";
-    private static final String DIMMER = "5851";
+    protected static final String ONOFF = "5850";
+    protected static final String DIMMER = "5851";
     private static final int MAX_UPDATE_WAIT_TIME_SECONDS = 10;
     private static final int MS_PER_S = 1000;
-    private static final int NOT_SET = -1;
-    private static final String COLOR_X = "5709";
-    private static final String COLOR_Y = "5710";
-    private static final String LIGHT = "3311";
-    private static final String DEVICE = "3";
+    protected static final int NOT_SET = -1;
+    protected static final String LIGHT = "3311";
+    protected static final String DEVICE = "3";
 
     public static class IkeaCreationInfo implements AutoCreationInfo {
         static final String[] CREATION_EVENTS = {IkeaGateway.IKEA_NODE_MESSAGE};
@@ -96,11 +94,6 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
             + "  <Action Name=\"dim4\" 	Method=\"dim4\" />"
             + "  <Action Name=\"Update\" 	Method=\"fetchCurrentState\" />"
             + "</HomeItem> ");
-
-    private static final int X_MIN = 24930;
-    private static final int X_MAX = 33135;
-    private static final int Y_MIN = 24694;
-    private static final int Y_MAX = 27211;
 
     private String lampId = "";
     private int onBrightness = NOT_SET;
@@ -176,19 +169,20 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
     protected void sendOnCommand(int brightness, int temperature) {
         Event ev = createEvent();
         ev.setAttribute(IkeaGateway.IKEA_METHOD, "PUT");
+        JSONObject light = createLightObject(brightness, temperature);
+        ev.setAttribute(IkeaGateway.IKEA_BODY, String.format("{\"" + LIGHT + "\":[%s]}", light.toString()));
+        server.send(ev);
+        isOn = true;
+    }
+
+    protected JSONObject createLightObject(int brightness, int temperature) {
         JSONObject light = new JSONObject();
         light.put(ONOFF, 1);
         if (brightness != NOT_SET) {
             light.put(DIMMER, percentToIkea(brightness));
             currentBrightness = brightness;
         }
-        if (temperature >= 0) {
-            light.put(COLOR_X, percentToX(temperature));
-            light.put(COLOR_Y, percentToY(temperature));
-        }
-        ev.setAttribute(IkeaGateway.IKEA_BODY, String.format("{\"" + LIGHT + "\":[%s]}", light.toString()));
-        server.send(ev);
-        isOn = true;
+        return light;
     }
 
     public String fetchCurrentState() {
@@ -204,12 +198,6 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
     }
     private int ikeaTopercent(int brightness) {
         return (brightness * 100) / 254;
-    }
-    private int percentToX(int temperature) {
-        return X_MIN + (temperature * (X_MAX - X_MIN)) / 100;
-    }
-    private int percentToY(int temperature) {
-        return Y_MIN + (temperature * (Y_MAX - Y_MIN)) / 100;
     }
 
     protected void sendOffCommand() {

@@ -37,7 +37,6 @@ import static nu.nethome.home.items.MDNSScanner.MDNS_SERVICE_TYPE;
 
 /**
  * Represents a IKEA Trådfri Gateway and handles communications with it
- * TODO: Warmer Dim
  */
 @SuppressWarnings("UnusedDeclaration")
 @Plugin

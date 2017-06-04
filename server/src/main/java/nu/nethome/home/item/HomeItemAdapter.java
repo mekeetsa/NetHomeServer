@@ -96,4 +96,12 @@ public abstract class HomeItemAdapter implements HomeItem {
     protected String getIntAttribute(int value) {
         return Integer.toString(value);
     }
+
+    protected String getBooleanAttribute(boolean value) {
+        return value ? "True" : "False";
+    }
+
+    protected boolean setBooleanAttribute(String value) {
+        return value.equalsIgnoreCase("true") || value.equalsIgnoreCase("on") || value.equalsIgnoreCase("yes");
+    }
 }
