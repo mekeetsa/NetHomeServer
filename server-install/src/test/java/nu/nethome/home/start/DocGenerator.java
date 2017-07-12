@@ -1,8 +1,6 @@
 package nu.nethome.home.start;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +51,32 @@ public class DocGenerator {
             for (Item item : feature.items) {
                 System.out.printf("%s: %s\n", item.name, item.description);
             }
+        }
+        printFeatureList();
+        printFeatureIndex();
+    }
+
+    private static void printFeatureList() {
+        try (PrintWriter pw = new PrintWriter(new FileWriter("features.txt"))) {
+            for (Feature feature : featureList) {
+                pw.printf("<div class=\"card\"><a href=\"http://opennethome.org/features/feature-index/#%s\">%s</a></div>\n", feature.name, feature.name);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void printFeatureIndex() {
+        try (PrintWriter pw = new PrintWriter(new FileWriter("featureIndex.txt"))) {
+            for (Feature feature : featureList) {
+                pw.printf("<h2 id=\"%s\">%s</h2>\n", feature.name, feature.name);
+                pw.printf("<em>%s</em>%s", feature.description, feature.description.isEmpty() ? "" : "\n");
+                for (Item item : feature.items) {
+                    pw.printf("<strong class=\"item\"><a href=\"http://wiki.nethome.nu/doku.php?id=%s\" target=\"_blank\" rel=\"noopener noreferrer\">%s</a></strong>&nbsp;%s\n", item.name, item.name, item.description);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
