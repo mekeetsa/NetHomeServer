@@ -5,22 +5,22 @@ Automation;OpenNetHome supports many forms of automation, to be able to make you
 Belkin Wemo;Wemo is a series of home automation products produced by Belkin, which communicate via WIFI, so no radio transmission hardware is needed for the remote switches.
 Blinds;A number of different blind motor types can be controlled.
 Cloud;
-Deltronic;Deltronic protocol is a 433MHZ protocol for remote switches.
+Deltronic;Deltronic is a brand of remote switches using a 433MHZ protocol.
 DIY Friendly;OpenNetHome is very open for home made devices and software, and has support for plugins and a number of open external interfaces.
 FineOffset;FineOffset is a brand of remote sensor devices
 Fire Alarms;Support for remote controlled fire alarms
 FooGadget;FooGadget makes interfaces for sensors and electric power meters
 FS20 System;FS20 is a German systems for sensors and remote controlled switches and dimmers
-Graphs;OpenNetHome can plot graphs over and measured value in the system
-GUI;OpenNetHome has an easy to use WEB based GUI
+Graphs;OpenNetHome can plot graphs over any measured value in the system
+GUI;OpenNetHome has a small desktop GUI, but the main interface is the WEB GUI
 Hygrometers;A number of different hygrometers are supported
 IKEA Tradfri;The IKEA Tradfri series of remote controlled lamps are supported
 Integration;A number of open interfaces are exposed to support integration with other systems
-IoT;IoT integration protocols are supported, and as OpenNEtHome can run on quite small devices, it can be considered as a IoT device itself.
+IoT;IoT integration protocols are supported, and as OpenNetHome can run on quite small devices, it can be considered as a IoT device itself.
 IR;With proper hardware, IR transmission is supported.
-Jabber;The Jabber (XMPP) protocol is an open protocol for instant messaging, which can be used to send messages or trigger action sby receiving messages
+Jabber;The Jabber (XMPP) protocol is an open protocol for instant messaging, which can be used to send messages or trigger actions by receiving messages
 JeeLink;
-Linux;OpenNetHome can run on Linux, and some Items are specific for tis platform
+Linux;OpenNetHome can run on Linux, and some Items are specific for this platform
 LM-Sensors;LM-Sensors for measuring motherboard temperatures and fans is supported
 MBM;Mother Board Monitor is supported
 Messaging;Sending and receiving messages
