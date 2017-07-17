@@ -133,6 +133,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("MDNSScanner", nu.nethome.home.items.MDNSScanner.class),
 
             // rf-items
+            new HomeItemClassInfo("GenericThermometer", nu.nethome.home.items.GenericThermometer.class),
             new HomeItemClassInfo("UPMThermometer", nu.nethome.home.items.upm.UPMThermometer.class),
             new HomeItemClassInfo("UPMHygrometer", nu.nethome.home.items.upm.UPMHygrometer.class),
             new HomeItemClassInfo("UPMWindSpeed", nu.nethome.home.items.upm.UPMWindSpeed.class),
