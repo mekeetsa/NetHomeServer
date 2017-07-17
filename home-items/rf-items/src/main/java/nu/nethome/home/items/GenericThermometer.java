@@ -39,7 +39,7 @@ import java.util.logging.Logger;
 @HomeItemType(value = "Thermometers", creationEvents = "Temperature_Message")
 public class GenericThermometer extends HomeItemAdapter implements HomeItem, ValueItem {
 
-    private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
+    protected static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"%s\" Category=\"%s\" >"
             + "  <Attribute Name=\"Temperature\" 	Type=\"String\" Get=\"getValue\" Default=\"true\" Unit=\"°C\" />"
             + "  <Attribute Name=\"BatteryLevel\" 	Type=\"String\" Get=\"getBatteryLevel\"  Unit=\"%%\" />"
@@ -51,9 +51,9 @@ public class GenericThermometer extends HomeItemAdapter implements HomeItem, Val
             + "  <Attribute Name=\"M\" Type=\"String\" Get=\"getM\" 	Set=\"setM\" />"
             + "</HomeItem> ");
 
-    private static final String ADDRESS = ("  <Attribute Name=\"Address\" Type=\"String\" Get=\"getAddress\" 	Set=\"setAddress\" />");
+    protected static final String ADDRESS = ("  <Attribute Name=\"Address\" Type=\"String\" Get=\"getAddress\" 	Set=\"setAddress\" />");
 
-    private static Logger logger = Logger.getLogger(GenericThermometer.class.getName());
+    protected static Logger logger = Logger.getLogger(GenericThermometer.class.getName());
     private ExtendedLoggerComponent tempLoggerComponent = new ExtendedLoggerComponent(this);
     private static final SimpleDateFormat dateFormatter = new SimpleDateFormat("HH:mm:ss yyyy.MM.dd ");
 
@@ -61,7 +61,7 @@ public class GenericThermometer extends HomeItemAdapter implements HomeItem, Val
     private double temperature = 0;
     private double constantK = 0.1;
     private double constantM = 0;
-    private String address = "1";
+    protected String address = "1";
     private Date latestUpdateOrCreation = new Date();
     private boolean hasBeenUpdated = false;
     private boolean batteryIsLow = false;
@@ -75,12 +75,9 @@ public class GenericThermometer extends HomeItemAdapter implements HomeItem, Val
 
     @Override
     public boolean receiveEvent(Event event) {
-        if (event.isType("Temperature_Message") &&
-                event.getAttribute("Address").equals(address)) {
-            // Recalculate the raw temperature value to Celsius Degrees
-            double temp = constantK * event.getAttributeInt(Event.EVENT_VALUE_ATTRIBUTE) + constantM;
+        if (event.isType("Temperature_Message") && event.getAttribute("Address").equals(address)) {
             boolean newBatteryLevel = event.getAttributeInt("LowBattery") != 0;
-            update(temp, newBatteryLevel);
+            update(event.getAttributeInt(Event.EVENT_VALUE_ATTRIBUTE), newBatteryLevel);
             return true;
         } else {
             return handleInit(event);
@@ -93,8 +90,8 @@ public class GenericThermometer extends HomeItemAdapter implements HomeItem, Val
         return true;
     }
 
-    protected void update(double temp, boolean newBatteryLevel) {
-        temperature = temp;
+    protected void update(int rawTemperature, boolean newBatteryLevel) {
+        temperature = constantK * rawTemperature + constantM;
         if (!batteryIsLow && newBatteryLevel) {
             logger.warning("Low battery for " + name);
         }

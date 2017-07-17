@@ -195,6 +195,7 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("IkeaGateway", nu.nethome.home.items.ikea.IkeaGateway.class),
             new HomeItemClassInfo("IkeaLamp", nu.nethome.home.items.ikea.IkeaLamp.class),
             new HomeItemClassInfo("IkeaColorTemperatureLamp", nu.nethome.home.items.ikea.IkeaColorTemperatureLamp.class),
+            new HomeItemClassInfo("PrologueThermometer", nu.nethome.home.items.prologue.PrologueThermometer.class),
 
             // web-items
             new HomeItemClassInfo("Room", nu.nethome.home.items.infra.Room.class),
