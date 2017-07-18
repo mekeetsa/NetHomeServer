@@ -109,6 +109,7 @@ public class PlanPage implements HomePageInterface {
         } else if (arguments.isAction("click")) {
             viewedPlan.setClickAction(arguments.getName());
         }
+        printPlanCustomCss(p, viewedPlan);
         printPlanUpdateScript(p, viewedPlan, arguments.isEditMode());
         printPlanPageStart(p, viewedPlan);
         printPlanItems(server, p, viewedPlan, arguments);
@@ -132,6 +133,13 @@ public class PlanPage implements HomePageInterface {
         int updateInterval = viewedPlan.getUpdateIntervalInt() * 1000;
         if (!editMode && (updateInterval > 0)) {
             p.println("<script>window.setInterval(getItemValues," + updateInterval + ");</script>");
+        }
+    }
+
+    private void printPlanCustomCss(PrintWriter p, Plan viewedPlan) {
+        String cssFile = viewedPlan.getCustomCSS();
+        if (!cssFile.isEmpty()) {
+            p.printf("<link rel=\"stylesheet\" type=\"text/css\" href=\"%s\">\n", cssFile);
         }
     }
 
