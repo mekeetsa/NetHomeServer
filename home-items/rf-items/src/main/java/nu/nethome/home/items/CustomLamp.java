@@ -32,8 +32,8 @@ import java.util.logging.Logger;
 /**
  * Represents a switch (typically connected to a lamp) which is controlled by custom
  * commands. The commands could for example be external shell scripts, which operates home made
- * relays.
- * <p/>
+ * relays where the onCommand could be: "exec /home/serial1_1 on" which would execute the
+ * shell script "serial1_1".
  * <br>
  *
  * @author Stefan
