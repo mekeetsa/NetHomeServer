@@ -44,8 +44,9 @@ import java.util.logging.Logger;
 @Plugin
 @HomeItemType("Ports")
 public class HomeCloudConnection extends HomeItemAdapter implements Runnable, HomeItem {
-    // TODO: Handle POST and DELETE
     // TODO: Transfer error codes
+    // TODO: Brute force protection
+
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"HomeCloudConnection\" Category=\"Ports\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
@@ -55,7 +56,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
             + "  <Attribute Name=\"AccountKey\" Type=\"String\" Get=\"getAccountKey\" Set=\"setAccountKey\" />"
             + "  <Attribute Name=\"ServerNumber\" Type=\"String\" Get=\"getServerNumber\" Set=\"setServerNumber\" />"
             + "  <Attribute Name=\"ServerName\" Type=\"String\" Get=\"getServerName\" Set=\"setServerName\" />"
-            + "  <Attribute Name=\"UserPassword\" Type=\"Password\" Get=\"getPassword\" Set=\"setPassword\" />"
+            + "  <Attribute Name=\"UserPassword\" Type=\"String\" Get=\"getPassword\" Set=\"setPassword\" />"
             + "  <Attribute Name=\"MessageCount\" Type=\"String\" Get=\"getMessageCount\" />"
             + "  <Action Name=\"Reconnect\" 	Method=\"reconnect\" />"
             + "</HomeItem> ");
