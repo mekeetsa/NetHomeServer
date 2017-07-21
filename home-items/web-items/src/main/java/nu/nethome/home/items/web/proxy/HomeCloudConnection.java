@@ -44,8 +44,6 @@ import java.util.logging.Logger;
 @Plugin
 @HomeItemType("Ports")
 public class HomeCloudConnection extends HomeItemAdapter implements Runnable, HomeItem {
-    // TODO: Transfer error codes
-    // TODO: Brute force protection
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"HomeCloudConnection\" Category=\"Ports\" >"
@@ -65,6 +63,8 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     static final String LOGIN_RESOURCE = "api/server-sessions";
     static final String CLOUD_POLL_RESOURCE = "api/servers/%s/poll";
     private static final String CLOUD_ACCOUNT = "Cloud-Account";
+    private static final int MAX_FAILED_LOGIN_ATTEMPTS = 3;
+    private static final int MAX_LOGIN_ATTEMPTS_LOCKOUT_MS = 2 * 60 * 1000;
 
     private String serviceURL = "https://cloud.opennethome.org/";
     private String localURL = "http://127.0.0.1:8020/";
@@ -88,6 +88,7 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     JsonRestClient jsonRestClient;
     private String pollResource;
     private String currentSessionToken;
+    private int failedLoginAttempts;
 
     public HomeCloudConnection() {
         account = Integer.toString(new Random().nextInt(10000));
@@ -164,6 +165,11 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
             HttpResponse lastHttpResponse = HttpResponse.challenge(currentChallenge);
             while (isRunning & !doReconnect) {
                 lastHttpResponse = proxyHttpRequest(lastHttpResponse, loginResp.Id);
+                if (failedLoginAttempts >= MAX_FAILED_LOGIN_ATTEMPTS) {
+                    logger.warning(Integer.toString(MAX_FAILED_LOGIN_ATTEMPTS) + " failed login attempts to " + this.getName() + ". Going temporary offline");
+                    Thread.sleep(MAX_LOGIN_ATTEMPTS_LOCKOUT_MS);
+                    failedLoginAttempts = 0;
+                }
             }
             connected = false;
         }
@@ -212,8 +218,10 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
         if (expectedHashString.equals(loginCredential)) {
             currentSessionToken = generateSessionToken();
             httpResponse = HttpResponse.loginSucceeded(currentChallenge, currentSessionToken);
+            failedLoginAttempts = 0;
         } else {
             httpResponse = HttpResponse.loginFailed(currentChallenge);
+            failedLoginAttempts++;
         }
         return httpResponse;
     }
@@ -321,7 +329,13 @@ public class HomeCloudConnection extends HomeItemAdapter implements Runnable, Ho
     }
 
     public String getState() {
-        return accountKeyIsBad ? "Authentication Failure" : connected ? "Connected" : "Not Connected";
+        if (accountKeyIsBad ) {
+            return "Bad account key";
+        }
+        if (failedLoginAttempts >= MAX_FAILED_LOGIN_ATTEMPTS) {
+            return "Failed login lockout";
+        }
+        return connected ? "Connected" : "Not Connected";
     }
 
     public String getAccountKey() {
