@@ -19,17 +19,12 @@
 
 package nu.nethome.home.items.web.proxy;
 
-import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
 import org.json.JSONObject;
-
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.KeyManagementException;
@@ -135,7 +130,7 @@ public class JsonRestClient {
     }
 
     private static SSLSocketFactory getLetsEncryptTrustedSocketFactory() {
-        ByteInputStream fis = new ByteInputStream(LetsEcryptCA_X3_pem.getBytes(), LetsEcryptCA_X3_pem.length());
+        ByteArrayInputStream fis = new ByteArrayInputStream(LetsEcryptCA_X3_pem.getBytes());
         X509Certificate ca = null;
         try {
             ca = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(fis);
