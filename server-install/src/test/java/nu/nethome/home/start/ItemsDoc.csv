@@ -21,6 +21,7 @@ NexaSmokeDetector;433MHz;Trigger actions from a smoke detector using the Nexa pr
 OregonHygrometer;433MHz;Wireless hygrometer using the Oregon Scientific protocol
 OregonThermometer;433MHz;Wireless thermometer using the Oregon Scientific protocol
 OregonWind;433MHz;Wireless wind gauge using the Oregon Scientific protocol
+PrologueThermometer;433MHz;Wireless thermometer using the Prologue protocol
 ProntoDevice;433MHz;Device controlled by sending recorded RF/IR commands using the Pronto format
 ProntoLamp;433MHz;Lamp controlled by sending recorded RF/IR commands using the Pronto format
 RFBitBangerTransmitter;433MHz;Encodes RF/IR messages for DIY RF transmitters via RFBitBanger for RaspberryPi
@@ -80,8 +81,10 @@ DeltronicLamp;Deltronic;Control remote switches using Deltronic-protocol
 DeltronicRemapButton;Deltronic;Trigger actions by a remote control using the Deltronic protocol
 AudioProtocolParser;DIY Friendly;Decodes RF/IR messages for DIY RF recievers. Lot of built in decoders
 AudioProtocolTransmitter;DIY Friendly;Encodes RF/IR messages for DIY RF transmitters. Lot of built in encoders 
+CustomLamp;DIY Friendly;Lamp Item where actions to turn on and off are configurable by user
 DebugManager;DIY Friendly;Add/remove debug logging from Items
 GenericProntoCommander;DIY Friendly;Send recorded RF/IR commands using the Pronto format
+GenericThermometer;DIY Friendly;Thermometer Item used for integration with home made thermometer sensors
 ProntoDevice;DIY Friendly;Device controlled by sending recorded RF/IR commands using the Pronto format
 ProntoLamp;DIY Friendly;Lamp controlled by sending recorded RF/IR commands using the Pronto format
 RFBitBangerTransmitter;DIY Friendly;Encodes RF/IR messages for DIY RF transmitters via RFBitBanger for RaspberryPi
@@ -105,6 +108,8 @@ UPMHygrometer;Hygrometers;Wireless hygrometer using the UPM protocol
 IkeaColorTemperatureLamp;IKEA Tradfri;IKEA Tradfri remote controlled lamp bulb with adjustable color temperature
 IkeaGateway;IKEA Tradfri;IKEA Tradfri remote gateway
 IkeaLamp;IKEA Tradfri;IKEA Tradfri remote controlled lamp bulb
+CustomLamp;Integration;Lamp Item where actions to turn on and off are configurable by user
+GenericThermometer;Integration;Thermometer Item used for integration with home made thermometer sensors
 HomeGUI;Integration;The WEB interface used to configure and use OpenNetHome
 MqttClient;Integration;Connects to an MQTT server and sends messages and subscribes for topics
 MqttCommandPort;Integration;Turns all Items in the server into MQTT-Topics which can be called via their actions
@@ -180,6 +185,7 @@ HueLamp;PHILIPS Hue;PHILPS Hue remote controlled lamp bulb
 Plan;Plan Layout;Organizes Items on a graphical plan view
 FooGadgetLegacy;Power Meters;Wireless power consumption meter
 FooGadgetPulse;Power Meters;Wireless power consumption meter
+PrologueThermometer;Prologue;Wireless thermometer using the Prologue protocol
 GenericProntoCommander;Pronto;Send recorded RF/IR commands using the Pronto format
 ProntoDevice;Pronto;Device controlled by sending recorded RF/IR commands using the Pronto format
 ProntoLamp;Pronto;Lamp controlled by sending recorded RF/IR commands using the Pronto format
@@ -195,6 +201,7 @@ FooGadgetPulse;Remote Sensors;Wireless power consumption meter
 OregonHygrometer;Remote Sensors;Wireless hygrometer using the Oregon Scientific protocol
 OregonThermometer;Remote Sensors;Wireless thermometer using the Oregon Scientific protocol
 OregonWind;Remote Sensors;Wireless wind gauge using the Oregon Scientific protocol
+PrologueThermometer;Remote Sensors;Wireless thermometer using the Prologue protocol
 UPMHygrometer;Remote Sensors;Wireless hygrometer using the UPM protocol
 UPMRainfall;Remote Sensors;Wireless rain gauge using the UPM protocol
 UPMThermometer;Remote Sensors;Wireless thermometer using the UPM protocol
@@ -268,10 +275,12 @@ TeamCityBuildMonitor;TeamCity;Monitors builds and triggers actions on failing bu
 Tellstick;Telldus;Connects to a Telldus TellstickDuo 433MHz remote control
 Tellstick;Tellstick;Connects to a Telldus TellstickDuo 433MHz remote control
 FineOffsetThermometer;Thermometers;Wireless thermometer using the FineOffset protocol
+GenericThermometer;Thermometers;Thermometer Item used for integration with home made thermometer sensors
 LmSensorsThermometer;Thermometers;Measures mother board temperatures via the lm-module (Linux only)
 MBMThermometer;Thermometers;Measures mother board temperatures via the Motherboard Monitor program
 MqttThermometer;Thermometers;Presents temperature values received via MQTT
 OregonThermometer;Thermometers;Wireless thermometer using the Oregon Scientific protocol
+PrologueThermometer;Thermometers;Wireless thermometer using the Prologue protocol
 TempWEB;Thermometers;Separate WEB GUI to present thermometer values and graphs
 UPMThermometer;Thermometers;Wireless thermometer using the UPM protocol
 DayLiteTimer;Timers;Week timer with suppport for sun rise/sun set control (Use SunTimer)
