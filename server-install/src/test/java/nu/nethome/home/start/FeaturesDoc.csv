@@ -32,6 +32,7 @@ Organizing ;OpenNetHome allows you to organize and group your Items in your home
 PHILIPS Hue;The PHILIPS Hue series of remote controlled bulbs is supported
 Plan Layout;You can import plan images of your home and use as layout in the WEB interface
 Power Meters;
+Prologue;Prologue is a brand of Wireless thermometers and weather stations
 Pronto;The Pronto format for sampling and replaying IR and RF signals is supported
 Rain Gauges;
 Raspberry Pi;OpenNetHome has specific installation support for RaspberryPi giving a very simple and smooth installation
