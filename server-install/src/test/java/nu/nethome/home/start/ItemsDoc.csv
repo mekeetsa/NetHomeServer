@@ -191,6 +191,7 @@ ProntoDevice;Pronto;Device controlled by sending recorded RF/IR commands using t
 ProntoLamp;Pronto;Lamp controlled by sending recorded RF/IR commands using the Pronto format
 FineOffsetRainGauge;Rain Gauges;Wireless rain gauge using the FineOffset protocol
 UPMRainfall;Rain Gauges;Wireless rain gauge using the UPM protocol
+FS20Lamp;Remote Dimmers;Remote Switch/Dimmer using the FS20 system
 NexaLCDimmer;Remote Dimmers;Control remote dimmers using Nexa Learning Code protocol
 ZWaveDimmer;Remote Dimmers;Controls a Z-Wave dimmer
 FineOffsetHygrometer;Remote Sensors;Wireless hygrometer using the FineOffset protocol

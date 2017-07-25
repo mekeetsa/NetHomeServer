@@ -7,6 +7,13 @@ import nu.nethome.home.items.GenericThermometer;
 import nu.nethome.home.system.Event;
 import nu.nethome.util.plugin.Plugin;
 
+/**
+ * Presents and logs temperature values received by an Prologue-temperature sensor. The actual
+ * values are received as events which may be sent by any kind of receiver module
+ * which can receive the 433MHz Prologue messages from the thermometer sensors.
+ *
+ * @author Stefan
+ */
 @Plugin
 @HomeItemType(value = "Thermometers", creationInfo = PrologueThermometer.CreationInfo.class)
 public class PrologueThermometer extends GenericThermometer implements HomeItem {
