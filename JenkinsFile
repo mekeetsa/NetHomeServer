@@ -1,17 +1,17 @@
 #!groovy​
 
 node {
-    stage 'Checkout' {
+    stage('Checkout') {
         git url: 'https://github.com/NetHome/NetHomeServer.git'
     }
 
-    stage 'Build' {
+    stage('Build') {
         withEnv(["JAVA_HOME=${tool 'Java8'}", "PATH+MAVEN=${tool 'Maven3'}/bin:${env.JAVA_HOME}/bin"]) {
             sh "mvn --batch-mode -V -U -e clean install -Dsurefire.useFile=false"
         }
     }
 
-    stage 'deploy' {
+    stage('deploy') {
         withCredentials([usernameColonPassword(credentialsId: 'nethomeftp', variable: 'NETHOMEFTP')]) {
             if (params.isStaging) {
                 sh '''
