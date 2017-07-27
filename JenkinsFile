@@ -12,5 +12,15 @@ node {
         stage 'Build'
 
         sh "mvn --batch-mode -V -U -e clean install -Dsurefire.useFile=false"
+
+        stage 'deploy'
+
+        withCredentials([usernameColonPassword(credentialsId: 'nethomeftp', variable: 'NETHOMEFTP')]) {
+            sh '''
+                set +x
+                cp server-install/target/nethomeservernightly.zip server-install/target/nethomeserverstaging.zip
+                curl -T server-install/target/nethomeserverstaging.zip ftp://ftpcluster.loopia.se/wiki.nethome.nu/public_html/data/media/ --user $NETHOMEFTP
+               '''
+        }
     }
 }
