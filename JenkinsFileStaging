@@ -1,26 +1,23 @@
 #!groovy​
 
-node {
-    stage 'Configure'
-
+pipeline {
     withEnv(["JAVA_HOME=${ tool 'Java8' }", "PATH+MAVEN=${tool 'Maven3'}/bin:${env.JAVA_HOME}/bin"]) {
+        stage 'Checkout' {
+            git url: 'https://github.com/NetHome/NetHomeServer.git'
+        }
 
-        stage 'Checkout'
+        stage 'Build' {
+            sh "mvn --batch-mode -V -U -e clean install -Dsurefire.useFile=false"
+        }
 
-        git url: 'https://github.com/NetHome/NetHomeServer.git'
-
-        stage 'Build'
-
-        sh "mvn --batch-mode -V -U -e clean install -Dsurefire.useFile=false"
-
-        stage 'deploy'
-
-        withCredentials([usernameColonPassword(credentialsId: 'nethomeftp', variable: 'NETHOMEFTP')]) {
-            sh '''
-                set +x
-                cp server-install/target/nethomeservernightly.zip server-install/target/nethomeserverstaging.zip
-                curl -T server-install/target/nethomeserverstaging.zip ftp://ftpcluster.loopia.se/wiki.nethome.nu/public_html/data/media/ --user $NETHOMEFTP
-               '''
+        stage 'Deploy' {
+            withCredentials([usernameColonPassword(credentialsId: 'nethomeftp', variable: 'NETHOMEFTP')]) {
+                sh '''
+                    set +x
+                    cp server-install/target/nethomeservernightly.zip server-install/target/nethomeserverstaging.zip
+                    curl -T server-install/target/nethomeserverstaging.zip ftp://ftpcluster.loopia.se/wiki.nethome.nu/public_html/data/media/ --user $NETHOMEFTP
+                   '''
+            }
         }
     }
 }
