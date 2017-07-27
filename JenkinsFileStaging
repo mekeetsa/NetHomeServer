@@ -12,7 +12,15 @@ pipeline {
         stage('Build') {
             steps {
                 withEnv(["JAVA_HOME=${tool 'Java8'}", "PATH+MAVEN=${tool 'Maven3'}/bin:${env.JAVA_HOME}/bin"]) {
-                    sh "mvn --batch-mode -V -U -e clean install -Dsurefire.useFile=false"
+                    sh "mvn --batch-mode -V -U -e clean compile -Dsurefire.useFile=false"
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                withEnv(["JAVA_HOME=${tool 'Java8'}", "PATH+MAVEN=${tool 'Maven3'}/bin:${env.JAVA_HOME}/bin"]) {
+                    sh "mvn --batch-mode -V -U -e install -Dsurefire.useFile=false"
                 }
             }
         }
