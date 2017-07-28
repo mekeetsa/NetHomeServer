@@ -60,8 +60,8 @@ cp $INSTALLATION_ROOT/os/librxtxSerial_raspian.so $INSTALLATION_ROOT/lib/librxtx
 cp $SRCPATH/rpi_daemon_start.sh $INSTALLATION_ROOT/rpi_daemon_start.sh
 chmod +x $INSTALLATION_ROOT/rpi_daemon_start.sh
 chmod -w $INSTALLATION_ROOT/lib
-cp $SRCPATH/upgrade_nethome_nightly.sh /home/nethome/
-chmod +x /home/nethome/upgrade_nethome_nightly.sh
+cp $SRCPATH/upgrade_nethome.sh /home/nethome/
+chmod +x /home/nethome/upgrade_nethome.sh
 
 # Configuration
 mkdir $CONFIGURATION_ROOT
