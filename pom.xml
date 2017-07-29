@@ -10,7 +10,7 @@
     <url>http://www.nethome.nu</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <NethomeVersion>3.0</NethomeVersion>
+        <NethomeVersion>3.0-SNAPSHOT</NethomeVersion>
         <utils.version>1.1</utils.version>
         <coders.version>1.2</coders.version>
         <zwave.version>1.0</zwave.version>
