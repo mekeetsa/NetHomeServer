@@ -82,6 +82,13 @@ public class IkeaGatewayClient {
                     return jsonData;
                 } else {
                     isConnected = false;
+                    if (response == null) {
+                        logger.info("Timeout waiting for response from IKEA GW " + uri);
+                    } else if (!CoAP.ResponseCode.isSuccess(response.getCode())) {
+                        logger.info("Failed request for IKEA GW, error: " + response.getCode().toString());
+                    } else if (response.getPayloadSize() == 0) {
+                        logger.info("Failed GET request for IKEA GW, no response data");
+                    }
                     return null;
                 }
             } catch (InterruptedException e) {
