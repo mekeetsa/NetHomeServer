@@ -85,9 +85,9 @@ public class IkeaGatewayClient {
                     if (response == null) {
                         logger.info("Timeout waiting for response from IKEA GW " + uri);
                     } else if (!CoAP.ResponseCode.isSuccess(response.getCode())) {
-                        logger.info("Failed request for IKEA GW, error: " + response.getCode().toString());
+                        logger.info(String.format("Failed request for IKEA GW (%s), error: %s", uri, response.getCode().toString()));
                     } else if (response.getPayloadSize() == 0) {
-                        logger.info("Failed GET request for IKEA GW, no response data");
+                        logger.info("Failed GET request for IKEA GW, no response data: " + uri);
                     }
                     return null;
                 }
