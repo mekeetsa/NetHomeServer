@@ -81,6 +81,7 @@ public class IkeaGateway extends HomeItemAdapter {
             + "<HomeItem Class=\"IkeaGateway\"  Category=\"Hardware\" >"
             + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\" />"
             + "  <Attribute Name=\"Address\" Type=\"String\" Get=\"getAddress\" Set=\"setAddress\" />"
+            + "  <Attribute Name=\"Port\" Type=\"String\" Get=\"getPort\" Set=\"setPort\" />"
             + "  <Attribute Name=\"Identity\" Type=\"String\" Get=\"getBridgeIdentity\" Init=\"setBridgeIdentity\" />"
             + "  <Attribute Name=\"SecurityCode\" Type=\"Password\" Get=\"getSecurityCode\" Init=\"setSecurityCode\" />"
             + "  <Attribute Name=\"NodeCount\" Type=\"String\" Get=\"getNodeCount\" />"
@@ -91,6 +92,7 @@ public class IkeaGateway extends HomeItemAdapter {
 
     private String securityCode = "";
     private String address = "";
+    private String port = "";
     private String bridgeIdentity = "";
     private int refreshInterval = 5;
     private int refreshCounter = 0;
@@ -112,7 +114,7 @@ public class IkeaGateway extends HomeItemAdapter {
     private void setPresharedKeyIfAvaliable() {
         if (!securityCode.isEmpty() && !address.isEmpty()) {
             client.setRouterKey(new InetSocketAddress(getAddress(), DESTINATION_PORT),"", securityCode.getBytes());
-            nodeCount = client.getNodeIds(address).size();
+            nodeCount = client.getNodeIds(address, port).size();
         }
     }
 
@@ -135,8 +137,9 @@ public class IkeaGateway extends HomeItemAdapter {
             return true;
         } else if (event.isType("ReportItems")) {
             reportNodes();
-        } else if (event.isType(MDNS_CREATION_MESSAGE) && event.getAttribute(MDNSScanner.MDNS_LOCATION).equals(address)) {
+        } else if (event.isType(MDNS_CREATION_MESSAGE) && event.getAttribute(MDNSScanner.MDNS_SERVICE_NAME).equals(bridgeIdentity)) {
             setAddress(event.getAttribute(MDNSScanner.MDNS_LOCATION));
+            setPort(event.getAttribute(MDNSScanner.MDNS_PORT));
             return true;
         }
         return false;
@@ -145,13 +148,14 @@ public class IkeaGateway extends HomeItemAdapter {
     @Override
     protected boolean initAttributes(Event event) {
         setAddress(event.getAttribute(MDNSScanner.MDNS_LOCATION));
+        setPort(event.getAttribute(MDNSScanner.MDNS_PORT));
         setBridgeIdentity(event.getAttribute(MDNSScanner.MDNS_SERVICE_NAME));
         return true;
     }
 
 
     private void reportNodes() {
-        List<JSONObject> nodes = client.getNodes(address);
+        List<JSONObject> nodes = client.getNodes(address, port);
         nodeCount = nodes.size();
         for (JSONObject node : nodes) {
             Event event = server.createEvent(IKEA_NODE_MESSAGE, node.toString());
@@ -164,7 +168,7 @@ public class IkeaGateway extends HomeItemAdapter {
     }
 
     private void sendCoapsMessage(String resource, String method, String body, String id) {
-        String uri = String.format("coaps://%s%s", address, resource);
+        String uri = String.format("coaps://%s%s%s%s", address, port.isEmpty() ? "" : ":", port, resource);
         JSONData jsonResponse = client.sendCoapMessage(uri, method, body);
         if (!id.isEmpty() && jsonResponse != null) {
             Event event = server.createEvent(IKEA_MESSAGE, jsonResponse.toString());
@@ -222,5 +226,13 @@ public class IkeaGateway extends HomeItemAdapter {
 
     public String getNodeCount() {
         return Integer.toString(nodeCount);
+    }
+
+    public String getPort() {
+        return port;
+    }
+
+    public void setPort(String port) {
+        this.port = port;
     }
 }

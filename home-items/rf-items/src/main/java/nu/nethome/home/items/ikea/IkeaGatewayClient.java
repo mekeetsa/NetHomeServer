@@ -107,9 +107,9 @@ public class IkeaGatewayClient {
         return sendCoapMessage(uri, "GET", "");
     }
 
-    public List<Integer> getNodeIds(String address) {
+    public List<Integer> getNodeIds(String address, String port) {
         ArrayList<Integer> result = new ArrayList<>();
-        JSONData nodelist = getJsonMessage(String.format("coaps://%s%s", address, NODES));
+        JSONData nodelist = getJsonMessage(String.format("coaps://%s%s%s%s", address, port.isEmpty() ? "" : ":", port, NODES));
         if (nodelist != null && !nodelist.isObject()) {
             JSONArray jsonArray = nodelist.getArray();
             for (int i = 0; i < jsonArray.length(); i++) {
@@ -119,10 +119,10 @@ public class IkeaGatewayClient {
         return result;
     }
 
-    public List<JSONObject> getNodes(String address) {
+    public List<JSONObject> getNodes(String address, String port) {
         ArrayList<JSONObject> result = new ArrayList<>();
-        for (int nodeId : getNodeIds(address)) {
-            JSONData nodeInfo = getJsonMessage(String.format("coaps://%s%s/%d", address, NODES, nodeId));
+        for (int nodeId : getNodeIds(address, port)) {
+            JSONData nodeInfo = getJsonMessage(String.format("coaps://%s%s%s%s/%d", address, port.isEmpty() ? "" : ":", port, NODES, nodeId));
             if (nodeInfo != null && nodeInfo.isObject()) {
                 result.add(nodeInfo.getObject());
             }
