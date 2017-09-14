@@ -50,6 +50,8 @@ public class CommandSequencer extends Scene implements HomeItem {
 			+ "  <Attribute Name=\"LatestCommand\" Type=\"String\" Get=\"getLatestCommand\" 	Set=\"setLatestCommand\" />"
             + "  <Action Name=\"Next\" 	Method=\"next\" />"
             + "  <Action Name=\"Previous\" 	Method=\"previous\" />"
+            + "  <Action Name=\"First\" 	Method=\"first\" />"
+            + "  <Action Name=\"Last\" 	Method=\"last\" />"
             + "  <Action Name=\"Enable\" 	Method=\"enableScene\" />"
             + "  <Action Name=\"Disable\" 	Method=\"disableScene\" />"
 			+ "</HomeItem> ");
@@ -83,9 +85,19 @@ public class CommandSequencer extends Scene implements HomeItem {
         if (!activeState) {
             return "";
         }
-        performCommand(getCommand(latestCommand));
+        performCommand(getCommand(nextCommand));
         latestCommand = nextCommand;
         return "";
+    }
+
+    public String first() {
+        return performCommandN(1);
+    }
+
+    public String last() {
+        int i;
+        for (i = MAX_COMMAND; (i > MIN_COMMAND) && getCommand(i).isEmpty(); i--);
+        return performCommandN(i);
     }
 
     private String getCommand(int index) {
