@@ -60,7 +60,7 @@ public class IkeaGatewayClient {
         }
     }
 
-    public JSONData sendCoapMessage(String uri, String method, String body) {
+    public JSONData sendCoapRequest(String uri, String method, String body, boolean getResponse) {
         Request request = requestFromType(method);
         request.setURI(uri);
         if (!isGetRequest(request)) {
@@ -70,7 +70,7 @@ public class IkeaGatewayClient {
 
         request.send();
 
-        if (isGetRequest(request)) {
+        if (getResponse) {
             Response response;
             try {
                 response = request.waitForResponse(MESSAGE_TIMEOUT);
@@ -104,7 +104,7 @@ public class IkeaGatewayClient {
     }
 
     public JSONData getJsonMessage(String uri) {
-        return sendCoapMessage(uri, "GET", "");
+        return sendCoapRequest(uri, "GET", "", true);
     }
 
     public List<Integer> getNodeIds(String address, String port) {

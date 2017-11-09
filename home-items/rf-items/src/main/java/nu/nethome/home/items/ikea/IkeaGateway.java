@@ -84,6 +84,8 @@ public class IkeaGateway extends HomeItemAdapter {
             + "  <Attribute Name=\"Port\" Type=\"String\" Get=\"getPort\" Set=\"setPort\" />"
             + "  <Attribute Name=\"Identity\" Type=\"String\" Get=\"getBridgeIdentity\" Init=\"setBridgeIdentity\" />"
             + "  <Attribute Name=\"SecurityCode\" Type=\"Password\" Get=\"getSecurityCode\" Init=\"setSecurityCode\" />"
+            + "  <Attribute Name=\"ClientCode\" Type=\"Password\" Get=\"getClientCode\" Init=\"setClientCode\" />"
+            + "  <Attribute Name=\"ClientName\" Type=\"String\" Get=\"getClientName\" Init=\"setClientName\" />"
             + "  <Attribute Name=\"NodeCount\" Type=\"String\" Get=\"getNodeCount\" />"
             + "</HomeItem> ");
 
@@ -91,6 +93,8 @@ public class IkeaGateway extends HomeItemAdapter {
     private static final int DESTINATION_PORT = 5684;
 
     private String securityCode = "";
+    private String clientCode = "";
+    private String clientName = "NetHome0001";
     private String address = "";
     private String port = "";
     private String bridgeIdentity = "";
@@ -108,12 +112,29 @@ public class IkeaGateway extends HomeItemAdapter {
     @Override
     public void activate() {
         client.start();
+        getClientCodeIfNeeded();
         setPresharedKeyIfAvaliable();
     }
 
+    private void getClientCodeIfNeeded() {
+        if (clientCode.isEmpty() && !securityCode.isEmpty() && !address.isEmpty()) {
+            client.setRouterKey(new InetSocketAddress(getAddress(), DESTINATION_PORT),"Client_identity", securityCode.getBytes());
+            String uri = createUri("/15011/9063");
+            String body = String.format("{\"9090\":\"%s\"}", clientName);
+            JSONData jsonResponse = client.sendCoapRequest(uri, "POST", body, true);
+            if (jsonResponse != null && jsonResponse.isObject() && jsonResponse.getObject().has("9091")) {
+                clientCode = jsonResponse.getObject().getString("9091");
+                client.stop();
+                client = new IkeaGatewayClient();
+                client.start();
+                securityCode = ""; // IKEA don't want us to save this code permanently
+            }
+        }
+    }
+
     private void setPresharedKeyIfAvaliable() {
-        if (!securityCode.isEmpty() && !address.isEmpty()) {
-            client.setRouterKey(new InetSocketAddress(getAddress(), DESTINATION_PORT),"", securityCode.getBytes());
+        if (!clientCode.isEmpty() && !address.isEmpty()) {
+            client.setRouterKey(new InetSocketAddress(getAddress(), DESTINATION_PORT),clientName, clientCode.getBytes());
             nodeCount = client.getNodeIds(address, port).size();
         }
     }
@@ -168,14 +189,18 @@ public class IkeaGateway extends HomeItemAdapter {
     }
 
     private void sendCoapsMessage(String resource, String method, String body, String id) {
-        String uri = String.format("coaps://%s%s%s%s", address, port.isEmpty() ? "" : ":", port, resource);
-        JSONData jsonResponse = client.sendCoapMessage(uri, method, body);
+        String uri = createUri(resource);
+        JSONData jsonResponse = client.sendCoapRequest(uri, method, body, method.equalsIgnoreCase("GET"));
         if (!id.isEmpty() && jsonResponse != null) {
             Event event = server.createEvent(IKEA_MESSAGE, jsonResponse.toString());
             event.setAttribute("Direction", "In");
             event.setAttribute(IKEA_NODE_ID, id);
             server.send(event);
         }
+    }
+
+    private String createUri(String resource) {
+        return String.format("coaps://%s%s%s%s", address, port.isEmpty() ? "" : ":", port, resource);
     }
 
     public String getSecurityCode() {
@@ -234,5 +259,21 @@ public class IkeaGateway extends HomeItemAdapter {
 
     public void setPort(String port) {
         this.port = port;
+    }
+
+    public String getClientCode() {
+        return clientCode;
+    }
+
+    public void setClientCode(String clientCode) {
+        this.clientCode = clientCode;
+    }
+
+    public String getClientName() {
+        return clientName;
+    }
+
+    public void setClientName(String clientName) {
+        this.clientName = clientName;
     }
 }
