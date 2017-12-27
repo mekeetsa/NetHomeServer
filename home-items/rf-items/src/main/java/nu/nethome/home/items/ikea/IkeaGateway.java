@@ -133,8 +133,9 @@ public class IkeaGateway extends HomeItemAdapter {
     }
 
     private void setPresharedKeyIfAvaliable() {
-        if (!clientCode.isEmpty() && !address.isEmpty()) {
-            client.setRouterKey(new InetSocketAddress(getAddress(), DESTINATION_PORT),clientName, clientCode.getBytes());
+        String preSharedKey = !clientCode.isEmpty() ? clientCode : securityCode;
+        if (!preSharedKey.isEmpty() && !address.isEmpty()) {
+            client.setRouterKey(new InetSocketAddress(getAddress(), DESTINATION_PORT),clientName, preSharedKey.getBytes());
             nodeCount = client.getNodeIds(address, port).size();
         }
     }

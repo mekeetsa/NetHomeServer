@@ -76,7 +76,7 @@ public class TellstickPort {
         }
 
         public SerialDevice(String m_ComPort) throws IOException {
-            // In order for RxTx to recognize CUL as a serial port on Linux, we have
+            // In order for RxTx to recognize all serial ports on Linux, we have
             // to add this system property. We make it possible to override by checking if the
             // property has already been set.
             if ((System.getProperty("os.name").toUpperCase().indexOf("LINUX") != -1) &&
