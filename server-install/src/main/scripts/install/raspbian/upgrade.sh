@@ -53,6 +53,8 @@ if [ ! -d $PID_ROOT ]; then
   mkdir -p $PID_ROOT
 fi
 chown -R $NH_USER $PID_ROOT
+# audio group was not in from start
+usermod -a -G audio $NH_USER
 
 # Start the server
 echo "Restarting server" 1>&2

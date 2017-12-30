@@ -47,9 +47,10 @@ if [ $? -ne 0 ]; then
 mkdir /home/nethome
 chown $NH_USER /home/nethome
 chgrp $NH_USER /home/nethome
-# Group membership to access serial ports
-usermod -a -G dialout nethome
-usermod -a -G tty nethome
+# Group membership to access serial ports and audio
+usermod -a -G dialout $NH_USER
+usermod -a -G tty $NH_USER
+usermod -a -G audio $NH_USER
 
 # Main installation
 echo "Copying files" 1>&2
