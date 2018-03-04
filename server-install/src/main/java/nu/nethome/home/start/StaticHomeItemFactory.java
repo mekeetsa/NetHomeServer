@@ -194,6 +194,8 @@ public class StaticHomeItemFactory implements HomeItemFactory {
             new HomeItemClassInfo("MqttHygrometer", nu.nethome.home.items.mqtt.MqttHygrometer.class),
             new HomeItemClassInfo("MqttRemapButton", nu.nethome.home.items.mqtt.MqttRemapButton.class),
             new HomeItemClassInfo("MqttCommandPort", MqttCommandPort.class),
+            new HomeItemClassInfo("MqttCommander", nu.nethome.home.items.net.MqttCommander.class),
+            new HomeItemClassInfo("MqttLamp", nu.nethome.home.items.net.MqttLamp.class),
             new HomeItemClassInfo("IkeaGateway", nu.nethome.home.items.ikea.IkeaGateway.class),
             new HomeItemClassInfo("IkeaLamp", nu.nethome.home.items.ikea.IkeaLamp.class),
             new HomeItemClassInfo("IkeaColorTemperatureLamp", nu.nethome.home.items.ikea.IkeaColorTemperatureLamp.class),
