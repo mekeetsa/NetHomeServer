@@ -54,6 +54,27 @@ public class MqttLamp extends MqttCommander implements HomeItem {
         return MODEL;
     }
 
+    @Override
+    public boolean receiveEvent(Event event) {
+        // Check the event and see if they affect our current state.
+        if (event.isType(MqttClient.MQTT_MESSAGE_TYPE)
+                && event.getAttribute("Direction").equals("In")
+                && (event.getAttribute(MqttClient.MQTT_TOPIC).equals(getTopic()))) {
+            //Ok, this event affects us, act on it
+            processEvent(event.getAttribute(MqttClient.MQTT_MESSAGE));
+            return true;
+        }
+        return false;
+    }
+
+    private void processEvent(String event) {
+        if (event.equalsIgnoreCase(getCommand1())) {
+            state = "On";
+        } else if (event.equalsIgnoreCase(getCommand2())) {
+            state = "Off";
+        }
+    }
+
     public String on() {
         sendCommand1();
         state = "On";

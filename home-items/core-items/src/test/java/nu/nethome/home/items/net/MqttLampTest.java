@@ -3,6 +3,7 @@ package nu.nethome.home.items.net;
 import com.sun.org.apache.xerces.internal.parsers.SAXParser;
 import nu.nethome.home.impl.InternalEvent;
 import nu.nethome.home.impl.LocalHomeItemProxy;
+import nu.nethome.home.item.IllegalValueException;
 import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
 import org.junit.Before;
@@ -26,6 +27,9 @@ import static org.mockito.Mockito.verify;
  */
 public class MqttLampTest {
 
+    private static final String TEST_TOPIC = "test/topic";
+    private static final String ON_MESSAGE = "OnMessage";
+    private static final String OFF_MESSAGE = "OffMEssage";
     private MqttLamp mqttLamp;
     private HomeService service;
     private LocalHomeItemProxy proxy;
@@ -66,4 +70,34 @@ public class MqttLampTest {
         assertThat(argument.getValue().getAttribute(MqttClient.MQTT_MESSAGE), is(value));
     }
 
+    @Test
+    public void canUpdateStateFromMessage() throws Exception {
+        Event event = setUpForReceivingEvent(ON_MESSAGE);
+
+        mqttLamp.receiveEvent(event);
+
+        assertThat(proxy.getAttributeValue("State"), is("On"));
+    }
+
+    @Test
+    public void canUpdateStateToOffFromMessage() throws Exception {
+        Event event = setUpForReceivingEvent(OFF_MESSAGE);
+
+        mqttLamp.on();
+        mqttLamp.receiveEvent(event);
+
+        assertThat(proxy.getAttributeValue("State"), is("Off"));
+    }
+
+    private Event setUpForReceivingEvent(String message) throws IllegalValueException {
+        proxy.setAttributeValue("Topic", TEST_TOPIC);
+        proxy.setAttributeValue("OnMessage", ON_MESSAGE);
+        proxy.setAttributeValue("OffMessage", OFF_MESSAGE);
+        Event event = mock(Event.class);
+        doReturn(true).when(event).isType(MqttClient.MQTT_MESSAGE_TYPE);
+        doReturn("In").when(event).getAttribute("Direction");
+        doReturn(TEST_TOPIC).when(event).getAttribute(MqttClient.MQTT_TOPIC);
+        doReturn(message).when(event).getAttribute(MqttClient.MQTT_MESSAGE);
+        return event;
+    }
 }
