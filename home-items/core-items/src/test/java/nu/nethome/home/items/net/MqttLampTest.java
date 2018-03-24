@@ -100,4 +100,12 @@ public class MqttLampTest {
         doReturn(message).when(event).getAttribute(MqttClient.MQTT_MESSAGE);
         return event;
     }
+
+    @Test
+    public void canToggle() throws Exception {
+        proxy.callAction("Toggle");
+        assertThat(proxy.getAttributeValue("State"), is("On"));
+        proxy.callAction("Toggle");
+        assertThat(proxy.getAttributeValue("State"), is("Off"));
+    }
 }

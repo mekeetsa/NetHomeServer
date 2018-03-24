@@ -46,6 +46,7 @@ public class MqttLamp extends MqttCommander implements HomeItem {
             + "  <Attribute Name=\"MqttClient\" Type=\"Item\" Get=\"getMqttClient\" 	Set=\"setMqttClient\" />"
             + "  <Action Name=\"On\" Method=\"on\" />"
             + "  <Action Name=\"Off\" Method=\"off\" />"
+            + "  <Action Name=\"Toggle\" Method=\"toggle\" />"
             + "</HomeItem> ");
 
     private static Logger logger = Logger.getLogger(MqttLamp.class.getName());
@@ -84,6 +85,15 @@ public class MqttLamp extends MqttCommander implements HomeItem {
     public String off() {
         sendCommand2();
         state = "Off";
+        return "";
+    }
+
+    public String toggle() {
+        if (state.equals("Off")) {
+            on();
+        } else {
+            off();
+        }
         return "";
     }
 
