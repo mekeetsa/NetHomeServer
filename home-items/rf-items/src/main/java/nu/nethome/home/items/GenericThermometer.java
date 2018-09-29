@@ -51,7 +51,8 @@ public class GenericThermometer extends HomeItemAdapter implements HomeItem, Val
             + "  <Attribute Name=\"M\" Type=\"String\" Get=\"getM\" 	Set=\"setM\" />"
             + "</HomeItem> ");
 
-    protected static final String ADDRESS = ("  <Attribute Name=\"Address\" Type=\"String\" Get=\"getAddress\" 	Set=\"setAddress\" />");
+    protected static final String ADDRESS_AND_RAW = ("  <Attribute Name=\"Address\" Type=\"String\" Get=\"getAddress\" 	Set=\"setAddress\" />"
+            + "  <Attribute Name=\"RawValue\" Type=\"String\" Get=\"getRawValue\" 	Set=\"setRawValue\" />");
 
     protected static Logger logger = Logger.getLogger(GenericThermometer.class.getName());
     private ExtendedLoggerComponent tempLoggerComponent = new ExtendedLoggerComponent(this);
@@ -70,14 +71,14 @@ public class GenericThermometer extends HomeItemAdapter implements HomeItem, Val
     }
 
     public String getModel() {
-        return String.format(MODEL, "GenericThermometer", "Thermometers", ADDRESS);
+        return String.format(MODEL, "GenericThermometer", "Thermometers", ADDRESS_AND_RAW);
     }
 
     @Override
     public boolean receiveEvent(Event event) {
         if (event.isType("Temperature_Message") && event.getAttribute("Address").equals(address)) {
-            boolean newBatteryLevel = event.getAttributeInt("LowBattery") != 0;
-            update(event.getAttributeInt(Event.EVENT_VALUE_ATTRIBUTE), newBatteryLevel);
+            updateBattery(event.getAttributeInt("LowBattery") != 0);
+            updateTemp(Double.parseDouble(event.getAttribute(Event.EVENT_VALUE_ATTRIBUTE)));
             return true;
         } else {
             return handleInit(event);
@@ -90,12 +91,15 @@ public class GenericThermometer extends HomeItemAdapter implements HomeItem, Val
         return true;
     }
 
-    protected void update(int rawTemperature, boolean newBatteryLevel) {
-        temperature = constantK * rawTemperature + constantM;
-        if (!batteryIsLow && newBatteryLevel) {
+    protected void updateBattery(boolean newBatteryLow) {
+        if (!batteryIsLow && newBatteryLow) {
             logger.warning("Low battery for " + name);
         }
-        batteryIsLow = newBatteryLevel;
+        batteryIsLow = newBatteryLow;
+    }
+
+    protected void updateTemp(double rawTemperature) {
+        temperature = constantK * rawTemperature + constantM;
         logger.finer("Temperature update: " + temperature + " degrees");
         // Format and store the current time.
         latestUpdateOrCreation = new Date();
@@ -154,6 +158,16 @@ public class GenericThermometer extends HomeItemAdapter implements HomeItem, Val
 
     public void setLogFile(String logfile) {
         tempLoggerComponent.setFileName(logfile);
+    }
+
+    public String getRawValue() {
+        return "";
+    }
+
+    public void setRawValue(String v) {
+        if (!v.isEmpty()) {
+            updateTemp(Double.parseDouble(v));
+        }
     }
 
     public String getTimeSinceUpdate() {

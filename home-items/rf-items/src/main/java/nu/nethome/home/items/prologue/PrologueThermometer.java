@@ -47,7 +47,8 @@ public class PrologueThermometer extends GenericThermometer implements HomeItem 
     public boolean receiveEvent(Event event) {
         if (event.isType("Prologue_Message") &&
                 event.getAttributeInt("Prologue.Channel") + 1 == Integer.parseInt(address)) {
-            update(event.getAttributeInt("Prologue.Temp"), event.getAttributeInt("Prologue.Battery") != 0);
+            updateBattery(event.getAttributeInt("Prologue.Battery") != 0);
+            updateTemp(event.getAttributeInt("Prologue.Temp"));
             return true;
         } else {
             return handleInit(event);
