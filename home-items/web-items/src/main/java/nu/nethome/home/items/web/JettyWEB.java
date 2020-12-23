@@ -77,6 +77,7 @@ public class JettyWEB extends HomeItemAdapter implements HomeItem, HomeWebServer
             + "<HomeItem Class=\"JettyWEB\" Category=\"GUI\" StartOrder=\"7\" >"
             + "  <Attribute Name=\"Port\" Type=\"String\" Get=\"getPort\" 	Set=\"setPort\" Default=\"true\" />"
             + "  <Attribute Name=\"MediaDirectory\" Type=\"String\" Get=\"getMediaDirectory\" 	Set=\"setMediaDirectory\" />"
+            + "  <Attribute Name=\"WebDirectory\" Type=\"String\" Get=\"getWebDirectory\" 	Set=\"setWebDirectory\" />"
             + "</HomeItem> ");
 
     private static Logger logger = Logger.getLogger(JettyWEB.class.getName());
@@ -84,6 +85,7 @@ public class JettyWEB extends HomeItemAdapter implements HomeItem, HomeWebServer
     protected List<Registration> externalServlets = new LinkedList<Registration>();
     protected boolean isRunning = false;
     private String mediaDirectory = "../media";
+    private String webDirectory = "";
     Context applicationsContext;
 
     // Public attributes
@@ -111,21 +113,31 @@ public class JettyWEB extends HomeItemAdapter implements HomeItem, HomeWebServer
             ContextHandlerCollection contexts = new ContextHandlerCollection();
             WebServer.setHandler(contexts);
 
-   			// Create a default context for file access using the DefaultServlet
-			Context defaultContext = new Context(contexts,"/media",Context.SESSIONS);
-			defaultContext.setResourceBase(mediaDirectory);
-			ServletHolder holder = new ServletHolder();
-			holder.setInitParameter("dirAllowed", "false");
-			holder.setServlet(new DefaultServlet());
-			defaultContext.addServlet(holder, "/");
+            // Create a default context for file access using the DefaultServlet
+            Context defaultContext = new Context(contexts,"/media",Context.SESSIONS);
+            defaultContext.setResourceBase(mediaDirectory);
+            ServletHolder holder = new ServletHolder();
+            holder.setInitParameter("dirAllowed", "false");
+            holder.setServlet(new DefaultServlet());
+            defaultContext.addServlet(holder, "/");
 
             // Create an application Servlet context and add the test servlet
             applicationsContext = new Context(contexts, "/", Context.SESSIONS);
             applicationsContext.addServlet(new ServletHolder(new HelloServlet()), "/test/*");
 
             // Create the resource servlet which supplies files
-            ResourceServlet resourceHandler = new ResourceServlet("/web", "nu/nethome/home/items/web");
-            applicationsContext.addServlet(new ServletHolder(resourceHandler), resourceHandler.getPathSpecification());
+            if ( webDirectory.isEmpty () ) {
+                ResourceServlet resourceHandler = new ResourceServlet("/web", "nu/nethome/home/items/web");
+                applicationsContext.addServlet(new ServletHolder(resourceHandler), resourceHandler.getPathSpecification());
+            } else {
+                logger.log(Level.INFO, "/web mapped to " + webDirectory );
+                Context webContext = new Context(contexts,"/web",Context.SESSIONS);
+                webContext.setResourceBase(webDirectory);
+                ServletHolder webHolder = new ServletHolder();
+                webHolder.setInitParameter("dirAllowed", "true");
+                webHolder.setServlet(new DefaultServlet());
+                webContext.addServlet(webHolder, "/");
+           }
 
             // Create a graph Servlet
             applicationsContext.addServlet(new ServletHolder(new GraphServlet(server)), "/Graph");
@@ -191,6 +203,14 @@ public class JettyWEB extends HomeItemAdapter implements HomeItem, HomeWebServer
 
     public void setMediaDirectory(String mediaDirectory) {
         this.mediaDirectory = mediaDirectory;
+    }
+
+    public String getWebDirectory() {
+        return webDirectory;
+    }
+
+    public void setWebDirectory(String webDirectory) {
+        this.webDirectory = webDirectory;
     }
 }
 
