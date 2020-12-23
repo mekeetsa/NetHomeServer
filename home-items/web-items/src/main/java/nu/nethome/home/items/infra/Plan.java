@@ -41,8 +41,10 @@ public class Plan extends HomeItemAdapter implements HomeItem {
 
     public class PlanItem {
 
-        private static final int IE_Y_OFFSET = 10;
-        private static final int IE_X_OFFSET = -40;
+        //private static final int IE_Y_OFFSET = 10;
+        //private static final int IE_X_OFFSET = -40;
+        private static final int IE_Y_OFFSET = 0;
+        private static final int IE_X_OFFSET = 0;
 
         public PlanItem(String itemId) {
             this.itemId = itemId;
