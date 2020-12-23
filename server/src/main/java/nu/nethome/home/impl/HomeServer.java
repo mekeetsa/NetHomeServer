@@ -526,6 +526,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
             }
             if (!item.getName().startsWith("#") && (item.getItemId() != 0)) {
                 try {
+                    // HomeServer.logger.info("Activating item Class = " + item.getClass().getSimpleName() + ", Name = "+ item.getName() + ", ItemId = " + item.getItemId());
                     item.activate(this);
                     activatedItemCount++;
                 } catch (Exception e) {
@@ -534,6 +535,17 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
             }
         }
         HomeServer.logger.info("Activated " + Integer.toString(activatedItemCount) + " of " + Integer.toString(itemCount) + " Items");
+
+        // mbk patch: try to (re)activate IkeaGateways
+        for (HomeItem item : loadedItems) {
+            if (item.getClass().getSimpleName().equals("IkeaGateway") && !item.getName().startsWith("#") && (item.getItemId() != 0)) {
+                try {
+                    item.activate(this);
+                } catch (Exception e) {
+                    HomeServer.logger.warning("Failed to activate Item " + item.getName() + " Error " + e.getMessage());
+                }
+            }
+        }
         setFileName(currentFileName);
     }
 

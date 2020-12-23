@@ -29,6 +29,7 @@ import org.json.JSONObject;
 
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static nu.nethome.home.items.MDNSScanner.MDNS_CREATION_MESSAGE;
@@ -87,6 +88,7 @@ public class IkeaGateway extends HomeItemAdapter {
             + "  <Attribute Name=\"ClientCode\" Type=\"Password\" Get=\"getClientCode\" Init=\"setClientCode\" />"
             + "  <Attribute Name=\"ClientName\" Type=\"String\" Get=\"getClientName\" Init=\"setClientName\" />"
             + "  <Attribute Name=\"NodeCount\" Type=\"String\" Get=\"getNodeCount\" />"
+            + "  <Action Name=\"reconnect\" Method=\"reconnect\" Default=\"true\" />"
             + "</HomeItem> ");
 
     private static Logger logger = Logger.getLogger(IkeaGateway.class.getName());
@@ -111,6 +113,16 @@ public class IkeaGateway extends HomeItemAdapter {
 
     @Override
     public void activate() {
+        logger.log(Level.INFO, "Activating");
+        client.start();
+        getClientCodeIfNeeded();
+        setPresharedKeyIfAvaliable();
+    }
+
+    public void reconnect() {
+        logger.log(Level.INFO, "Reconnecting");
+        client.stop();
+        client = new IkeaGatewayClient();
         client.start();
         getClientCodeIfNeeded();
         setPresharedKeyIfAvaliable();
@@ -118,6 +130,7 @@ public class IkeaGateway extends HomeItemAdapter {
 
     private void getClientCodeIfNeeded() {
         if (clientCode.isEmpty() && !securityCode.isEmpty() && !address.isEmpty()) {
+            logger.log(Level.INFO, "getClientCodeIfNeeded: sendCoapRequest");
             client.setRouterKey(new InetSocketAddress(getAddress(), DESTINATION_PORT),"Client_identity", securityCode.getBytes());
             String uri = createUri("/15011/9063");
             String body = String.format("{\"9090\":\"%s\"}", clientName);
