@@ -120,11 +120,19 @@ public class LoggerComponent extends TimerTask {
         }
         // Get current time
         Calendar date = Calendar.getInstance();
+
         // Start at next even hour
-        date.set(Calendar.HOUR, date.get(Calendar.HOUR) + 1);
-        date.set(Calendar.MINUTE, 0);
+//      date.set(Calendar.HOUR, date.get(Calendar.HOUR) + 1);
+//      date.set(Calendar.MINUTE, 0);
+//      date.set(Calendar.SECOND, 0);
+//      date.set(Calendar.MILLISECOND, 0);
+
+        // Start at next even logInterval minutes
         date.set(Calendar.SECOND, 0);
         date.set(Calendar.MILLISECOND, 0);
+        date.add(Calendar.MINUTE, logInterval);
+        date.set(Calendar.MINUTE, ( date.get(Calendar.MINUTE) / logInterval ) * logInterval );
+
         // Schedule the job at m_Interval minutes interval
         logTimer.schedule(this, date.getTime(), 1000L * 60 * logInterval);
         loggerIsRunning = true;
