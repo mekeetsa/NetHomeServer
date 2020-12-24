@@ -61,6 +61,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
             + "<HomeItem Class=\"HomeGUI\" Category=\"GUI\" >"
             + "  <Attribute Name=\"WEBServer\" Type=\"Item\" Get=\"getWEBServer\" 	Set=\"setWEBServer\" />"
             + "  <Attribute Name=\"LocalURL\" Type=\"String\" Get=\"getLocalURL\" 	Set=\"setLocalURL\" Default=\"true\" />"
+            + "  <Attribute Name=\"HtmlHeader\" Type=\"String\" Get=\"getCustomHtmlHeader\" 	Set=\"setCustomHtmlHeader\" />"
             + "  <Attribute Name=\"LeftBanner\" Type=\"String\" Get=\"getCustomLeftBannerFile\" 	Set=\"setCustomLeftBannerFile\" />"
             + "  <Attribute Name=\"RightBanner\" Type=\"String\" Get=\"getCustomRightBannerFile\" 	Set=\"setCustomRightBannerFile\" />"
             + "  <Attribute Name=\"PlanPage\" Type=\"Item\" Get=\"getPlanPage\" 	Set=\"setPlanPage\" />"
@@ -80,6 +81,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
     // Public attributes
     protected String webServer = "JettyWEB";
     protected String localURL = "/home";
+    private String customHtmlHeader = "";
     private String customLeftBannerFile = "";
     private String customRightBannerFile = "";
     private String defaultPlanPage = "HomePlan";
@@ -484,7 +486,8 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
     protected void printHeader(PrintWriter p, HomePageInterface pagePlugin) throws ServletException, IOException {
         p.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">");
         p.println("<html lang=\"en\"><head>");
-        p.println("  <title>NewNetHome</title>");
+        String htmlHeader = customHtmlHeader.length() > 0 ? customHtmlHeader : "<title>NewNetHome</title>";
+        p.println(htmlHeader);
         p.println("  <meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">");
         p.println("  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=7\"> ");
         p.println("  <link rel=\"shortcut icon\" type=\"image/ico\" href=\"web/home/home.ico\">");
@@ -669,6 +672,14 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
      */
     public void setLocalURL(String LocalURL) {
         localURL = LocalURL;
+    }
+
+    public String getCustomHtmlHeader() {
+        return customHtmlHeader;
+    }
+
+    public void setCustomHtmlHeader(String customHtmlHeader) {
+        this.customHtmlHeader = customHtmlHeader;
     }
 
     public String getCustomLeftBannerFile() {
