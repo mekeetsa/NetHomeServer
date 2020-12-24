@@ -131,7 +131,6 @@ public class IkeaGateway extends HomeItemAdapter {
 
     private void getClientCodeIfNeeded() {
         if (clientCode.isEmpty() && !securityCode.isEmpty() && !address.isEmpty()) {
-            logger.log(Level.INFO, "getClientCodeIfNeeded: sendCoapRequest");
             client.setRouterKey(new InetSocketAddress(getAddress(), DESTINATION_PORT),"Client_identity", securityCode.getBytes());
             String uri = createUri("/15011/9063");
             String body = String.format("{\"9090\":\"%s\"}", clientName);
@@ -194,7 +193,6 @@ public class IkeaGateway extends HomeItemAdapter {
 
 
     public void reportNodes() {
-        logger.log(Level.INFO, "Reporting nodes");
         List<JSONObject> nodes = client.getNodes(address, port);
         nodeCount = nodes.size();
         for (JSONObject node : nodes) {
