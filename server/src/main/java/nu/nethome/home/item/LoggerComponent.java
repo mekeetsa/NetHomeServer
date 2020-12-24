@@ -118,6 +118,10 @@ public class LoggerComponent extends TimerTask {
         if (logFileName.length() == 0) {
             return;
         }
+
+        // Update the home item id
+        homeItemId = Long.toString(loggedItem.getItemId());
+
         // Get current time
         Calendar date = Calendar.getInstance();
 
