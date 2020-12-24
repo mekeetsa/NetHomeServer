@@ -88,7 +88,8 @@ public class IkeaGateway extends HomeItemAdapter {
             + "  <Attribute Name=\"ClientCode\" Type=\"Password\" Get=\"getClientCode\" Init=\"setClientCode\" />"
             + "  <Attribute Name=\"ClientName\" Type=\"String\" Get=\"getClientName\" Init=\"setClientName\" />"
             + "  <Attribute Name=\"NodeCount\" Type=\"String\" Get=\"getNodeCount\" />"
-            + "  <Action Name=\"reconnect\" Method=\"reconnect\" Default=\"true\" />"
+            + "  <Action Name=\"reconnect\" Method=\"reconnect\" Default=\"false\" />"
+            + "  <Action Name=\"reportNodes\" Method=\"reportNodes\" Default=\"true\" />"
             + "</HomeItem> ");
 
     private static Logger logger = Logger.getLogger(IkeaGateway.class.getName());
@@ -150,6 +151,9 @@ public class IkeaGateway extends HomeItemAdapter {
         if (!preSharedKey.isEmpty() && !address.isEmpty()) {
             client.setRouterKey(new InetSocketAddress(getAddress(), DESTINATION_PORT),clientName, preSharedKey.getBytes());
             nodeCount = client.getNodeIds(address, port).size();
+            if( nodeCount > 0 ) {
+                reportNodes();
+            }
         }
     }
 
@@ -189,7 +193,8 @@ public class IkeaGateway extends HomeItemAdapter {
     }
 
 
-    private void reportNodes() {
+    public void reportNodes() {
+        logger.log(Level.INFO, "Reporting nodes");
         List<JSONObject> nodes = client.getNodes(address, port);
         nodeCount = nodes.size();
         for (JSONObject node : nodes) {
