@@ -138,7 +138,7 @@ public class MediaPage extends PortletPage {
     boolean isImageFile(File file) {
         String fileName = file.getName().toLowerCase();
         return fileName.endsWith(".jpg") || fileName.endsWith(".png") || fileName.endsWith(".gif") ||
-                fileName.endsWith(".bmp") || fileName.endsWith(".jpeg");
+                fileName.endsWith(".bmp") || fileName.endsWith(".jpeg") || fileName.endsWith(".svg");
     }
 
     private String getImageSize(File file) {
