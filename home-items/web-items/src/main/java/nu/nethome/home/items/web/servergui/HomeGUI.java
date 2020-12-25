@@ -561,7 +561,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         if (homeServer.getState().getCurrentAlarmCount() > 0) {
             statusIcon = "<img src=\"web/home/warn.png\"/>";
         }
-        p.println("   <li class=\"pref\">");
+        p.println("   <li id=\"liLog\" class=\"pref\">");
         p.println(statusIcon + "&nbsp;<a href=\"" + localURL + "?page=settings&subpage=log\">Log</a>");
         p.println("   </li>");
         if (arguments.isCloudAccess()) {
@@ -569,7 +569,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
             p.println("     <img src=\"web/home/cloud16.png\"/>&nbsp;<a href=\"" + localURL + "?a=logout\">Logout</a>");
             p.println("   </li>");
         }
-        p.println("   <li class=\"pref\">");
+        p.println("   <li id=\"liAbout\" class=\"pref\">");
         p.println("    <img src=\"web/home/info.png\"/>&nbsp;<a href=\"http://opennethome.org\">About</a>");
         p.println("   </li>");
         if (selectedPage.supportsEdit()) {

@@ -87,9 +87,9 @@ public abstract class PortletPage implements HomePageInterface {
 
     protected void printColumnStart(PrintWriter p, boolean isLeft) {
         if (isLeft) {
-            p.println("<div class=\"itemcolumn left\">");
+            p.println("<div id=\"leftCol" + getPageNameURL () + "\" class=\"itemcolumn left\">");
         } else {
-            p.println("<div class=\"itemcolumn\">");
+            p.println("<div id=\"rightCol" + getPageNameURL () + "\" class=\"itemcolumn\">");
         }
     }
 
