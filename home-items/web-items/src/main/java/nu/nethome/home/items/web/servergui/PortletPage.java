@@ -205,7 +205,7 @@ public abstract class PortletPage implements HomePageInterface {
         HomeUrlBuilder url = new HomeUrlBuilder(localURL).addParameter("page", "edit")
                 .addParameter("name", HomeGUI.toURL(item.getAttributeValue("ID")))
                 .addParameter("return", page).addParameterIfNotNull("returnsp", subpage);
-        p.println("	   <li><a href=\"" + url.toString() + "\">" + item.getAttributeValue("Name") + "</a>" + (hasDefaultAttribute ? (": " + defaultAttributeValue) : "") + "</li>");
+        p.println("	   <li><a href=\"" + url.toString() + "\">" + item.getAttributeValue("Name") + "</a>" + (hasDefaultAttribute && !defaultAttributeValue.isEmpty() ? (": <span class=\"attrvalue\">" + defaultAttributeValue + "</span>") : "") + "</li>");
 
         if (includeActions) {
             printItemActions(p, item, page, subpage, model);
