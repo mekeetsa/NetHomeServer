@@ -17,51 +17,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-$(document).ready(function () {
-    $.jqplot.config.enablePlugins = true;
-    // Our ajax data renderer which here retrieves a text file.
-    // it could contact any source and pull data, however.
-    // The options argument isn't used in this renderer.
-    var ajaxDataRenderer = function (url, plot, options) {
-        var ret = [null];
-        for( var i = 0; i < url.length; i++ ) {
-          $.ajax({
-            // have to use synchronous here, else the function
-            // will return before the data is fetched
-            async: false,
-            url: url[i],
-            dataType: "json",
-            success: function (data) {
-                ret[i] = data;
-            }
-          });
-          if (ret[i].length === 0) {
-            $("#chart1").html("No data available for " + graph_title);
-          } else {
-            $("#chart1").html("");
-          }
-        }
-        return ret;
-    };
-
-// Adaptation for multiple data series (and their legends)
-    var urls = $.type(jsonurl) === 'string' ? [jsonurl] : jsonurl;
-    var seriesLegends = [];
-    if( $.type(jsonlegend) !== 'string' ) {
-        for( var i = 0; i < urls.length; i++ ) {
-            seriesLegends[i] = { label: jsonlegend[i] };
-        }
+function ajaxFetchComplete(data) {
+    if ( gCurrent >= 0 && gCurrent < gJsonUrls.length ) {
+        gSeries[gCurrent] = data === null ? [0,0] : data;
     }
-// passing in the url string as the jqPlot data argument is a handy
-// shortcut for our renderer.  You could also have used the
-// "dataRendererOptions" option to pass in the url.
-    var plot2 = $.jqplot('chart1', urls, {
+    if( gCurrent >= gJsonUrls.length - 1 ) {
+        // All fetched. Finally, plot the graphs...
+        $("#chart1").html("");
+        gPlotter();
+    }
+    else {
+        $.ajax({
+            url: gJsonUrls[++gCurrent],
+            dataType: "json",
+            success: ajaxFetchComplete,
+            context: gCurrent,
+            error: function (jqXHR, textStatus) {
+               $("#chart1").html("No data available. Ajax error: " + textStatus);
+            }
+        });
+    }
+}
+
+function gPlotter() {
+    $.jqplot.config.enablePlugins = true;
+    var plot2 = $.jqplot('chart1', gSeries, {
         title: graph_title,
-        dataRenderer: ajaxDataRenderer,
-        dataRendererOptions: {
-            unusedOptionalUrl: urls
-        },
         seriesDefaults: {
             markerOptions: { show: false }
         },
@@ -75,15 +56,38 @@ $(document).ready(function () {
             }
         },
         legend: {
-            show: $.type(jsonurl) !== 'string' ,
+            show: $(gSeriesLegends).length > 0,
+            labels: $(gSeriesLegends),
             placement: 'insideGrid',
-            location: 'sw'
+            location: 'w'
         },
-        series: $(seriesLegends),
         cursor: {
             show: true,
-            tooltipLocation: 'sw',
+            tooltipLocation: 'se',
             zoom: true
         }
     });
+}
+// Adaptation for multiple data series (and their legends)
+// Note that ajax sync fetching depricated so we use async mode.
+
+$(document).ready(function () {
+
+    gJsonUrls = $.type(jsonurl) === 'string' ? [jsonurl] : jsonurl;
+
+    gSeries = [];
+    gSeriesLegends = [];
+
+    for( var i = 0; i < gJsonUrls.length; i++ ) {
+        gSeries[i] = [0,0];
+        if( $.type(jsonlegend) !== 'string' ) {
+            gSeriesLegends[i] = jsonlegend[i];
+        }
+    }
+
+    gPlotter();
+
+    gCurrent = -1;
+    ajaxFetchComplete(null); // Start async fetching
 });
+
