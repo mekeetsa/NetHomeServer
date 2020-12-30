@@ -41,6 +41,63 @@ public class GraphPage extends PortletPage {
     public static final int DAYS_IN_WEEK = 7;
     public static final String LOG_REST_URL = "/rest/items/%s/log?start=%s&stop=%s";
 
+    // Build json parameters (jsonurl and jsonlegend) for graph.js
+    // TODO: distinguish different classes of data series
+    //       (currently, *all* items which have a log file end up on the same graph)
+    private class JsonParameters {
+
+        private StringBuilder itemIds;
+        private StringBuilder itemNames;
+        private StringBuilder jsonUrls;
+        private StringBuilder jsonNames;
+
+        public String getItemIds() { return itemIds.toString(); }
+        public String getItemNames() { return itemNames.toString(); }
+
+        public JsonParameters(PrintWriter p, String[] nameList, String[] idList, Date dateFrom, Date dateTo) {
+
+            itemIds = new StringBuilder(64);
+            itemNames = new StringBuilder(64);
+            jsonUrls = new StringBuilder(256);
+            jsonNames = new StringBuilder(256);
+
+            if( idList.length > 1 ) {
+                jsonUrls.append( "[ " );
+                jsonNames.append( "[ " );
+            }
+
+            boolean isFirst = true;
+            for( int i = 0; i < idList.length; ++i ) {
+                if( idList[i].equals("") || nameList[i].equals("") ) {
+                    continue;
+                }
+                if( ! isFirst ) {
+                    itemIds.append( "-" );
+                    itemNames.append( ", " );
+                    jsonUrls.append( ", " );
+                    jsonNames.append( ", " );
+                }
+                isFirst = false;
+
+                String jsonUrl = String.format( LOG_REST_URL, idList[i],
+                    logDateFormat.format(dateFrom),
+                    logDateFormat.format(dateTo) );
+
+                itemIds.append( idList[i] );
+                itemNames.append( nameList[i] );
+                jsonUrls.append( "\"" ).append( jsonUrl ).append( "\"" );
+                jsonNames.append( "\"" ).append( nameList[i] ).append( "\"" );
+            }
+
+            if( idList.length > 1 ) {
+                jsonUrls.append( " ]" );
+                jsonNames.append( " ]" );
+            }
+
+            p.println(String.format("<script type=\"text/javascript\">var jsonurl=%s; var jsonlegend=%s;</script>", jsonUrls.toString(), jsonNames.toString()));
+        }
+    }
+
     private class GraphPageArguments extends HomeGUIArguments {
 
         private Date startDate;
@@ -156,40 +213,13 @@ public class GraphPage extends PortletPage {
         cal.set(Calendar.SECOND, 59);
         Date endOfDay = new Date(cal.getTime().getTime() + HOURS_24_IN_MS * (DAYS_IN_WEEK - 1));
 
-        StringBuilder itemIds = new StringBuilder(64);
-        StringBuilder itemNames = new StringBuilder(64);
-        StringBuilder jsonUrls = new StringBuilder(256);
-        if( idList.length > 1 ) { 
-            jsonUrls.append( "[ " );
-        }
-        boolean isFirst = true;
-        for( int i = 0; i < idList.length; ++i ) {
-            if( idList[i].equals("") || nameList[i].equals("") ) {
-                continue;
-            }
-            if( ! isFirst ) {
-                itemIds.append( "-" );
-                itemNames.append( ", " );
-                jsonUrls.append( ", " );
-            }
-            isFirst = false;
-            String jsonUrl = String.format(LOG_REST_URL, idList[i],
-                logDateFormat.format(startOfWeek),
-                logDateFormat.format(endOfDay));
-            itemIds.append( idList[i] );
-            itemNames.append( nameList[i] );
-            jsonUrls.append( "\"" ).append( jsonUrl ).append( "\"" );
-        }
-        if( idList.length > 1 ) {
-            jsonUrls.append( " ]" );
-        }
-        p.println(String.format("<script>var jsonurl=%s;</script>", jsonUrls.toString()));
+        JsonParameters params = new JsonParameters(p, nameList, idList, startOfWeek, endOfDay);
 
-        String graphTitle = String.format("%s, Week starting %2$tA %2$tF", itemNames.toString(), startOfWeek);
+        String graphTitle = String.format("%s, Week starting %2$tA %2$tF", params.getItemNames(), startOfWeek);
         printParameter(p, "graph_title", graphTitle);
         printParameter(p, "tick_format", "%a %R");
 
-        printGraphNavigationPanel(p, itemIds.toString(),
+        printGraphNavigationPanel(p, params.getItemIds(),
                 startOfWeek, "week",
                 "day", "Day", "month", "Month",
                 previousWeek, nextWeek, currentTime);
@@ -257,40 +287,13 @@ public class GraphPage extends PortletPage {
         cal.set(Calendar.DAY_OF_MONTH, 1);
         Date previousMonth = cal.getTime();
 
-        StringBuilder itemIds = new StringBuilder(64);
-        StringBuilder itemNames = new StringBuilder(64);
-        StringBuilder jsonUrls = new StringBuilder(256);
-        if( idList.length > 1 ) { 
-            jsonUrls.append( "[ " );
-        }
-        boolean isFirst = true;
-        for( int i = 0; i < idList.length; ++i ) {
-            if( idList[i].equals("") || nameList[i].equals("") ) {
-                continue;
-            }
-            if( ! isFirst ) {
-                itemIds.append( "-" );
-                itemNames.append( ", " );
-                jsonUrls.append( ", " );
-            }
-            isFirst = false;
-            String jsonUrl = String.format(LOG_REST_URL, idList[i],
-                logDateFormat.format(startOfMonth),
-                logDateFormat.format(endOfMonth));
-            itemIds.append( idList[i] );
-            itemNames.append( nameList[i] );
-            jsonUrls.append( "\"" ).append( jsonUrl ).append( "\"" );
-        }
-        if( idList.length > 1 ) {
-            jsonUrls.append( " ]" );
-        }
-        p.println(String.format("<script>var jsonurl=%s;</script>", jsonUrls.toString()));
+        JsonParameters params = new JsonParameters(p, nameList, idList, startOfMonth, endOfMonth);
 
-        String graphTitle = String.format("%s, %2$tB %2$tY", itemNames.toString(), currentTime);
+        String graphTitle = String.format("%s - %2$tB %2$tY", params.getItemNames(), currentTime);
         printParameter(p, "graph_title", graphTitle);
         printParameter(p, "tick_format", "%a %#d");
 
-        printGraphNavigationPanel(p, itemIds.toString(),
+        printGraphNavigationPanel(p, params.getItemIds(),
                 startOfMonth, "month",
                 "day", "Day", "week", "Week",
                 previousMonth, nextMonth, currentTime);
@@ -313,40 +316,13 @@ public class GraphPage extends PortletPage {
         cal.set(Calendar.SECOND, 59);
         Date endOfDay = cal.getTime();
 
-        StringBuilder itemIds = new StringBuilder(64);
-        StringBuilder itemNames = new StringBuilder(64);
-        StringBuilder jsonUrls = new StringBuilder(256);
-        if( idList.length > 1 ) { 
-            jsonUrls.append( "[ " );
-        }
-        boolean isFirst = true;
-        for( int i = 0; i < idList.length; ++i ) {
-            if( idList[i].equals("") || nameList[i].equals("") ) {
-                continue;
-            }
-            if( ! isFirst ) {
-                itemIds.append( "-" );
-                itemNames.append( ", " );
-                jsonUrls.append( ", " );
-            }
-            isFirst = false;
-            String jsonUrl = String.format(LOG_REST_URL, idList[i],
-                logDateFormat.format(startOfDay),
-                logDateFormat.format(endOfDay));
-            itemIds.append( idList[i] );
-            itemNames.append( nameList[i] );
-            jsonUrls.append( "\"" ).append( jsonUrl ).append( "\"" );
-        }
-        if( idList.length > 1 ) {
-            jsonUrls.append( " ]" );
-        }
-        p.println(String.format("<script>var jsonurl=%s;</script>", jsonUrls.toString()));
+        JsonParameters params = new JsonParameters(p, nameList, idList, startOfDay, endOfDay);
 
-        String graphTitle = String.format("%s %2$tA %2$tF", itemNames.toString(), currentTime);
+        String graphTitle = String.format("%s - %2$tA %2$tF", params.getItemNames(), currentTime);
         printParameter(p, "graph_title", graphTitle);
         printParameter(p, "tick_format", "%R");
 
-        printGraphNavigationPanel(p, itemIds.toString(),
+        printGraphNavigationPanel(p, params.getItemIds(),
                 startOfDay, "day",
                 "week", "Week", "month", "Month",
                 previousDay, nextDay, currentTime);
@@ -354,6 +330,6 @@ public class GraphPage extends PortletPage {
     }
 
     private void printParameter(PrintWriter p, String parameterName, String parameterValue) {
-        p.println(String.format("<script>var %s=\"%s\";</script>", parameterName, parameterValue));
+        p.println(String.format("<script type=\"text/javascript\">var %s=\"%s\";</script>", parameterName, parameterValue));
     }
 }

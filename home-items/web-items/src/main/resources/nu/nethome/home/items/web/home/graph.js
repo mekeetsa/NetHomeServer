@@ -45,15 +45,22 @@ $(document).ready(function () {
         return ret;
     };
 
+// Adaptation for multiple data series (and their legends)
+    var urls = $.type(jsonurl) === 'string' ? [jsonurl] : jsonurl;
+    var seriesLegends = [];
+    if( $.type(jsonlegend) !== 'string' ) {
+        for( var i = 0; i < urls.length; i++ ) {
+            seriesLegends[i] = { label: jsonlegend[i] };
+        }
+    }
 // passing in the url string as the jqPlot data argument is a handy
 // shortcut for our renderer.  You could also have used the
 // "dataRendererOptions" option to pass in the url.
-    var urls = $.type(jsonurl) === 'string' ? [jsonurl] : jsonurl;
     var plot2 = $.jqplot('chart1', urls, {
         title: graph_title,
         dataRenderer: ajaxDataRenderer,
         dataRendererOptions: {
-            unusedOptionalUrl: [jsonurl]
+            unusedOptionalUrl: urls
         },
         seriesDefaults: {
             markerOptions: { show: false }
@@ -67,6 +74,12 @@ $(document).ready(function () {
                 }
             }
         },
+        legend: {
+            show: $.type(jsonurl) !== 'string' ,
+            placement: 'insideGrid',
+            location: 'sw'
+        },
+        series: $(seriesLegends),
         cursor: {
             show: true,
             tooltipLocation: 'sw',

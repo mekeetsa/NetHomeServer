@@ -97,13 +97,18 @@ public abstract class PortletPage implements HomePageInterface {
         p.println("</div>");
     }
 
-    protected void printItemPortletStart(PrintWriter p, String name, String link) throws ServletException, IOException {
+    protected void printItemPortletStart(PrintWriter p, String name, String link, String linkName) throws ServletException, IOException {
         p.println("<div class=\"portlet mod-feat\">");
-        if (link != null) {
-            p.println(" <div class=\"header\"><h3>" + "<a href=\"" + link + "\">" + HTMLEncode.encode(name) + "</a>" + "</h3></div>");
+        p.print(" <div class=\"header\"><h3>");
+        if (link != null && linkName != null) {
+            p.print(HTMLEncode.encode(name) + " " +
+                    "<a href=\"" + link + "\">" + HTMLEncode.encode(linkName) + "</a>");
+        } else if (link != null) {
+            p.print("<a href=\"" + link + "\">" + HTMLEncode.encode(name) + "</a>");
         } else {
-            p.println(" <div class=\"header\"><h3>" + HTMLEncode.encode(name) + "</h3></div>");
+            p.print(HTMLEncode.encode(name));
         }
+        p.println("</h3></div>");
         p.println(" <div class=\"content\">");
         p.println("  <ul>");
     }
@@ -145,8 +150,30 @@ public abstract class PortletPage implements HomePageInterface {
 
     protected void printRoom(PrintWriter p, String page, String subpage, String itemName, String headerLink, String addLink, String itemNames[], HomeService server, boolean includeActions, Map<String, CategorizedItemList> categories) throws ServletException, IOException {
 
+        // View a combined graph of those subitems which has a log file
+        String headerLinkName = null;
+        if( headerLink == null ) {
+            boolean hasGraph = false;
+            StringBuilder url = new StringBuilder(256);
+            url.append("/home?page=graphs&subpage=");
+            for (String name : itemNames) {
+                HomeItemProxy item = server.openInstance(name);
+                if (item != null && hasLogFile(item)) {
+                    if( hasGraph ) {
+                        url.append("-");
+                    }
+                    hasGraph = true;
+                    url.append(item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE));
+                }
+            }
+            if (hasGraph) {
+                headerLinkName = "(view graph...)";
+                headerLink = url.toString();
+            }
+        }
+
         // Start Room Portlet
-        printItemPortletStart(p, itemName, headerLink);
+        printItemPortletStart(p, itemName, headerLink, headerLinkName);
 
         // List all instances in the room
         for (String name : itemNames) {
