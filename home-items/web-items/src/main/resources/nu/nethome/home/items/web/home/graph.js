@@ -19,15 +19,25 @@
 
 function ajaxFetchComplete(data) {
     if ( gCurrent >= 0 && gCurrent < gJsonUrls.length ) {
-        gSeries[gCurrent] = data === null || data.length == 0 ? [''] : data;
+        if ( data !== null && data.length != 0 ) {
+            gSeries[gSeriesLen] = data;
+            if( $.type(jsonlegend) !== 'string' ) {
+                gSeriesLegends[gSeriesLen] = jsonlegend[gCurrent];
+            }
+            gSeriesLen++;
+        }
     }
     if( gCurrent >= gJsonUrls.length - 1 ) {
         // All fetched
-        $("#chart1").html("");
-        gPlotter();
+        if (gSeriesLen > 0 ) {
+            $("#chart1").html("");
+            gPlotter();
+        } else {
+            $("#chart1").html("No data available.");
+        }
     }
     else {
-        if ( gCurrent >= 0 ) { 
+        if ( gSeriesLen > 0 ) { 
             gPlotter(); 
         }
         $.ajax({
@@ -78,19 +88,11 @@ $(document).ready(function () {
 
     gJsonUrls = $.type(jsonurl) === 'string' ? [jsonurl] : jsonurl;
 
-    gSeries = [];
-    gSeriesLegends = [];
+    gSeries = [];        // holds data series
+    gSeriesLegends = []; // holds data series legends
+    gSeriesLen = 0;      // nr of fetched series (equal gSeries.length)
+    gCurrent = -1;       // currently fetched
 
-    for( var i = 0; i < gJsonUrls.length; i++ ) {
-        // gSeries[i] = ['']; // Show an empty graph
-        if( $.type(jsonlegend) !== 'string' ) {
-            gSeriesLegends[i] = jsonlegend[i];
-        }
-    }
-
-    // gPlotter(); // Show an empty graph
-
-    gCurrent = -1;
     ajaxFetchComplete(null); // Start async fetching
 });
 
