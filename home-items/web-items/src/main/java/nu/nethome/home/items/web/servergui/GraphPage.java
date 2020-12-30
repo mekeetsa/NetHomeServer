@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.lang.StringBuilder;
 
 public class GraphPage extends PortletPage {
 
@@ -116,22 +117,30 @@ public class GraphPage extends PortletPage {
         p.println("<script type=\"text/javascript\" src=\"web/home/graph.js\"></script>");
         if (pageArguments.hasName()) {
             p.println("<div id=\"chart1\">Loading graph data, please wait...</div>");
-            HomeItemProxy item = server.openInstance(pageArguments.getName());
-            if (item == null) {
+            String itemIds = pageArguments.getName();
+            if (itemIds == null) {
                 return;
             }
+            String[] idList = itemIds.split("-");
+            String[] nameList = new String[idList.length];
+            for ( int i = 0; i < idList.length; ++i) {
+                HomeItemProxy item = server.openInstance( idList[i] );
+                nameList[i] = item == null ? "" : item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE);
+                idList[i] = item == null ? "" : item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE);
+            }
+
             String graph_title;
             if (pageArguments.getRange().equals("week")) {
-                graph_title = printWeekGraph(p, pageArguments, item);
+                graph_title = printWeekGraph(p, pageArguments, nameList, idList );
             } else if (pageArguments.getRange().equals("month")) {
-                graph_title = printMonthGraph(p, pageArguments, item);
+                graph_title = printMonthGraph(p, pageArguments, nameList, idList );
             } else {
-                graph_title = printDayGraph(p, pageArguments, item);
+                graph_title = printDayGraph(p, pageArguments, nameList, idList );
             }
         }
     }
 
-    private String printWeekGraph(PrintWriter p, GraphPageArguments pageArguments, HomeItemProxy item) {
+    private String printWeekGraph(PrintWriter p, GraphPageArguments pageArguments, String[] nameList, String[] idList) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(pageArguments.getStartDate());
         Date currentTime = pageArguments.getStartDate();
@@ -146,15 +155,41 @@ public class GraphPage extends PortletPage {
         cal.set(Calendar.MINUTE, 59);
         cal.set(Calendar.SECOND, 59);
         Date endOfDay = new Date(cal.getTime().getTime() + HOURS_24_IN_MS * (DAYS_IN_WEEK - 1));
-        String graphTitle = String.format("%s, Week starting %2$tA %2$tF", item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE), startOfWeek);
-        printParameter(p, "graph_title", graphTitle);
-        printParameter(p, "jsonurl", String.format(LOG_REST_URL,
-                item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE),
+
+        StringBuilder itemIds = new StringBuilder(64);
+        StringBuilder itemNames = new StringBuilder(64);
+        StringBuilder jsonUrls = new StringBuilder(256);
+        if( idList.length > 1 ) { 
+            jsonUrls.append( "[ " );
+        }
+        boolean isFirst = true;
+        for( int i = 0; i < idList.length; ++i ) {
+            if( idList[i].equals("") || nameList[i].equals("") ) {
+                continue;
+            }
+            if( ! isFirst ) {
+                itemIds.append( "-" );
+                itemNames.append( ", " );
+                jsonUrls.append( ", " );
+            }
+            isFirst = false;
+            String jsonUrl = String.format(LOG_REST_URL, idList[i],
                 logDateFormat.format(startOfWeek),
-                logDateFormat.format(endOfDay)));
+                logDateFormat.format(endOfDay));
+            itemIds.append( idList[i] );
+            itemNames.append( nameList[i] );
+            jsonUrls.append( "\"" ).append( jsonUrl ).append( "\"" );
+        }
+        if( idList.length > 1 ) {
+            jsonUrls.append( " ]" );
+        }
+        p.println(String.format("<script>var jsonurl=%s;</script>", jsonUrls.toString()));
+
+        String graphTitle = String.format("%s, Week starting %2$tA %2$tF", itemNames.toString(), startOfWeek);
+        printParameter(p, "graph_title", graphTitle);
         printParameter(p, "tick_format", "%a %R");
 
-        printGraphNavigationPanel(p, item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE),
+        printGraphNavigationPanel(p, itemIds.toString(),
                 startOfWeek, "week",
                 "day", "Day", "month", "Month",
                 previousWeek, nextWeek, currentTime);
@@ -203,7 +238,7 @@ public class GraphPage extends PortletPage {
         p.println("</div>");
     }
 
-    private String printMonthGraph(PrintWriter p, GraphPageArguments pageArguments, HomeItemProxy item) {
+    private String printMonthGraph(PrintWriter p, GraphPageArguments pageArguments, String[] nameList, String[] idList) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(pageArguments.getStartDate());
         Date currentTime = pageArguments.getStartDate();
@@ -221,22 +256,48 @@ public class GraphPage extends PortletPage {
         cal.add(Calendar.HOUR, -24 * 35);
         cal.set(Calendar.DAY_OF_MONTH, 1);
         Date previousMonth = cal.getTime();
-        String graphTitle = String.format("%s, %2$tB %2$tY", item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE), currentTime);
-        printParameter(p, "graph_title", graphTitle);
-        printParameter(p, "jsonurl", String.format(LOG_REST_URL,
-                item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE),
+
+        StringBuilder itemIds = new StringBuilder(64);
+        StringBuilder itemNames = new StringBuilder(64);
+        StringBuilder jsonUrls = new StringBuilder(256);
+        if( idList.length > 1 ) { 
+            jsonUrls.append( "[ " );
+        }
+        boolean isFirst = true;
+        for( int i = 0; i < idList.length; ++i ) {
+            if( idList[i].equals("") || nameList[i].equals("") ) {
+                continue;
+            }
+            if( ! isFirst ) {
+                itemIds.append( "-" );
+                itemNames.append( ", " );
+                jsonUrls.append( ", " );
+            }
+            isFirst = false;
+            String jsonUrl = String.format(LOG_REST_URL, idList[i],
                 logDateFormat.format(startOfMonth),
-                logDateFormat.format(endOfMonth)));
+                logDateFormat.format(endOfMonth));
+            itemIds.append( idList[i] );
+            itemNames.append( nameList[i] );
+            jsonUrls.append( "\"" ).append( jsonUrl ).append( "\"" );
+        }
+        if( idList.length > 1 ) {
+            jsonUrls.append( " ]" );
+        }
+        p.println(String.format("<script>var jsonurl=%s;</script>", jsonUrls.toString()));
+
+        String graphTitle = String.format("%s, %2$tB %2$tY", itemNames.toString(), currentTime);
+        printParameter(p, "graph_title", graphTitle);
         printParameter(p, "tick_format", "%a %#d");
 
-        printGraphNavigationPanel(p, item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE),
+        printGraphNavigationPanel(p, itemIds.toString(),
                 startOfMonth, "month",
                 "day", "Day", "week", "Week",
                 previousMonth, nextMonth, currentTime);
         return graphTitle;
     }
 
-    private String printDayGraph(PrintWriter p, GraphPageArguments pageArguments, HomeItemProxy item) {
+    private String printDayGraph(PrintWriter p, GraphPageArguments pageArguments, String[] nameList, String[] idList) {
         // Calculate time window
         Calendar cal = Calendar.getInstance();
         cal.setTime(pageArguments.getStartDate());
@@ -251,15 +312,41 @@ public class GraphPage extends PortletPage {
         cal.set(Calendar.MINUTE, 59);
         cal.set(Calendar.SECOND, 59);
         Date endOfDay = cal.getTime();
-        String graphTitle = String.format("%s %2$tA %2$tF", item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE), currentTime);
-        printParameter(p, "graph_title", graphTitle);
-        printParameter(p, "jsonurl", String.format(LOG_REST_URL,
-                item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE),
+
+        StringBuilder itemIds = new StringBuilder(64);
+        StringBuilder itemNames = new StringBuilder(64);
+        StringBuilder jsonUrls = new StringBuilder(256);
+        if( idList.length > 1 ) { 
+            jsonUrls.append( "[ " );
+        }
+        boolean isFirst = true;
+        for( int i = 0; i < idList.length; ++i ) {
+            if( idList[i].equals("") || nameList[i].equals("") ) {
+                continue;
+            }
+            if( ! isFirst ) {
+                itemIds.append( "-" );
+                itemNames.append( ", " );
+                jsonUrls.append( ", " );
+            }
+            isFirst = false;
+            String jsonUrl = String.format(LOG_REST_URL, idList[i],
                 logDateFormat.format(startOfDay),
-                logDateFormat.format(endOfDay)));
+                logDateFormat.format(endOfDay));
+            itemIds.append( idList[i] );
+            itemNames.append( nameList[i] );
+            jsonUrls.append( "\"" ).append( jsonUrl ).append( "\"" );
+        }
+        if( idList.length > 1 ) {
+            jsonUrls.append( " ]" );
+        }
+        p.println(String.format("<script>var jsonurl=%s;</script>", jsonUrls.toString()));
+
+        String graphTitle = String.format("%s %2$tA %2$tF", itemNames.toString(), currentTime);
+        printParameter(p, "graph_title", graphTitle);
         printParameter(p, "tick_format", "%R");
 
-        printGraphNavigationPanel(p, item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE),
+        printGraphNavigationPanel(p, itemIds.toString(),
                 startOfDay, "day",
                 "week", "Week", "month", "Month",
                 previousDay, nextDay, currentTime);

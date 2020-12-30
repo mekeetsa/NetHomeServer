@@ -24,33 +24,36 @@ $(document).ready(function () {
     // it could contact any source and pull data, however.
     // The options argument isn't used in this renderer.
     var ajaxDataRenderer = function (url, plot, options) {
-        var ret = null;
-        $.ajax({
+        var ret = [null];
+        for( var i = 0; i < url.length; i++ ) {
+          $.ajax({
             // have to use synchronous here, else the function
             // will return before the data is fetched
             async: false,
-            url: url,
+            url: url[i],
             dataType: "json",
             success: function (data) {
-                ret = data;
+                ret[i] = data;
             }
-        });
-        if (ret.length === 0) {
+          });
+          if (ret[i].length === 0) {
             $("#chart1").html("No data available for " + graph_title);
-        } else {
+          } else {
             $("#chart1").html("");
+          }
         }
-        return [ret];
+        return ret;
     };
 
 // passing in the url string as the jqPlot data argument is a handy
 // shortcut for our renderer.  You could also have used the
 // "dataRendererOptions" option to pass in the url.
-    var plot2 = $.jqplot('chart1', jsonurl, {
+    var urls = $.type(jsonurl) === 'string' ? [jsonurl] : jsonurl;
+    var plot2 = $.jqplot('chart1', urls, {
         title: graph_title,
         dataRenderer: ajaxDataRenderer,
         dataRendererOptions: {
-            unusedOptionalUrl: jsonurl
+            unusedOptionalUrl: [jsonurl]
         },
         seriesDefaults: {
             markerOptions: { show: false }
