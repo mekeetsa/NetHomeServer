@@ -19,14 +19,17 @@
 
 function ajaxFetchComplete(data) {
     if ( gCurrent >= 0 && gCurrent < gJsonUrls.length ) {
-        gSeries[gCurrent] = data === null ? [0,0] : data;
+        gSeries[gCurrent] = data === null || data.length == 0 ? [''] : data;
     }
     if( gCurrent >= gJsonUrls.length - 1 ) {
-        // All fetched. Finally, plot the graphs...
+        // All fetched
         $("#chart1").html("");
         gPlotter();
     }
     else {
+        if ( gCurrent >= 0 ) { 
+            gPlotter(); 
+        }
         $.ajax({
             url: gJsonUrls[++gCurrent],
             dataType: "json",
@@ -79,13 +82,13 @@ $(document).ready(function () {
     gSeriesLegends = [];
 
     for( var i = 0; i < gJsonUrls.length; i++ ) {
-        gSeries[i] = [0,0];
+        // gSeries[i] = ['']; // Show an empty graph
         if( $.type(jsonlegend) !== 'string' ) {
             gSeriesLegends[i] = jsonlegend[i];
         }
     }
 
-    gPlotter();
+    // gPlotter(); // Show an empty graph
 
     gCurrent = -1;
     ajaxFetchComplete(null); // Start async fetching
