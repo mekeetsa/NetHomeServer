@@ -39,6 +39,9 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
+
 import org.apache.commons.lang3.StringUtils;
 
 import static java.lang.Class.forName;
@@ -200,6 +203,24 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
 
         loadItems(bootWebServer);
 
+        // Gracefull shutdown on SIGINT or SIGTERM
+        // TODO: addShutdownHook does not work so we use SignalHandler
+        //       (this should be fixed as SignalHandler is Sun's proprietary)
+        SignalHandler handler = new SignalHandler () {
+            public void handle(Signal sig) {
+                internalStopServer();
+            }
+        };
+        Signal.handle(new Signal("INT"), handler);
+        Signal.handle(new Signal("TERM"), handler);
+/*
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+        @Override
+            public void run() {
+                internalStopServer();
+            }
+        });
+*/
         bootWebServer.setStatus("Startup complete");
         waitForEnd();
 
@@ -210,6 +231,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
         // Upgrade server
         handleUpgrade();
         logger.info("**Exiting HomeManager " + HomeManager.class.getPackage().getImplementationVersion() + "**");
+        System.exit(0);
     }
 
     private void startPython(BootWebServer bootWebServer) {
@@ -223,6 +245,7 @@ public class HomeServer implements HomeItem, HomeService, ServiceState, ServiceC
         try {
             wait();
         } catch (InterruptedException e) {
+            System.out.println("waitForEnd() Interrupted");
             logger.log(Level.WARNING, "Interrupted waiting for end of program", e);
         }
     }
