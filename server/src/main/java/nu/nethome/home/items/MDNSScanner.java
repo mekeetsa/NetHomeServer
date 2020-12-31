@@ -20,9 +20,12 @@ public class MDNSScanner extends HomeItemAdapter implements HomeItem {
 
     private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
             + "<HomeItem Class=\"MDNSScanner\" Category=\"Ports\" >"
+            + "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Init=\"setState\" Default=\"true\" />"
             + "  <Attribute Name=\"ScanReplies\" Type=\"String\" Get=\"getScanReplies\" Default=\"true\" />"
             + "  <Attribute Name=\"AutoScanInterval\" Type=\"String\" Get=\"getScanInterval\" Set=\"setScanInterval\" />"
             + "  <Action Name=\"scan\" 	Method=\"scan\" />"
+            + "  <Action Name=\"enable\"        Method=\"enableScanner\" />"
+            + "  <Action Name=\"disable\"       Method=\"disableScanner\" />"
             + "</HomeItem> ");
 
     public static final String MDNS_CREATION_MESSAGE = "mDNS_Creation_Message";
@@ -39,6 +42,7 @@ public class MDNSScanner extends HomeItemAdapter implements HomeItem {
     private int scanInterval = 60;
     private int minutesUntilNextScan = 2;
     private JmDNS jmdns;
+    private boolean activeState = true;
 
     @Override
     public String getModel() {
@@ -66,6 +70,9 @@ public class MDNSScanner extends HomeItemAdapter implements HomeItem {
 
     @Override
     public void activate() {
+        if ( ! activeState ) {
+            return;
+        }
         try {
             jmdns = JmDNS.create(InetAddress.getLocalHost());
         } catch (UnknownHostException e) {
@@ -78,13 +85,18 @@ public class MDNSScanner extends HomeItemAdapter implements HomeItem {
     @Override
     public void stop() {
         if (jmdns != null) {
+/*
             try {
+                // Note: JmDNS.close() blocks for a long period (~6 seconds)
+                //       https://github.com/jmdns/jmdns/issues/82
                 jmdns.close();
             } catch (IOException e) {
                 logger.info("Failed closing mDNS scanner");
             }
+*/
         }
         super.stop();
+        jmdns = null;
     }
 
     public String getScanReplies() {
@@ -119,5 +131,29 @@ public class MDNSScanner extends HomeItemAdapter implements HomeItem {
     public void setScanInterval(String scanInterval) {
         this.scanInterval = Integer.parseInt(scanInterval);
         minutesUntilNextScan = this.scanInterval;
+    }
+
+    public String getState(){
+        return activeState ? "Enabled" : "Disabled";
+    }
+
+    public void setState(String state) {
+        activeState = state.compareToIgnoreCase("disabled") != 0;
+    }
+
+    public String enableScanner() {
+        if ( ! activeState ) {
+            activeState = true;
+            activate(); 
+        }
+        return "";
+    }
+
+    public String disableScanner() {
+        if ( activeState ) {
+            stop();
+            activeState = false;
+        }
+        return "";
     }
 }
