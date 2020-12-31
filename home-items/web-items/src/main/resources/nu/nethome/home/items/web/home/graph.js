@@ -38,7 +38,7 @@ function ajaxFetchComplete(data) {
     }
     else {
         if ( gSeriesLen > 0 ) { 
-            gPlotter(); 
+            // gPlotter(); 
         }
         $.ajax({
             url: gJsonUrls[++gCurrent],

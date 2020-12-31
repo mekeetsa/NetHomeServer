@@ -314,7 +314,9 @@ public class GraphPage extends PortletPage {
         cal.set(Calendar.HOUR_OF_DAY, 23);
         cal.set(Calendar.MINUTE, 59);
         cal.set(Calendar.SECOND, 59);
-        Date endOfDay = cal.getTime();
+        // Date endOfDay = cal.getTime();
+        startOfDay = new Date(startOfDay.getTime() - 5000);
+        Date endOfDay = new Date(cal.getTime().getTime() + 5000);
 
         JsonParameters params = new JsonParameters(p, nameList, idList, startOfDay, endOfDay);
 
