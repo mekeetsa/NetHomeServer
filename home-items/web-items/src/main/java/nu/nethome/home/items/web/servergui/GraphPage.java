@@ -94,7 +94,13 @@ public class GraphPage extends PortletPage {
                 jsonNames.append( " ]" );
             }
 
-            p.println(String.format("<script type=\"text/javascript\">var jsonurl=%s; var jsonlegend=%s;</script>", jsonUrls.toString(), jsonNames.toString()));
+            if( isFirst ) {
+                p.println("<script type=\"text/javascript\">var jsonurl=[]; var jsonlegend=[];</script>");
+            } else {
+                p.println(String.format(
+                    "<script type=\"text/javascript\">var jsonurl=%s; var jsonlegend=%s;</script>", 
+                    jsonUrls.toString(), jsonNames.toString()));
+            }
         }
     }
 
