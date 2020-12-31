@@ -21,7 +21,7 @@ function ajaxFetchComplete(data) {
     if ( gCurrent >= 0 && gCurrent < gJsonUrls.length ) {
         if ( data !== null && data.length != 0 ) {
             gSeries[gSeriesLen] = data;
-            if( $.type(jsonlegend) !== 'string' ) {
+            if( typeof(jsonlegend) === 'object' ) {
                 gSeriesLegends[gSeriesLen] = jsonlegend[gCurrent];
             }
             gSeriesLen++;
@@ -33,20 +33,26 @@ function ajaxFetchComplete(data) {
             $("#chart1").html("");
             gPlotter();
         } else {
-            $("#chart1").html("No data available.");
+            $("#chart1").html("<h3>No data available.</h3>");
         }
     }
     else {
         if ( gSeriesLen > 0 ) { 
             // gPlotter(); 
         }
+        ++gCurrent;
+        if( typeof(jsonlegend) === 'string' ) {
+            $("#chart1").html("<h3>Loading " + jsonlegend + " ...</h3>");
+        } else if ( typeof(jsonlegend) === 'object' ) {
+            $("#chart1").html("<h3>Loading " + jsonlegend[gCurrent] + " ...</h3>");
+        }
         $.ajax({
-            url: gJsonUrls[++gCurrent],
+            url: gJsonUrls[gCurrent],
             dataType: "json",
             success: ajaxFetchComplete,
             context: gCurrent,
             error: function (jqXHR, textStatus) {
-               $("#chart1").html("No data available. Ajax error: " + textStatus);
+               $("#chart1").html("<h3>No data available. Ajax error: " + textStatus + "</h3>");
             }
         });
     }
@@ -54,7 +60,7 @@ function ajaxFetchComplete(data) {
 
 function gPlotter() {
     $.jqplot.config.enablePlugins = true;
-    var plot2 = $.jqplot('chart1', gSeries, {
+    var plot2 = $.jqplot( 'chart1', gSeries, {
         title: graph_title,
         seriesDefaults: {
             markerOptions: { show: false }
@@ -86,7 +92,7 @@ function gPlotter() {
 
 $(document).ready(function () {
 
-    gJsonUrls = $.type(jsonurl) === 'string' ? [jsonurl] : jsonurl;
+    gJsonUrls = typeof(jsonurl) === 'string' ? [jsonurl] : jsonurl;
 
     gSeries = [];        // holds data series
     gSeriesLegends = []; // holds data series legends
