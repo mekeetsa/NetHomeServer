@@ -112,7 +112,7 @@ public class EditItemPage extends PortletPage {
     @Override
     public List<String> getJavaScriptFileNames() {
         List<String> scripts = new ArrayList<>();
-        scripts.add("web/home/js/jquery-1.4.3.min.js");
+        scripts.add("web/home/js/jquery.min.js");
         scripts.add("web/home/edititempage.js");
         scripts.addAll(selectClassPage.getJavaScriptFileNames());
         return scripts;

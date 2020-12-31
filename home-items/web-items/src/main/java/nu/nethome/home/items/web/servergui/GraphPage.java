@@ -147,7 +147,7 @@ public class GraphPage extends PortletPage {
 
     @Override
     public List<String> getJavaScriptFileNames() {
-        return Arrays.asList("web/home/js/jquery-1.4.3.min.js",
+        return Arrays.asList("web/home/js/jquery.min.js",
                 "web/home/js/jquery.jqplot.min.js",
                 "web/home/js/plugins/jqplot.canvasTextRenderer.min.js",
                 "web/home/js/plugins/jqplot.categoryAxisRenderer.min.js",
