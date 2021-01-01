@@ -129,7 +129,7 @@ public class EditSettingsPage extends EditItemPage {
         p.println("<div class=\"iheader\">");
         p.println(" <span class=\"homeiteminfo\">");
         p.println("  <ul>");
-        p.println("   <li>Server Settings</li>");
+        p.println("   <li id='itemInfo'>Server Settings</li>");
         p.println("  </ul>");
         p.println(" </span>");
         p.println("</div>");

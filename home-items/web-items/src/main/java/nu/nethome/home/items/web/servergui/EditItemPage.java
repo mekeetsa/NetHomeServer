@@ -375,7 +375,7 @@ public class EditItemPage extends PortletPage {
                 + HomeGUI.itemIcon(model.getCategory(), false) + "\" />");
         p.println(" <span class=\"homeiteminfo\">");
         p.println("  <ul>");
-        p.println("   <li>" + HTMLEncode.encode(name) + "</li>");
+        p.println("   <li id='itemInfo'>" + HTMLEncode.encode(name) + "</li>");
         p.println("   <li class=\"classname\">[<a href=\"http://wiki.nethome.nu/doku.php?id="
                 + model.getClassName()
                 + "\" target=\"new_window\" >"
@@ -449,7 +449,7 @@ public class EditItemPage extends PortletPage {
         p.println("	<img src=\"web/home/item.png\" />");
         p.println(" <span class=\"homeiteminfo\">");
         p.println("  <ul>");
-        p.println("   <li>Create new " + model.getClassName() + "</li>");
+        p.println("   <li id='itemInfo'>Create new " + model.getClassName() + "</li>");
         p.println("   <li class=\"classname\">Step 2: Initiate data and activate Item</li>");
         p.println("  </ul>");
         p.println(" </span>");
@@ -531,7 +531,7 @@ public class EditItemPage extends PortletPage {
         p.println("	<img src=\"web/home/item.png\" />");
         p.println(" <span class=\"homeiteminfo\">");
         p.println("  <ul>");
-        p.println("   <li>Create new Item</li>");
+        p.println("   <li id='itemInfo'>Create new Item</li>");
         p.println("   <li class=\"classname\">Step 1: Select item type</li>");
         p.println("  </ul>");
         p.println(" </span>");

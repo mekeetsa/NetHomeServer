@@ -118,7 +118,7 @@ public class LogPage extends PortletPage {
         p.println("<div class=\"iheader thin\">");
         p.println(" <span class=\"homeiteminfo\">");
         p.println("  <ul>");
-        p.println("   <li>Server Log</li>");
+        p.println("   <li id='itemInfo'>Server Log</li>");
         p.println("  </ul>");
         p.println(" </span>");
         p.println("</div>");

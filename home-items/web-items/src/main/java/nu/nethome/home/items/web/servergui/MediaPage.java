@@ -173,7 +173,7 @@ public class MediaPage extends PortletPage {
         p.println("<div class=\"iheader thin\">");
         p.println(" <span class=\"homeiteminfo\">");
         p.println("  <ul>");
-        p.println("   <li>Media Files</li>");
+        p.println("   <li id='itemInfo'>Media Files</li>");
         p.println("  </ul>");
         p.println(" </span>");
         p.println("</div>");

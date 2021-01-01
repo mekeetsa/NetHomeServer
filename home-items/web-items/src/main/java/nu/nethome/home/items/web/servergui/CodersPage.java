@@ -129,7 +129,7 @@ public class CodersPage extends PortletPage {
         p.println("<div class=\"iheader thin\">");
         p.println(" <span class=\"homeiteminfo\">");
         p.println("  <ul>");
-        p.println("   <li>" + header + "</li>");
+        p.println("   <li id='itemInfo'>" + header + "</li>");
         p.println("  </ul>");
         p.println(" </span>");
         p.println("</div>");

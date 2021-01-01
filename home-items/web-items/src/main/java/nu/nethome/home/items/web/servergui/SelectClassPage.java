@@ -116,7 +116,7 @@ public class SelectClassPage extends PortletPage {
         p.println("	<img src=\"web/home/item.png\" />");
         p.println(" <span class=\"homeiteminfo\">");
         p.println("  <ul>");
-        p.println("   <li>Create new Item</li>");
+        p.println("   <li id='itemInfo'>Create new Item</li>");
         p.println("   <li class=\"classname\">Step 1: Select item type or create from Event</li>");
         p.println("  </ul>");
         p.println(" </span>");

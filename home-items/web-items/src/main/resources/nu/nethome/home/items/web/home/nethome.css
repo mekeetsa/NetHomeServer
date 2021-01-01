@@ -448,6 +448,11 @@ li.homeitem a {
     margin-left:3px;
 }
 
+#itemInfo {
+    padding-top: 0.2em;
+    padding-left: 0.8em;
+}
+
 .actions li{
     font-size: 80%;
     display:inline;
