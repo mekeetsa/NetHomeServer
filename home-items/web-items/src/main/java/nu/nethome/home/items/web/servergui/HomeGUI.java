@@ -652,14 +652,26 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
 
                 if (pagePlugin.getPageNameURL().equals("server")) {
                     String classString = selectedPage == pagePlugin ? " active" : "";
-                    p.println("   <div class=\"dropdown" + classString + "\"><button class=\"dropbtn\""
-                         + " href=\"" + localURL + "?page=" + pagePlugin.getPageNameURL() + "\">"
+                    p.println("   <div class=\"dropdown" + classString + "\"><a class=\"dropbtn\""
+                         + " href =\"#\">" // " href=\"" + localURL + "?page=" + pagePlugin.getPageNameURL() + "\">"
                          + pagePlugin.getPageName()
-                         + "&nbsp;&#x25BC;</button><div class=\"dropdown-content\">");
+                         + "&nbsp;&#x25BC;</a><div class=\"dropdown-content\">");
                     for (String category : HomeItemModel.HOME_ITEM_CATEGORIES) {
                          p.println("    <a href=\"" + localURL + "?page=server&subpage=" + category + "\">" + category + "</a>");
                          // "<img src=\"web/home/" + HomeGUI.itemIcon(category, false) + "\" />"
                     }
+                    p.println("   </div></div>");
+                } else if (pagePlugin.getPageNameURL().equals("settings")) {
+                    String classString = selectedPage == pagePlugin ? " active" : "";
+                    p.println("   <div class=\"dropdown" + classString + "\"><a class=\"dropbtn\""
+                         + " href =\"#\">" // " href=\"" + localURL + "?page=" + pagePlugin.getPageNameURL() + "\">"
+                         + pagePlugin.getPageName()
+                         + "&nbsp;&#x25BC;</a><div class=\"dropdown-content\">");
+                    // TODO: this should be automated (one should call a PortletPage method instead)
+                    p.println("    <a href=\"" + localURL + "?page=settings&subpage=settings\">Settings</a>");
+                    p.println("    <a href=\"" + localURL + "?page=settings&subpage=media\">Media</a>");
+                    p.println("    <a href=\"" + localURL + "?page=settings&subpage=log\">Log</a>");
+                    p.println("    <a href=\"" + localURL + "?page=settings&subpage=coders\">Coders</a>");
                     p.println("   </div></div>");
                 } else {
                     String classString = selectedPage == pagePlugin ? " class=\"active\"" : "";
