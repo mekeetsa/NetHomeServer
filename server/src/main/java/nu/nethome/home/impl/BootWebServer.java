@@ -86,7 +86,7 @@ public class BootWebServer {
         PrintWriter out = new PrintWriter(inSocket.getOutputStream());
         consumeRequestData(in);
         printHttpHeaders(out);
-        out.println("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n" +
+        out.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n" +
                 "<html>\n" +
                 "<head>\n" +
                 "  <meta http-equiv=\"REFRESH\" content=\"" + refreshRate + ";url=http://" + inSocket.getLocalAddress().getHostAddress() + ":" + listenPort + "/home\">\n" +

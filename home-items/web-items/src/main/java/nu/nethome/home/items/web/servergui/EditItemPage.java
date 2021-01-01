@@ -503,8 +503,8 @@ public class EditItemPage extends PortletPage {
 
         p.println("<div class=\"footer\">");
         p.print("<input class=\"ibutton\" type=\"submit\" name=\"save_type\" value=\""
-                + CANCEL_BUTTON_TEXT + "\"> ");
-        p.println("<input class=\"ibutton\" type=\"submit\" name=\"save_type\" value=\"Save Settings and activate\">");
+                + CANCEL_BUTTON_TEXT + "\" /> ");
+        p.println("<input class=\"ibutton\" type=\"submit\" name=\"save_type\" value=\"Save Settings and activate\" />");
         p.println("</div");
         p.println("</form>");
 
@@ -555,7 +555,7 @@ public class EditItemPage extends PortletPage {
         }
         p.println("<table class=\"actions\">");
         p.println(" <tr>");
-        p.println(" <td class=\"actioncolumn\"><input type=\"submit\" value=\"Create new item\"> </td>");
+        p.println(" <td class=\"actioncolumn\"><input type=\"submit\" value=\"Create new item\" /> </td>");
         p.println(" <td><select name=\"class_name\" >");
         p.println("	<option value=\"TCPCommandPort\">- Select Type -</option>");
 
@@ -673,7 +673,7 @@ public class EditItemPage extends PortletPage {
             p.println("<tr>");
             p.println("  <td class=\"attributename\"><i>Item Name</i></td>");
             p.println("  <td><input class=\"iteminput\" type=\"text\" name=\"new_name\" value=\""
-                    + HTMLEncode.encode(item.getAttributeValue("Name")) + "\"></td>");
+                    + HTMLEncode.encode(item.getAttributeValue("Name")) + "\" /></td>");
             p.println("</tr>");
         }
 
@@ -699,14 +699,14 @@ public class EditItemPage extends PortletPage {
         // Print Attribute Footer
         p.println("<div class=\"footer\">");
         p.print("<input class=\"ibutton\" type=\"submit\" name=\"save_type\" value=\""
-                + CANCEL_BUTTON_TEXT + "\"> ");
+                + CANCEL_BUTTON_TEXT + "\" /> ");
         if (editPermission.isEditPermitted()) {
             if (returnPage != null) {
                 p.println("<input class=\"ibutton\" type=\"submit\" name=\"save_type\" value=\""
-                        + SAVE_BUTTON_TEXT + "\"> ");
+                        + SAVE_BUTTON_TEXT + "\" /> ");
             }
             p.println("<input class=\"ibutton\" type=\"submit\" name=\"save_type\" value=\""
-                    + APPLY_BUTTON_TEXT + "\"> ");
+                    + APPLY_BUTTON_TEXT + "\" /> ");
         }
         p.println("</div>");
         p.println("</form>");
@@ -740,7 +740,7 @@ public class EditItemPage extends PortletPage {
         p.println("  <td class=\"attributename\">" + prettyName + "</td>");
         p.println("  <td><input " + (oddLine ? " class=\"oddline\" " : "")
                 + " type=\"text\" name=\"" + htmlName + "\" value=\"" + value
-                + "\"></td>");
+                + "\" /></td>");
         p.println("</tr>");
     }
 
@@ -808,7 +808,7 @@ public class EditItemPage extends PortletPage {
         p.println("<input type=\"hidden\" name=\"name\" value=\"" + HTMLEncode.encode(name)
                 + "\" />");
         p.println("<input type=\"hidden\" name=\"a\" value=\"delete_rename\" />");
-        p.println("<input type=\"hidden\" name=\"move\" value=\"Place\"/>");
+        p.println("<input type=\"hidden\" name=\"move\" value=\"Place\" />");
         p.println("<input type=\"hidden\" name=\"page\" value=\"" + pageName
                 + "\" />");
         p.println(" <td><select name=\"new_location\" onchange=\"this.form.submit()\">");
@@ -828,7 +828,7 @@ public class EditItemPage extends PortletPage {
                 + "\" />");
         p.println("<tr>");
         p.println(" <td class=\"actioncolumn\"><input type=\"submit\" name=\"delete\" value=\"Delete "
-                + HTMLEncode.encode(name) + "\"></td>");
+                + HTMLEncode.encode(name) + "\" /></td>");
         p.println("</form>");
     }
 

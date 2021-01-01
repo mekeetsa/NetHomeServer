@@ -271,7 +271,7 @@ public class PlanPage implements HomePageInterface {
         } else {
             p.println("    <ul id=\"ID" + itemId + "\" class=\"itemlocation\" onclick=\"callItemAction('" + item.getAttributeValue("ID") + "', '" + model.getDefaultAction() + "');\" href=\"javascript:void(0)\">");
         }
-        p.println("        <li class=\"" + locationClass + "\" " + arrowIconAttributes + "/>");
+        p.println("        <li class=\"" + locationClass + "\" " + arrowIconAttributes + "></li>");
         p.println("        <li class=\"itemvalue\"  " + getUnitAttribute(model) + " data-item=\"" + itemId + "\">" + itemText + "</li>");
         p.println("    </ul>");
         p.println("</div>");
@@ -307,9 +307,9 @@ public class PlanPage implements HomePageInterface {
                 Integer.toString(planItem.getY(false)) + "px;left:" +
                 Integer.toString(planItem.getX(false)) + "px;\">");
         p.println(" <ul>");
-        p.println("  <li class=\"close\"><img class=\"closebutton\" src=\"web/home/close.png\" /></li>");
-        p.println("  <li><img src=\"" + popupIconImageFileName + "\" /></li>");
-        p.println("  <li><img class=\"dividerimg\" src=\"web/home/pitem_divider.png\" /></li>");
+        p.println("  <li class=\"close\"><img class=\"closebutton\" src=\"web/home/close.png\"></li>");
+        p.println("  <li><img src=\"" + popupIconImageFileName + "\"></li>");
+        p.println("  <li><img class=\"dividerimg\" src=\"web/home/pitem_divider.png\"></li>");
         p.println("  <li>");
         p.println("   <ul>");
         p.println("    <li><a href=\"" + localURL + "?page=edit&name=" + itemId + "&return=" + this.getPageNameURL() +
@@ -357,7 +357,7 @@ public class PlanPage implements HomePageInterface {
                 Integer.toString(planItem.getY(false)) + "px;left:" +
                 Integer.toString(planItem.getX(false)) + "px;\">");
         p.println("    <ul class=\"itemlocation\" onclick=\"location.href='" + localURL + "?page=" + getPageNameURL() + "&subpage=" + item.getAttributeValue("ID") + "';\" >");
-        p.println("        <li class=\"icon link\" />");
+        p.println("        <li class=\"icon link\"></li>");
         p.println("        <li>" + item.getAttributeValue("Name") + "</li>");
         p.println("    </ul>");
         p.println("</div>");

@@ -154,7 +154,7 @@ public class MediaPage extends PortletPage {
     }
 
     private void printFileSelector(PrintWriter p) {
-        p.println("<form class=\"uploadPanel\"action=\"" + localURL + "\" method=\"post\" enctype=\"multipart/form-data\">\n" +
+        p.println("<form class=\"uploadPanel\" action=\"" + localURL + "\" method=\"post\" enctype=\"multipart/form-data\">\n" +
                 "    Select a new image to add:\n" +
                 "    <input type=\"file\" name=\"fileToUpload\" id=\"fileToUpload\">\n" +
                 "    <input type=\"submit\" value=\"Add Image\" name=\"submit\">\n" +
@@ -164,7 +164,6 @@ public class MediaPage extends PortletPage {
     private void printMediaFooter(PrintWriter p) {
         p.println("        <div class=\"footer thin\"></div>");
         p.println("    </div>");
-        p.println("</div>");
         p.println("</div>");
     }
 

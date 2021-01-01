@@ -110,7 +110,6 @@ public class LogPage extends PortletPage {
         p.println("        <div class=\"footer thin\"></div>");
         p.println("    </div>");
         p.println("</div>");
-        p.println("</div>");
     }
 
     protected void printLogHeading(PrintWriter p) {
