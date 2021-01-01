@@ -645,7 +645,23 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         } else {
             // Loop through all page plugins and add their link to the nav bar
             for (HomePageInterface pagePlugin : pages) {
-                if (pagePlugin.getPageName() != null) {
+
+                if (pagePlugin.getPageName() == null) {
+                    continue;
+                }
+
+                if (pagePlugin.getPageNameURL().equals("server")) {
+                    String classString = selectedPage == pagePlugin ? " active" : "";
+                    p.println("   <div class=\"dropdown" + classString + "\"><button class=\"dropbtn\""
+                         + " href=\"" + localURL + "?page=" + pagePlugin.getPageNameURL() + "\">"
+                         + pagePlugin.getPageName()
+                         + "&nbsp;&#x25BC;</button><div class=\"dropdown-content\">");
+                    for (String category : HomeItemModel.HOME_ITEM_CATEGORIES) {
+                         p.println("    <a href=\"" + localURL + "?page=server&subpage=" + category + "\">" + category + "</a>");
+                         // "<img src=\"web/home/" + HomeGUI.itemIcon(category, false) + "\" />"
+                    }
+                    p.println("   </div></div>");
+                } else {
                     String classString = selectedPage == pagePlugin ? " class=\"active\"" : "";
                     p.print("   <a" + classString + " href=\"" + localURL + "?page=" + pagePlugin.getPageNameURL() + "\">");
                     p.print(pagePlugin.getPageName());
