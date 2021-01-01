@@ -67,6 +67,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
             + "  <Attribute Name=\"PlanPage\" Type=\"Item\" Get=\"getPlanPage\" 	Set=\"setPlanPage\" />"
             + "  <Attribute Name=\"Location\" Type=\"Item\" Get=\"getDefaultLocation\" 	Set=\"setDefaultLocation\" />"
             + "  <Attribute Name=\"AllowEdit\" Type=\"Boolean\" Get=\"getAllowEdit\" 	Set=\"setAllowEdit\" />"
+            + "  <Attribute Name=\"Navbar2\" Type=\"Boolean\" Get=\"getNavbar2\" 	Set=\"setNavbar2\" />"
             + "</HomeItem> ");
     public static final int REPORT_ITEMS_PERIOD_MS = 60000;
     public static final int MAX_EVENT_ID_LENGTH = 60;
@@ -88,6 +89,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
     private String defaultLocation = "";
     private String mediaDirectory = "";
     private boolean allowEdit = true;
+    private boolean useNavbar2 = false;
     private CreationEventCache creationEvents = new CreationEventCache();
     private long lastItemReportTime = 0L;
 
@@ -232,7 +234,11 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
 
                 // Print Navigation Bar
                 if (allowEdit) {
-                    printNavigationBar2(p, pagePlugin, arguments);
+                    if (useNavbar2) {
+                        printNavigationBar2(p, pagePlugin, arguments);
+                    } else {
+                        printNavigationBar(p, pagePlugin, arguments);
+                    }
                 }
 
                 // Let the plugin print the actual page
@@ -782,6 +788,14 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
 
     public void setAllowEdit(String allowEdit) {
         this.allowEdit = allowEdit.equalsIgnoreCase("Yes") || allowEdit.equalsIgnoreCase("True");
+    }
+
+    public String getNavbar2() {
+        return useNavbar2 ? "Yes" : "No";
+    }
+
+    public void setNavbar2(String useNavbar2) {
+        this.useNavbar2 = useNavbar2.equalsIgnoreCase("Yes") || useNavbar2.equalsIgnoreCase("True");
     }
 
     @Override
