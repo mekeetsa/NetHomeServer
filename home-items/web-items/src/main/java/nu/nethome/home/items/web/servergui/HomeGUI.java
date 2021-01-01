@@ -40,6 +40,9 @@ import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.Files;
 
 /**
  * Presents a WEB-GUI for the NetHomeServer. This class is the HomeItem, which is created and holds
@@ -64,6 +67,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
             + "  <Attribute Name=\"HtmlHeader\" Type=\"String\" Get=\"getCustomHtmlHeader\" 	Set=\"setCustomHtmlHeader\" />"
             + "  <Attribute Name=\"LeftBanner\" Type=\"String\" Get=\"getCustomLeftBannerFile\" 	Set=\"setCustomLeftBannerFile\" />"
             + "  <Attribute Name=\"RightBanner\" Type=\"String\" Get=\"getCustomRightBannerFile\" 	Set=\"setCustomRightBannerFile\" />"
+            + "  <Attribute Name=\"CustomMenuFile\" Type=\"String\" Get=\"getCustomMenuFile\" 	Set=\"setCustomMenuFile\" />"
             + "  <Attribute Name=\"PlanPage\" Type=\"Item\" Get=\"getPlanPage\" 	Set=\"setPlanPage\" />"
             + "  <Attribute Name=\"Location\" Type=\"Item\" Get=\"getDefaultLocation\" 	Set=\"setDefaultLocation\" />"
             + "  <Attribute Name=\"AllowEdit\" Type=\"Boolean\" Get=\"getAllowEdit\" 	Set=\"setAllowEdit\" />"
@@ -85,6 +89,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
     private String customHtmlHeader = "";
     private String customLeftBannerFile = "";
     private String customRightBannerFile = "";
+    private String customMenuFile = "";
     private String defaultPlanPage = "HomePlan";
     private String defaultLocation = "";
     private String mediaDirectory = "";
@@ -596,6 +601,21 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         p.println("</div>");
     }
 
+    private void printCustomMenuFile(PrintWriter p) {
+        if ( customMenuFile.length() == 0 ) {
+            return;
+        }
+        Path path = Paths.get(customMenuFile);
+        if ( ! Files.exists(path) ) {
+            return;
+        }
+        try {
+            p.print( new String( Files.readAllBytes(path) ) );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     protected void printNavigationBar2(PrintWriter p, HomePageInterface selectedPage, HomeGUIArguments arguments) throws ServletException, IOException {
 
         if (arguments.isEditMode() && selectedPage.supportsEdit()) {
@@ -681,6 +701,8 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
                 }
             }
         }
+
+        printCustomMenuFile(p);
 
         p.println(" </div>");
         p.println(" <div class=\"floatClear\"></div>");
@@ -792,6 +814,14 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
 
     public void setCustomRightBannerFile(String customRightBannerFile) {
         this.customRightBannerFile = customRightBannerFile;
+    }
+
+    public String getCustomMenuFile() {
+        return customMenuFile;
+    }
+
+    public void setCustomMenuFile(String customMenuFile) {
+        this.customMenuFile = customMenuFile;
     }
 
     public String getPlanPage() {

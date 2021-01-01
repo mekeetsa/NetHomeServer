@@ -973,8 +973,8 @@ div#chart1 {
 }
 
 .navbar .active {
-  background-color: #eee;
-  color: black;
+  background-color: #171;
+  color: white;
 }
 
 .navbar a.pref {
@@ -1036,11 +1036,11 @@ div#chart1 {
 }
 
 .dropdown.active .dropbtn {
-  color: black;
+  color: #eeeeee;
 }
 
 .navbar a:hover, .navbar.edit .econtrol a:hover, .dropdown:hover .dropbtn {
-  background-color: red;
+  background-color: #383;
   color: white;
 }
 
