@@ -287,6 +287,6 @@ public abstract class PortletPage implements HomePageInterface {
     }
 
     protected void printRedirectionScript(PrintWriter p, String url) {
-        p.println("<script>location.href=\"" + url + "\"</script>");
+        p.println("<script type=\"text/javascript\">location.href=\"" + url + "\"</script>");
     }
 }

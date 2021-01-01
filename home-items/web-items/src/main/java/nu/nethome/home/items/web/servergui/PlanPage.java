@@ -135,7 +135,7 @@ public class PlanPage implements HomePageInterface {
     private void printPlanUpdateScript(PrintWriter p, Plan viewedPlan, boolean editMode) {
         int updateInterval = viewedPlan.getUpdateIntervalInt() * 1000;
         if (!editMode && (updateInterval > 0)) {
-            p.println("<script>window.setInterval(getItemValues," + updateInterval + ");</script>");
+            p.println("<script type=\"text/javascript\">window.setInterval(getItemValues," + updateInterval + ");</script>");
         }
     }
 

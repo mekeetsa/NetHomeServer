@@ -251,13 +251,13 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
 
     private void performCloudLogout(HomeGUIArguments args, PrintWriter p) {
         homeServer.send(homeServer.createEvent("Logout_Message", args.cloudAccount));
-        p.println("<script>location.href=\"/servers\"</script>");
+        p.println("<script type=\"text/javascript\">location.href=\"/servers\"</script>");
         p.flush();
         p.close();
     }
 
     private void printPageData(PrintWriter p, HomeGUIArguments arguments) {
-        p.println("<script>var homeManager = {}; ");
+        p.println("<script type=\"text/javascript\">var homeManager = {}; ");
         p.println("homeManager.baseURL=\"" + getLocalURL() + "\";");
         if (arguments.hasSubpage()) {
             p.println("homeManager.subpage=\"" + arguments.getSubpage() + "\";" +

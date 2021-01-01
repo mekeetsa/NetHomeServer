@@ -142,7 +142,7 @@ public class RoomsPage extends PortletPage {
     }
 
     private void printPageData(PrintWriter p, String subPage) {
-        p.println("<script> ");
+        p.println("<script type=\"text/javascript\"> ");
         p.println("homeManager.location=\"" + subPage + "\";");
         p.println("</script>");
     }

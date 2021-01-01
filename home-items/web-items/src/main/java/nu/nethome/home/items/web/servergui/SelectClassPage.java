@@ -100,7 +100,7 @@ public class SelectClassPage extends PortletPage {
     private void printEventsPanel(PrintWriter p, EditItemArguments arguments) {
         HomeUrlBuilder createLink = new HomeUrlBuilder(localURL);
         createLink.preserveReturnPage(arguments).withPage(pageName).preserveRoom(arguments);
-        p.printf("<script>homeManager.classUrl=%s;</script>", createLink.toQuotedString());
+        p.printf("<script type=\"text/javascript\">homeManager.classUrl=%s;</script>", createLink.toQuotedString());
         p.println("<div class=\"panel thin\">");
         p.println(" <h1>Detected Devices</h1>");
         p.println(" <h2>Create Items based on detected devices</h2>");
