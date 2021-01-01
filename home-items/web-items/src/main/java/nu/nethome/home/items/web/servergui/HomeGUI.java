@@ -232,7 +232,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
 
                 // Print Navigation Bar
                 if (allowEdit) {
-                    printNavigationBar(p, pagePlugin, arguments);
+                    printNavigationBar2(p, pagePlugin, arguments);
                 }
 
                 // Let the plugin print the actual page
@@ -535,7 +535,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         p.println("<div class=\"menubarBorder\">");
         p.println(" <div class=\"menubar" + editClassString + "\">");
         p.println("  <ul>");
-        p.println("<!-- main manu -->");
+        p.println("<!-- main menu -->");
 
         if (arguments.isEditMode() && selectedPage.supportsEdit()) {
             p.println("   <li>Editing " + selectedPage.getPageName() + ":</li>");
@@ -590,6 +590,68 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         p.println("</div>");
     }
 
+    protected void printNavigationBar2(PrintWriter p, HomePageInterface selectedPage, HomeGUIArguments arguments) throws ServletException, IOException {
+
+        if (arguments.isEditMode() && selectedPage.supportsEdit()) {
+            p.println("<div class=\"navbarBorder edit\">");
+            p.println(" <div class=\"navbar edit\">");
+        } else {
+            p.println("<div class=\"navbarBorder\">");
+            p.println(" <div class=\"navbar\">");
+        }
+
+        // Menu item: Log
+        p.print("   <a class=\"pref\" href=\"" + localURL + "?page=settings&subpage=log\">");
+        if (homeServer.getState().getCurrentAlarmCount() > 0) {
+            p.print("<div class=\"valign\"><img src=\"web/home/warn.png\"/>&nbsp;Log</div>");
+        } else {
+            p.print("Log");
+        }
+        p.println("</a>");
+
+        // Menu item: Logout
+        if (arguments.isCloudAccess()) {
+            p.print("   <a class=\"pref\" href=\"" + localURL + "?a=logout\">");
+            p.print("<div class=\"valign\"><img src=\"web/home/cloud16.png\"/>&nbsp;Logout</div>");
+            p.println("</a>");
+        }
+
+        // Menu item: Edit
+        if (selectedPage.supportsEdit()) {
+            p.print("   <a class=\"pref\" ");
+            String subpageArgument = arguments.hasSubpage() ? "&subpage=" + arguments.getSubpage() : "";
+            p.print("href=\"" + localURL + "?page=" + selectedPage.getPageNameURL() + subpageArgument);
+            if (arguments.isEditMode()) {
+                p.print("\"><div class=\"valign\"><img src=\"web/home/edit.png\"/>&nbsp;End edit</div>");
+            } else {
+                p.print("&mode=edit\"><div class=\"valign\"><img src=\"web/home/edit.png\"/>&nbsp;Edit this page</div>");
+            }
+            p.println("</a>");
+        }
+
+        // Either controls or plugins menu items
+        if (arguments.isEditMode() && selectedPage.supportsEdit()) {
+            p.println("   <span class=\"einfo\">Editing " + selectedPage.getPageName() + ":</span>");
+            // Loop through controls
+            for (EditControl controlButton : selectedPage.getEditControls()) {
+                p.println("   <span class=\"econtrol\">" + controlButton.print(arguments, homeServer) + "</span>");
+            }
+        } else {
+            // Loop through all page plugins and add their link to the nav bar
+            for (HomePageInterface pagePlugin : pages) {
+                if (pagePlugin.getPageName() != null) {
+                    String classString = selectedPage == pagePlugin ? " class=\"active\"" : "";
+                    p.print("   <a" + classString + " href=\"" + localURL + "?page=" + pagePlugin.getPageNameURL() + "\">");
+                    p.print(pagePlugin.getPageName());
+                    p.println("</a>");
+                }
+            }
+        }
+
+        p.println(" </div>");
+        p.println(" <div class=\"floatClear\"></div>");
+        p.println("</div>");
+    }
 
     public static String toURL(String aText) {
         String result;
