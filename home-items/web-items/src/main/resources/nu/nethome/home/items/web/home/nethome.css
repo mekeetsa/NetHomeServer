@@ -282,7 +282,15 @@ div.sidebar ul.sidenav{
     float:left;
     margin-right: 20px;
     margin-left: 10px;
-    width:550px;
+    width:650px;
+}
+
+.itemcolumn.edit table {
+    padding-left: 2em;
+}
+
+.itemcolumn.edit .secheader {
+    padding-left: 1em;
 }
 
 .itemcolumn.log {
@@ -908,6 +916,7 @@ div#chart1 {
     font-size: 120%;
     height: 500px;
     line-height: 20px;
+    margin: 0 auto;
     margin-top: 10px;
     position: relative;
     width: 98%;
@@ -1069,5 +1078,21 @@ div#chart1 {
 
 .dropdown:hover .dropdown-content {
   display: block;
+}
+
+/* *********************** hide navbar on scroll */
+
+#navbar {
+  position: fixed; /* Make it stick/fixed */
+  top: 0; /* Stay on top */
+  /* transition: top 0.1s; *//* Transition effect when sliding down (and up) */
+  min-width: 600px;
+  width: 1000px;
+  max-width: 97%;
+  z-index: 1;
+}
+
+#navbar-space {
+  height: 1.5em;
 }
 

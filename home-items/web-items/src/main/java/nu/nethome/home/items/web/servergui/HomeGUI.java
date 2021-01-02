@@ -65,6 +65,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
             + "  <Attribute Name=\"WEBServer\" Type=\"Item\" Get=\"getWEBServer\" 	Set=\"setWEBServer\" />"
             + "  <Attribute Name=\"LocalURL\" Type=\"String\" Get=\"getLocalURL\" 	Set=\"setLocalURL\" Default=\"true\" />"
             + "  <Attribute Name=\"HtmlHeader\" Type=\"String\" Get=\"getCustomHtmlHeader\" 	Set=\"setCustomHtmlHeader\" />"
+            + "  <Attribute Name=\"HtmlFooter\" Type=\"String\" Get=\"getCustomHtmlFooter\" 	Set=\"setCustomHtmlFooter\" />"
             + "  <Attribute Name=\"LeftBanner\" Type=\"String\" Get=\"getCustomLeftBannerFile\" 	Set=\"setCustomLeftBannerFile\" />"
             + "  <Attribute Name=\"RightBanner\" Type=\"String\" Get=\"getCustomRightBannerFile\" 	Set=\"setCustomRightBannerFile\" />"
             + "  <Attribute Name=\"CustomMenuFile\" Type=\"String\" Get=\"getCustomMenuFile\" 	Set=\"setCustomMenuFile\" />"
@@ -87,6 +88,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
     protected String webServer = "JettyWEB";
     protected String localURL = "/home";
     private String customHtmlHeader = "";
+    private String customHtmlFooter = "";
     private String customLeftBannerFile = "";
     private String customRightBannerFile = "";
     private String customMenuFile = "";
@@ -497,8 +499,6 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
     protected void printHeader(PrintWriter p, HomePageInterface pagePlugin) throws ServletException, IOException {
         p.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">");
         p.println("<html lang=\"en\"><head>");
-        String htmlHeader = customHtmlHeader.length() > 0 ? customHtmlHeader : "<title>NewNetHome</title>";
-        p.println(htmlHeader);
         p.println("  <meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">");
         p.println("  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=7\"> ");
         p.println("  <link rel=\"shortcut icon\" type=\"image/ico\" href=\"web/home/home.ico\">");
@@ -515,12 +515,17 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
                 p.println("	 <script type=\"text/javascript\" src=\"" + script + "\"></script>");
             }
         }
-        String leftBannerFileName = customLeftBannerFile.length() > 0 ? customLeftBannerFile : "web/home/left_banner.jpg";
-        String rightBannerFileName = customRightBannerFile.length() > 0 ? customRightBannerFile : "web/home/right_banner.jpg";
+        if (customHtmlHeader.length() > 0) {
+            p.println(customHtmlHeader);
+        } else {
+            p.println("<title>NewNetHome</title>");
+        }
         p.println("</head>");
         p.println("<body>");
         p.println("<div id=\"pageBody\">");
         p.println("<div id=\"logobar\">");
+        String leftBannerFileName = customLeftBannerFile.length() > 0 ? customLeftBannerFile : "web/home/left_banner.jpg";
+        String rightBannerFileName = customRightBannerFile.length() > 0 ? customRightBannerFile : "web/home/right_banner.jpg";
         if (customLeftBannerFile.length() != 1 && customRightBannerFile.length() != 1) {
             p.println(" <a href=\"http://opennethome.org\"><img src=\"" + leftBannerFileName + "\" class=\"primary\" title=\"NetHomeServer\"></a>");
             p.println(" <a href=\"http://opennethome.org\"><img src=\"" + rightBannerFileName + "\" title=\"My Own Logo\" class=\"secondary\" width=\"313\" height=\"50\"></a>");
@@ -531,6 +536,9 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
 
     protected void printFooter(PrintWriter p) throws ServletException, IOException {
         p.println("</div>");
+        if (customHtmlFooter.length() > 0) {
+            p.println(customHtmlFooter);
+        }
         p.println("</body>");
         p.println("</html>");
 
@@ -589,7 +597,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
             if (arguments.isEditMode()) {
                 p.println("     <img src=\"web/home/edit.png\"/>&nbsp;<a href=\"" + localURL + "?page=" + selectedPage.getPageNameURL() + subpageArgument + "\">End edit</a>");
             } else {
-                p.println("     <img src=\"web/home/edit.png\"/>&nbsp;<a href=\"" + localURL + "?page=" + selectedPage.getPageNameURL() + subpageArgument + "&mode=edit\">Edit this page</a>");
+                p.println("     <img src=\"web/home/edit.png\"/>&nbsp;<a href=\"" + localURL + "?page=" + selectedPage.getPageNameURL() + subpageArgument + "&mode=edit\">Edit</a>");
             }
             p.println("   </li>");
         }
@@ -619,10 +627,10 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
     protected void printNavigationBar2(PrintWriter p, HomePageInterface selectedPage, HomeGUIArguments arguments) throws ServletException, IOException {
 
         if (arguments.isEditMode() && selectedPage.supportsEdit()) {
-            p.println("<div class=\"navbarBorder edit\">");
+            p.println("<div id='navbar' class=\"navbarBorder edit\">");
             p.println(" <div class=\"navbar edit\">");
         } else {
-            p.println("<div class=\"navbarBorder\">");
+            p.println("<div id='navbar' class=\"navbarBorder\">");
             p.println(" <div class=\"navbar\">");
         }
 
@@ -650,7 +658,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
             if (arguments.isEditMode()) {
                 p.print("\"><div class=\"valign\"><img src=\"web/home/edit.png\"/>&nbsp;End edit</div>");
             } else {
-                p.print("&mode=edit\"><div class=\"valign\"><img src=\"web/home/edit.png\"/>&nbsp;Edit this page</div>");
+                p.print("&mode=edit\"><div class=\"valign\"><img src=\"web/home/edit.png\"/>&nbsp;Edit</div>");
             }
             p.println("</a>");
         }
@@ -707,6 +715,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         p.println(" </div>");
         p.println(" <div class=\"floatClear\"></div>");
         p.println("</div>");
+        p.println("<div id='navbar-space'>&nbsp;</div>");
     }
 
     public static String toURL(String aText) {
@@ -798,6 +807,14 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
 
     public void setCustomHtmlHeader(String customHtmlHeader) {
         this.customHtmlHeader = customHtmlHeader;
+    }
+
+    public String getCustomHtmlFooter() {
+        return customHtmlFooter;
+    }
+
+    public void setCustomHtmlFooter(String customHtmlFooter) {
+        this.customHtmlFooter = customHtmlFooter;
     }
 
     public String getCustomLeftBannerFile() {
