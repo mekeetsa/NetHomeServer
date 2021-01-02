@@ -28,81 +28,80 @@ li.close img {
 
 .phomeitem
 {
-	width:350px;
-	background:url(tooltip-bg.png);
-	z-index:11;
-	/* font-size:1em; */
-	color:#FFF;
-
-	border:none;
-	height:42px;
-	list-style-image:none;
-	list-style-position:outside;
-	list-style-type:none;
-	-moz-border-radius:6px;
-	-moz-border-radius:6px;
-	-webkit-border-radius:6px;
-	-webkit-border-radius:6px;
-	border-radius:6px;
-	border-radius:6px;
-	padding-left: 5px;
-	position: absolute;
-	margin:0px;
-	float: left;
+    width:250px;
+    background:url(tooltip-bg.png);
+    z-index:11;
+    /* font-size:1em; */
+    color:#FFF;
+    border:none;
+    height:42px;
+    list-style-image:none;
+    list-style-position:outside;
+    list-style-type:none;
+    -moz-border-radius:6px;
+    -moz-border-radius:6px;
+    -webkit-border-radius:6px;
+    -webkit-border-radius:6px;
+    border-radius:6px;
+    padding-left: 5px;
+    position: absolute;
+    transform: translate(-50%, -5%);
+    margin:0px;
+    float: left;
 }
 
 .phomeitem.row2 {
-	height:62px;
+    height:62px;
 }
 
 .phomeitem.row2 img.dividerimg {
-	height:62px;
-	width:3px;
+    height:62px;
+    width:3px;
 }
 
 .phomeitem.row3 {
-	height:82px;
+    height:82px;
 }
 
 .phomeitem.row3 img.dividerimg {
-	height:82px;
-	width:3px;
+    height:82px;
+    width:3px;
 }
 
 .phomeitem.row4 {
-	height:102px;
+    height:102px;
 }
 
 .phomeitem.row4 img.dividerimg {
-	height:102px;
-	width:3px;
+    height:102px;
+    width:3px;
 }
 
 .phomeitem.row5 {
-	height:124px;
+    height:124px;
 }
 
 .phomeitem.row5 img.dividerimg {
-	height:124px;
-	width:3px;
+    height:124px;
+    width:3px;
 }
 
 .phomeitem.row6 {
-	height:146px;
+    height:146px;
 }
 
 .phomeitem.row6 img.dividerimg {
-	height:146px;
-	width:3px;
+    height:146px;
+    width:3px;
 }
 
 .phomeitem.row9 {
-	height:230px;
+    height:230px;
 }
 
 .phomeitem.row9 img.dividerimg {
-	height:230px;
-	width:3px;
+    height:230px;
+    width:3px;
 }
 
 .phomeitem img
@@ -116,7 +115,7 @@ li.close img {
  list-style:none inside none;
  display: inline;
  font-size:120%;
- width: 295px;
+ /* width: 295px; */
 }
 
 .phomeitem li {
@@ -125,13 +124,13 @@ li.close img {
 
 .phomeitem li li{
  display: block;
- margin-left:5px;
+ margin-left:9px;
  height: 1.2em; /* PeLa */
 }
 
 .phomeitem li ul{
  position: absolute;
- width: 290px; /* PeLa 100% */
+ /* width: 190px; */ /* PeLa 100% */  /* 250px - 60px */
 }
 
 .phomeitem li li li{
@@ -145,37 +144,54 @@ li.close img {
  padding:1px;
 }
 
- .draggable {
-    width: 100px;
+.draggable {
+    /* width: 100px; */
+    min-width: 32px;
+    max-width: 100px;
     position: absolute;
- }
+}
 
- .poppable {
-    width: 100px;
+.poppable {
+    /* width: 100px; */
+    min-width: 32px;
+    max-width: 100px;
     position: absolute;
- }
+}
 
 .planlink {
-    width: 100px;
+    /* width: 100px; */
+    min-width: 32px;
+    max-width: 100px;
     position: absolute;
  }
 
 .actionbutton {
-    width: 100px;
+    /* width: 100px; */
+    min-width: 32px;
+    max-width: 100px;
     position: absolute;
  }
 
 .clickable {
-    width: 100px;
+    /* width: 100px; */
+    min-width: 32px;
+    max-width: 100px;
     position: absolute;
- }
+}
 
 .itemlocation {
     display: block;
     text-align: center;
-    width: 100px;
+    min-width: 32px;
+    max-width: 100px;
     padding-left: 0px;
     float: left;
+    margin:0;
+    /* centered at top left: */
+    transform: translate(-50%, -50%);
+    /* background rounded box */
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
 }
  
 .itemlocation li {
@@ -184,56 +200,56 @@ li.close img {
 }
 
 .itemlocation li.icon {
-	text-indent:-9999px;
-	background:url(lamp32_on.png) no-repeat center;
+    text-indent:-9999px;
+    background:url(lamp32_on.png) no-repeat center;
     height: 32px;
     display: block;
 }
 
 .itemlocation li.icon.custom {
-	background: none;
+    background: none;
     text-indent:0px;
     height: auto;
 }
 
 .itemlocation li.icon.control {
-	background:url(control32.png) no-repeat center;
+    background:url(control32.png) no-repeat center;
 }
 
 .itemlocation li.icon.temp {
-	background:url(thermometer32.png) no-repeat center;
+    background:url(thermometer32.png) no-repeat center;
 }
 
 .itemlocation li.icon.lamp_off {
-	background:url(lamp32_off.png) no-repeat center;
+    background:url(lamp32_off.png) no-repeat center;
 }
 
 .itemlocation li.icon.gauge {
-	background:url(gauge32.png) no-repeat center;
+    background:url(gauge32.png) no-repeat center;
 }
 
 .itemlocation li.icon.gui {
-	background:url(gui32.png) no-repeat center;
+    background:url(gui32.png) no-repeat center;
 }
 
 .itemlocation li.icon.house {
-	background:url(infra32.png) no-repeat center;
+    background:url(infra32.png) no-repeat center;
 }
 
 .itemlocation li.icon.hw {
-	background:url(hw32.png) no-repeat center;
+    background:url(hw32.png) no-repeat center;
 }
 
 .itemlocation li.icon.port {
-	background:url(port32.png) no-repeat center;
+    background:url(port32.png) no-repeat center;
 }
 
 .itemlocation li.icon.timer {
-	background:url(timer32.png) no-repeat center;
+    background:url(timer32.png) no-repeat center;
 }
 
 .itemlocation li.icon.link {
-	background:url(link32.png) no-repeat center;
+    background:url(link32.png) no-repeat center;
 }
 
 .itemlocation li.icon.actuator {
@@ -245,54 +261,60 @@ li.close img {
 }
 
 .phomeitem a {
- color:#003399;
- outline-color:-moz-use-text-color;
- outline-style:none;
- outline-width:medium;
- text-decoration:none;
+    /* color:#003399; */
+    color:#fffff0;
+    outline-color:-moz-use-text-color;
+    outline-style:none;
+    outline-width:medium;
+    text-decoration:none;
 } 
 
 /* Style for the plan */
 div.plan {
-	position:relative;
-	width:900px;
-	height:745px;
-	text-align:left;
-	margin: 20px auto;
-	padding:0px;
-	border:none;
+    position:relative;
+    width:900px;
+    text-align:left;
+    margin: 10px auto;
+    margin-bottom: 0;
+    padding:0px;
+    border:none;
+}
+
+.plan-svg {
+    position: absolute;
+    width: 900px;
 }
 
 /* Style for editing plan */
 
 .pitemlistpanel
 {
-	width:400px;
-	background:url(tooltip-bg.png);
+    width:400px;
+    background:url(tooltip-bg.png);
 
-	z-index:11;
-	/* font-size:1em; */
-	color:#000000;
+    z-index:11;
+    /* font-size:1em; */
+    color:#000000;
     padding:20px;
-	border:none;
-	height:390px;
-	list-style-image:none;
-	list-style-position:outside;
-	list-style-type:none;s
-	-moz-border-radius:6px;
-	-moz-border-radius:6px;
-	-webkit-border-radius:6px;
-	-webkit-border-radius:6px;
-	border-radius:6px;
-	border-radius:6px;
-	float: left;
+    border:none;
+    height:390px;
+    list-style-image:none;
+    list-style-position:outside;
+    list-style-type:none;s
+    -moz-border-radius:6px;
+    -moz-border-radius:6px;
+    -webkit-border-radius:6px;
+    -webkit-border-radius:6px;
+    border-radius:6px;
+    border-radius:6px;
+    float: left;
 }
 
 .pitemlistpanel ul {
     background-color: rgba(255, 255, 255, 0.5);
     border: medium none;
     overflow: auto;
-	height:350px;
+    height:250px;
     margin: 0px;
     padding: 2px;
 }

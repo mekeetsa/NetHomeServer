@@ -148,7 +148,14 @@ public class PlanPage implements HomePageInterface {
 
     private void printPlanPageStart(PrintWriter p, Plan viewedPlan) {
         p.println("<span id=\"dummy\"></span>");
-        p.println("<div class=\"plan\" data-item=\"" + viewedPlan.getItemId() + "\" style=\"background:url(" + viewedPlan.getImageFile() + ") no-repeat;\">");
+        if ( viewedPlan.getImageFile().endsWith(".svg") ) {
+            p.println("<div class=\"plan\" data-item=\"" + viewedPlan.getItemId() + "\">");
+            p.println("  <div class=\"plan-svg\">");
+            p.println("    <object type=\"image/svg+xml\" data=\"" + viewedPlan.getImageFile() + "\" width=\"100%\" height=\"100%\"></object>");
+            p.println("  </div>");
+        } else {
+            p.println("<div class=\"plan\" data-item=\"" + viewedPlan.getItemId() + "\" style=\"background:url(" + viewedPlan.getImageFile() + ") no-repeat;\">");
+        }
     }
 
     private void printPlanPageEnd(PrintWriter p) {
