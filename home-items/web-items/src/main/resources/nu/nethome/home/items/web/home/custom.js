@@ -23,6 +23,8 @@ document.addEventListener("keypress", function(e) {
 ///////////////////////////////////////////////////////////////////////////////
 // keep navbar on scroll
 
+/*
+
 function navbarScroller ()
 {
 // var el = document.getElementById("head");
@@ -38,3 +40,4 @@ function navbarScroller ()
 window.onscroll = navbarScroller;
 navbarScroller ();  
 
+*/
