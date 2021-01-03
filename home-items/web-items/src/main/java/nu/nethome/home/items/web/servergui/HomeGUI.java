@@ -696,6 +696,8 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
                          // "<img src=\"web/home/" + HomeGUI.itemIcon(category, false) + "\" />"
                     }
                     p.println("   </div></div>");
+                } else if (pagePlugin.getPageNameURL().equals("edit")) {
+                    // ignored; now a submenu of "Settings"
                 } else if (pagePlugin.getPageNameURL().equals("settings")) {
                     String classString = selectedPage == pagePlugin ? " active" : "";
                     p.println("   <div class=\"dropdown" + classString + "\"><a class=\"dropbtn\""
@@ -707,6 +709,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
                     p.println("    <a href=\"" + localURL + "?page=settings&subpage=media\">Media</a>");
                     p.println("    <a href=\"" + localURL + "?page=settings&subpage=log\">Log</a>");
                     p.println("    <a href=\"" + localURL + "?page=settings&subpage=coders\">Coders</a>");
+                    p.println("    <a href=\"" + localURL + "?page=edit\">Create/Edit</a>");
                     p.println("   </div></div>");
                 } else {
                     String classString = selectedPage == pagePlugin ? " class=\"active\"" : "";
