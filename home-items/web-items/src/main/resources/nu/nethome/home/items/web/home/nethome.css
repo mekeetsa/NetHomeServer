@@ -242,18 +242,15 @@ div.sidebar ul.sidenav{
     float:right;
     font-size:95%;
     color:#555;
-    margin-bottom:15px;
-    margin-left: 5px;
-    margin-right: 20px;
     margin-top: 20px;
+    margin-bottom:15px;
+    margin-left: 10px;
+    margin-right: 10px;
     width:450px;
 }
 
 .itemcolumn.left {
     float:left;
-    margin-right: 5px;
-    margin-left: 10px;
-    margin-bottom: 0px;
 }
 
 #leftColserver {
@@ -267,15 +264,11 @@ div.sidebar ul.sidenav{
 @media only screen and (max-width: 950px) {
   .itemcolumn {
     float:left;
-    margin-right: 5px;
-    margin-left: 10px;
     margin-top: 0px;
   }
- .itemcolumn.left {
-    margin-right: 5px;
-    margin-left: 10px;
+  .itemcolumn.left {
     margin-top: 20px;
- }
+  }
 }
 
 .itemcolumn.edit {
@@ -319,7 +312,11 @@ div.itemcolumn ul.sidenav{
 }
 
 .itemcolumn.related {
-    width:350px;
+    width: 260px;
+}
+
+.itemcolumn.related .homeiteminfo {
+    width: 200px;
 }
 
 div.itemcolumn.menu ul {
@@ -1097,6 +1094,6 @@ div#chart1 {
 }
 
 #navbar-space {
-  height: 1.5em;
+  height: 2em;
 }
 

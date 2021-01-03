@@ -17,7 +17,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 $(document).ready(function () {
     $(".phomeitem").hide();
     $(".panelclose").click(function () {
@@ -26,6 +25,9 @@ $(document).ready(function () {
     $(".draggable").draggable({stop: repositionItem});
     $(".poppable").click(onHover);
     $(".closebutton").click(onClose);
+
+    //$("#pageBody").css("transform","scale(" + 
+    //   ( 0.99* $(window).width() / $('#pageBody').width() ) + ")");
 
     // In the case of SVG, set the size #svgDiv according to the size of #svgObject
     // (otherwise sets the min-height of #pageBody).
