@@ -282,7 +282,7 @@ div.plan {
 
 .plan-svg {
     position: absolute;
-    width: 900px;
+    min-width: 900px;
 }
 
 /* Style for editing plan */

@@ -26,6 +26,18 @@ $(document).ready(function () {
     $(".draggable").draggable({stop: repositionItem});
     $(".poppable").click(onHover);
     $(".closebutton").click(onClose);
+
+    // In the case of SVG, set the size #svgDiv according to the size of #svgObject
+    // (otherwise sets the min-height of #pageBody).
+    if ( $("#svgDiv").length > 0 && $("#svgObject").length > 0 ) {
+        $("#svgObject")[0].addEventListener( "load", function () { 
+            var svg = this.getSVGDocument().children[0];
+            $("#svgDiv").css("width",  svg.width["baseVal"].value+'px');
+            $("#svgDiv").css("height", svg.height["baseVal"].value+'px');
+        }, true );
+    } else {
+        $("#plan").css("min-height","600px");
+    }
 });
 
 function showItemSelectionPanel() {
@@ -153,5 +165,4 @@ function playSound(soundfile) {
     document.getElementById("dummy").innerHTML =
         "<embed src=\"" + soundfile + "\" hidden=\"true\" autostart=\"true\" loop=\"false\" />";
 }
-
 
