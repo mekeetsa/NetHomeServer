@@ -17,6 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+function rescalePlan() {
+    // Scale #plan to fit #pageBody
+    var scale = $("#pageBody").width() / $("#plan").width();
+    var shift = ( $("#pageBody").width() - $("#plan").width() ) / 2;
+    if ( scale < 1 ) {
+        $("#plan").css("transform","translateX(" + shift + "px) scale(" + scale + ")" );
+    }
+}
+
+$(window).resize(rescalePlan);
+
 $(document).ready(function () {
     $(".phomeitem").hide();
     $(".panelclose").click(function () {
@@ -26,8 +37,7 @@ $(document).ready(function () {
     $(".poppable").click(onHover);
     $(".closebutton").click(onClose);
 
-    //$("#pageBody").css("transform","scale(" + 
-    //   ( 0.99* $(window).width() / $('#pageBody').width() ) + ")");
+    rescalePlan ();
 
     // In the case of SVG, set the size #svgDiv according to the size of #svgObject
     // (otherwise sets the min-height of #pageBody).
@@ -41,6 +51,7 @@ $(document).ready(function () {
         $("#plan").css("min-height","600px");
     }
 });
+
 
 function showItemSelectionPanel() {
     $(".pitemlistpanel").fadeIn();

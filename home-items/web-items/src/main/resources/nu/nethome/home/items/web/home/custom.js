@@ -5,7 +5,7 @@
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen();
-    document.getElementById("navbar-space").style.height = '4em'
+    document.getElementById("navbar-space").style.height = '2em'
   } else {
     if (document.exitFullscreen) {
       document.exitFullscreen();
