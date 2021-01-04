@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -67,7 +68,11 @@ public class RoomsPage extends PortletPage {
     }
 
     public List<String> getJavaScriptFileNames() {
-        return Arrays.asList("web/home/rooms.js");
+        List<String> scripts = new ArrayList<>();
+        scripts.add("web/home/js/jquery.min.js");
+        scripts.add("web/home/js/jquery-ui.custom.min.js");
+        scripts.add("web/home/rooms.js");
+        return scripts;
     }
 
     public String getPageName() {

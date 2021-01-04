@@ -296,6 +296,63 @@ li.homeitem a {
   width: 100px;
 }
 
+/* Portlet items icons */
+
+.homeitem div.icon {
+    display: inline-block;
+    background-color: red;
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    padding: 0;
+}
+
+.homeitem div.icon.custom {
+    background: none;
+    text-indent:0px;
+    height: auto;
+}
+
+.homeitem div.icon.control {
+    background:url(control.png) no-repeat center;
+}
+
+.homeitem div.icon.temp {
+    background:url(thermometer.png) no-repeat center;
+}
+
+.homeitem div.icon.lamp_on {
+    background:url(lamp_on.png) no-repeat center;
+}
+
+.homeitem div.icon.lamp_off {
+    background:url(lamp_off.png) no-repeat center;
+}
+
+.homeitem div.icon.gauge {
+    background:url(gauge.png) no-repeat center;
+}
+
+.homeitem div.icon.gui {
+    background:url(gui.png) no-repeat center;
+}
+
+.homeitem div.icon.house {
+    background:url(infra.png) no-repeat center;
+}
+
+.homeitem div.icon.timer {
+    background:url(timer.png) no-repeat center;
+}
+
+.homeitem div.icon.hw {
+    background:url(hw.png) no-repeat center;
+}
+
+.homeitem div.icon.port {
+    background:url(port.png) no-repeat center;
+}
+
 
 /* Item Edit Page Definitions */
 

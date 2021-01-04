@@ -215,24 +215,44 @@ public abstract class PortletPage implements HomePageInterface {
 
         HomeItemModel model = item.getModel();
         String defaultAttributeValue = "";
+        String defaultAttributeUnit = "";
         boolean hasDefaultAttribute = model.getDefaultAttribute() != null;
         if (hasDefaultAttribute) {
             defaultAttributeValue = item.getAttributeValue(model.getDefaultAttribute().getName());
             if (defaultAttributeValue.length() > 0) {
-                defaultAttributeValue += " " + model.getDefaultAttribute().getUnit();
+                String unit = model.getDefaultAttribute().getUnit();
+                defaultAttributeUnit  = " data-unit=\"" + unit + "\"";
+                defaultAttributeValue += " " + unit;
             }
         }
 
+        // Category
+        String category = model.getCategory();
+        String arrowIconAttributes = "";
+        String arrowIconImageClass = arrowIcon(category);
+        if (category.equals("Lamps")) {
+            if (item.getAttributeValue("State").equals("On")) {
+                arrowIconImageClass = "lamp_on";
+            } else {
+                arrowIconImageClass = "lamp_off";
+            }
+            arrowIconAttributes = " data-item=\"" + item.getAttributeValue("ID") + "\" data-On=\"lamp_on\" data-Off=\"lamp_off\" data-lastclass=\"" + arrowIconImageClass + "\"";
+        } else {
+            arrowIconAttributes = " data-item=\"" + item.getAttributeValue("ID") + "\"";
+        }
 
         p.println("   <li class=\"homeitem\">");
-        p.println("	 <img src=\"" + getItemIconUrl(model, defaultAttributeValue) + "\" />");
-        p.println("	 <img src=\"web/home/item_divider.png\" />");
+        // p.println("	 <img id=\"icon-" + item.getAttributeValue("ID") + "\" class=\"icon " + arrowIconImageClass + "\" src=\"" + getItemIconUrl(model, defaultAttributeValue) + "\" />");
+        p.println("	 <div id=\"icon-" + item.getAttributeValue("ID") + "\" class=\"icon " + arrowIconImageClass + "\""
+            + arrowIconAttributes + "></div>");
+        p.println("	 <img class=\"hi_divider\" src=\"web/home/item_divider.png\" />");
         p.println("	 <span class=\"homeiteminfo\">");
         p.println("	  <ul>");
         HomeUrlBuilder url = new HomeUrlBuilder(localURL).addParameter("page", "edit")
                 .addParameter("name", HomeGUI.toURL(item.getAttributeValue("ID")))
                 .addParameter("return", page).addParameterIfNotNull("returnsp", subpage);
-        p.println("	   <li id='itemName'><a href=\"" + url.toString() + "\">" + item.getAttributeValue("Name") + "</a>" + (hasDefaultAttribute && !defaultAttributeValue.isEmpty() ? (": <span class=\"attrvalue\">" + defaultAttributeValue + "</span>") : "") + "</li>");
+
+        p.println("	   <li id='itemId" + item.getAttributeValue("ID") + "'><a href=\"" + url.toString() + "\">" + item.getAttributeValue("Name") + "</a>" + (hasDefaultAttribute && !defaultAttributeValue.isEmpty() ? (": <span data-item=\"" + item.getAttributeValue("ID") + "\"" + defaultAttributeUnit + " class=\"attrvalue\">" + defaultAttributeValue + "</span>") : "") + "</li>");
 
         if (includeActions) {
             printItemActions(p, item, page, subpage, model);
@@ -240,6 +260,40 @@ public abstract class PortletPage implements HomePageInterface {
         p.println("	  </ul>");
         p.println("	 </span>");
         p.println("	</li>");
+    }
+
+    private static String arrowIcon(String itemType) {
+        if (itemType.equals("Lamps")) {
+            return "lamp_off";
+        }
+        if (itemType.equals("Timers")) {
+            return "timer";
+        }
+        if (itemType.equals("Ports")) {
+            return "port";
+        }
+        if (itemType.equals("GUI")) {
+            return "gui";
+        }
+        if (itemType.equals("Hardware")) {
+            return "hw";
+        }
+        if (itemType.equals("Controls")) {
+            return "control";
+        }
+        if (itemType.equals("Gauges")) {
+            return "gauge";
+        }
+        if (itemType.equals("Thermometers")) {
+            return "temp";
+        }
+        if (itemType.equals("Infrastructure")) {
+            return "house";
+        }
+        if (itemType.equals("Actuators")) {
+            return "actuator";
+        }
+        return "item.png";
     }
 
     private void printItemActions(PrintWriter p, HomeItemProxy item, String page, String subpage, HomeItemModel model) {
@@ -258,12 +312,17 @@ public abstract class PortletPage implements HomePageInterface {
         int size = 0;
         for (Action action : actions) {
             if (size > 60) break;
+/*
             HomeUrlBuilder actionUrl = new HomeUrlBuilder(localURL).addParameter("page", page)
                     .addParameterIfNotNull("subpage", subpage)
                     .addParameter("a", "perform_action")
                     .addParameter("name", item.getAttributeValue("ID"))
                     .addParameter("action", HomeGUI.toURL(action.getName()));
             p.println("		  <li><a href=\"" + actionUrl + "\">" + action.getName() + "</a></li>");
+*/
+            p.println("		  <li><a href=\"javascript:void(0);\" + onclick=\"callItemAction('" 
+                + item.getAttributeValue("ID") + "', '" + action.getName() + "')\">" 
+                + action.getName() + "</a></li>");
             size += action.getName().length() + 2;
         }
         p.println("	   </ul></span></li>");
