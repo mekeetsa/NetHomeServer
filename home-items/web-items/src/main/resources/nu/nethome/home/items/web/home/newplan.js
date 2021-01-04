@@ -19,11 +19,12 @@
 
 function rescalePlan() {
     // Scale #plan to fit #pageBody
-    var scale = $("#pageBody").width() / $("#plan").width();
-    var shift = ( $("#pageBody").width() - $("#plan").width() ) / 2;
-    if ( scale < 1 ) {
-        $("#plan").css("transform","translateX(" + shift + "px) scale(" + scale + ")" );
-    }
+    var pagew = $("#pageBody").width();
+    var planw = $("#plan").width();
+    if ( pagew > 900 ) { pagew = 900; }
+    var scale = pagew / planw;
+    var shift = ( pagew - planw ) / 2;
+    $("#plan").css("transform","translateX(" + shift + "px) scale(" + scale + ")" );
 }
 
 $(window).resize(rescalePlan);

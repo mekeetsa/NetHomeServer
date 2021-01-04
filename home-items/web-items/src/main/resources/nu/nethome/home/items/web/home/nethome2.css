@@ -2,7 +2,7 @@
  * Copyright (C) 2005-2013, Stefan Strömberg <stefangs@nethome.nu>
  *
  * Responsive design by MBK. 
- * Note that we first do the viewports of mobile phones, then pads, 
+ * We first do the viewports of mobile phones, then pads, 
  * and finally of desktop screens.
  *
  * This file is part of OpenNetHome  (http://www.nethome.nu)
@@ -147,8 +147,14 @@ div.itemcolumn.menu ul {
 }
 .portlet .header{
   border-radius: 5px 5px 0px 0px;
+/*
   background-image: linear-gradient(rgb(116,185,220), rgb(48,133,175));
   background-color: rgb(48,133,175);
+*/
+  font-size: 120%;
+  background-image: linear-gradient(#555, #000, #555);
+  background-color: rgb(0,0,0);
+
   border-width: 0 1px 1px;
   color: #333;
 }
@@ -158,7 +164,10 @@ div.itemcolumn.menu ul {
 }
 .portlet .content{
   background: #fff;
+/*
   border: 1px solid #3085AF;
+*/
+  border: 1px solid #000;
   border-width: 0 1px 1px;
   -moz-border-radius-bottomleft: 6px;
   -moz-border-radius-bottomright: 6px;
@@ -893,7 +902,47 @@ div#chart1 {
   height: 2em;
 }
 
-/* ********************************************************* */
+/* RWD adjustments ***************************************** */
+
+@media only screen and (max-width: 500px) {
+  body { 
+    font-size: 80%; 
+  }
+  .navbarBorder {
+    font-size: 125%;
+  }
+  .navbarBorder, .navbar {
+    height: 5em;
+  }
+  #navbar-space {
+    height: 5.5em;
+  }
+  .portlet .content{
+    border: 0;
+  }
+  .portlet .header{
+    font-size: 130%;
+    background-image: none;
+    background-color: black;
+  }
+  .homeitem {
+    height: 150px;
+    border: 0;
+    border-bottom: 5px solid #ddd;
+    font-size: 130%;
+    line-height:1.5;
+  }
+  .homeitem li{
+    height: auto;
+  }
+  .actions li{
+    font-size: 100%;
+    background-color: white;
+    border: 1px solid;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+  }
+}
 
 @media only screen and (min-width: 650px) {
   .itemcolumn {
