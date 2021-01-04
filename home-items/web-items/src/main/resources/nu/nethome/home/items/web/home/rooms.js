@@ -17,8 +17,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 function gotoRoomEditPage() {
     newUrl = homeManager.baseURL + "?page=edit&a=create&mode=edit&return=rooms&returnsp=" + homeManager.location + "&class_name=Room&room=" + homeManager.location;
     location.href=newUrl;

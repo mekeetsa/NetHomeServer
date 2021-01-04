@@ -320,8 +320,8 @@ public abstract class PortletPage implements HomePageInterface {
                     .addParameter("action", HomeGUI.toURL(action.getName()));
             p.println("		  <li><a href=\"" + actionUrl + "\">" + action.getName() + "</a></li>");
 */
-            p.println("		  <li><a href=\"javascript:void(0);\" + onclick=\"callItemAction('" 
-                + item.getAttributeValue("ID") + "', '" + action.getName() + "')\">" 
+            p.println("		  <li><a href=\"javascript:void(0);\" onclick=\"callItemAction('" 
+                + item.getAttributeValue("ID") + "','" + action.getName() + "');\">" 
                 + action.getName() + "</a></li>");
             size += action.getName().length() + 2;
         }

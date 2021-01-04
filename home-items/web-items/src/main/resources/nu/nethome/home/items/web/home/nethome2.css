@@ -147,14 +147,9 @@ div.itemcolumn.menu ul {
 }
 .portlet .header{
   border-radius: 5px 5px 0px 0px;
-/*
-  background-image: linear-gradient(rgb(116,185,220), rgb(48,133,175));
-  background-color: rgb(48,133,175);
-*/
   font-size: 120%;
   background-image: linear-gradient(#555, #000, #555);
   background-color: rgb(0,0,0);
-
   border-width: 0 1px 1px;
   color: #333;
 }
@@ -256,6 +251,7 @@ li.homeitem a {
 }
 
 .homeiteminfo {
+  display: inline-block;
   font-size: 140%;
   font-weight: bold;
   position: absolute;
@@ -300,11 +296,8 @@ li.homeitem a {
 
 .homeitem div.icon {
     display: inline-block;
-    background-color: red;
     width: 40px;
     height: 40px;
-    margin: 0;
-    padding: 0;
 }
 
 .homeitem div.icon.custom {
@@ -963,13 +956,15 @@ div#chart1 {
   height: 2em;
 }
 
-/* RWD adjustments ***************************************** */
+/* RWD adjustments ***************************************** width < 500px */
 
 @media only screen and (max-width: 500px) {
   body { 
     font-size: 80%; 
+    margin: 5px auto;
   }
   .navbarBorder {
+    width: 100%;
     font-size: 140%;
   }
   .navbarBorder, .navbar {
@@ -988,8 +983,9 @@ div#chart1 {
   }
   .itemcolumn, .itemcolumn.left {
     margin: 0;
+    margin-left: 5px;
+    width: calc(100%-10px);
   }
-
   .itemcolumn.menu {
     display: block;
     float: left;
@@ -997,7 +993,7 @@ div#chart1 {
   .portlet .header{
     font-size: 140%;
     background-image: none;
-    background-color: black;
+    background-color: #111;
     border-radius: 0;
     text-align: center;
   }
@@ -1007,9 +1003,12 @@ div#chart1 {
     border-radius: 6px;
     background-image: none;
     margin-top: 10px;
-    box-shadow: 0px 0px 3px 3px rgba(0,0,0,0.1);
+    box-shadow: 0px 3px 3px 3px rgba(0,0,0,0.1);
     font-size: 130%;
     line-height:1.5;
+  }
+  .homeitem div.icon {
+    float: right;
   }
   .homeitem img{
     display: none;
@@ -1080,6 +1079,8 @@ div#chart1 {
   }
 }
 
+/* RWD adjustments ***************************************** width > 650px */
+
 @media only screen and (min-width: 650px) {
   .itemcolumn {
      max-width: 650px;
@@ -1089,6 +1090,8 @@ div#chart1 {
     float: right;
   }
 }
+
+/* RWD adjustments ***************************************** width > 900px */
 
 @media only screen and (min-width: 900px) {
   #pageBody {
