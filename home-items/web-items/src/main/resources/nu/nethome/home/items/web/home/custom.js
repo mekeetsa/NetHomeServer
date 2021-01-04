@@ -21,7 +21,21 @@ document.addEventListener("keypress", function(e) {
 }, false);
 
 ///////////////////////////////////////////////////////////////////////////////
-// keep navbar on scroll
+// Responsive topnav 
+
+/* Toggle between adding and removing the "responsive" class to topnav when the user clicks on the icon */
+
+function topnavFunction() {
+  var el = document.getElementById("navbar").children[0];
+  if (el.className === "navbar") {
+    el.className += " responsive";
+  } else {
+    el.className = "navbar";
+  }
+} 
+
+///////////////////////////////////////////////////////////////////////////////
+// Keep navbar on scroll (in the case if we have a header above the navbar)
 
 /*
 

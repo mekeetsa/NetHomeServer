@@ -1,11 +1,14 @@
 <!-- custom menu -->
-<div class="dropdown">
- <a class="dropbtn" href ="#">Status&nbsp;&#x25BC;</a>
+<div id="mi_statusDiv" class="dropdown">
+ <a id="mi_statusTop" class="dropbtn" href ="javascript:void(0);">Status&nbsp;<i class="fa fa-caret-down"></i></a>
  <div class="dropdown-content">
-  <a href="/home?page=graphs&subpage=87-141-139-146">Temperature</a>
-  <a href="/home?page=graphs&subpage=106-143-140-147">Humidity</a>
-  <a href="/home?page=plan&subpage=148">Living room (plan)</a>
-  <a href="/home?page=rooms&subpage=78">Living room (items)</a>
-  <a href="javascript:void(0)" onclick="toggleFullscreen()">Fullscreen</a>
+  <a id="mi_status_temp" href="/home?page=graphs&subpage=87-141-139-146">Temperature</a>
+  <a id="mi_status_humid" href="/home?page=graphs&subpage=106-143-140-147">Humidity</a>
+  <a id="mi_status_lrp" href="/home?page=plan&subpage=148">Living room (plan)</a>
+  <a id="mi_status_lri" href="/home?page=rooms&subpage=78">Living room (items)</a>
+  <a id="mi_status_fsc" href="javascript:void(0);" onclick="toggleFullscreen()">Fullscreen</a>
  </div>
 </div>
+<a id="mi_topnavIcon" href="javascript:void(0);" class="topnavIcon" onclick="topnavFunction()">
+ <i class="fa fa-bars"></i>
+</a>
