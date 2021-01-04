@@ -642,7 +642,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         }
 
         // Menu item: Log
-        p.print("   <a class=\"pref\" href=\"" + localURL + "?page=settings&subpage=log\">");
+        p.print("   <a id=\"mi_logTop\" class=\"pref\" href=\"" + localURL + "?page=settings&subpage=log\">");
         if (homeServer.getState().getCurrentAlarmCount() > 0) {
             p.print("<div class=\"valign\"><img src=\"web/home/warn.png\"/>&nbsp;Log</div>");
         } else {
@@ -652,14 +652,14 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
 
         // Menu item: Logout
         if (arguments.isCloudAccess()) {
-            p.print("   <a class=\"pref\" href=\"" + localURL + "?a=logout\">");
+            p.print("   <a id=\"mi_logoutTop\" class=\"pref\" href=\"" + localURL + "?a=logout\">");
             p.print("<div class=\"valign\"><img src=\"web/home/cloud16.png\"/>&nbsp;Logout</div>");
             p.println("</a>");
         }
 
         // Menu item: Edit
         if (selectedPage.supportsEdit()) {
-            p.print("   <a class=\"pref\" ");
+            p.print("   <a id=\"mi_editTop\" class=\"pref\" ");
             String subpageArgument = arguments.hasSubpage() ? "&subpage=" + arguments.getSubpage() : "";
             p.print("href=\"" + localURL + "?page=" + selectedPage.getPageNameURL() + subpageArgument);
             if (arguments.isEditMode()) {
@@ -687,33 +687,33 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
 
                 if (pagePlugin.getPageNameURL().equals("server")) {
                     String classString = selectedPage == pagePlugin ? " active" : "";
-                    p.println("   <div class=\"dropdown" + classString + "\"><a class=\"dropbtn\""
-                         + " href =\"#\">" // " href=\"" + localURL + "?page=" + pagePlugin.getPageNameURL() + "\">"
+                    p.println("   <div id=\"mi_serverDiv\" class=\"dropdown" + classString + "\"><a id=\"mi_serverTop\" class=\"dropbtn\""
+                         + " href =\"javascript:void(0);\">"
                          + pagePlugin.getPageName()
-                         + "&nbsp;&#x25BC;</a><div class=\"dropdown-content\">");
+                         + "&nbsp;<i class=\"fa fa-caret-down\"></i></a><div class=\"dropdown-content\">");
                     for (String category : HomeItemModel.HOME_ITEM_CATEGORIES) {
-                         p.println("    <a href=\"" + localURL + "?page=server&subpage=" + category + "\">" + category + "</a>");
-                         // "<img src=\"web/home/" + HomeGUI.itemIcon(category, false) + "\" />"
+                         p.println("    <a id=\"mi_server_" + category + "\" href=\"" + localURL + "?page=server&subpage=" + category + "\">" + category + "</a>");
                     }
                     p.println("   </div></div>");
                 } else if (pagePlugin.getPageNameURL().equals("edit")) {
                     // ignored; now a submenu of "Settings"
                 } else if (pagePlugin.getPageNameURL().equals("settings")) {
                     String classString = selectedPage == pagePlugin ? " active" : "";
-                    p.println("   <div class=\"dropdown" + classString + "\"><a class=\"dropbtn\""
-                         + " href =\"#\">" // " href=\"" + localURL + "?page=" + pagePlugin.getPageNameURL() + "\">"
+                    p.println("   <div id=\"mi_settingsDiv\" class=\"dropdown" + classString + "\"><a id=\"mi_settingsTop\" class=\"dropbtn\""
+                         + " href =\"javascript:void(0);\">" // " href=\"" + localURL + "?page=" + pagePlugin.getPageNameURL() + "\">"
                          + pagePlugin.getPageName()
-                         + "&nbsp;&#x25BC;</a><div class=\"dropdown-content\">");
+                         + "&nbsp;<i class=\"fa fa-caret-down\"></i></a><div class=\"dropdown-content\">");
                     // TODO: this should be automated (one should call a PortletPage method instead)
-                    p.println("    <a href=\"" + localURL + "?page=settings&subpage=settings\">Settings</a>");
-                    p.println("    <a href=\"" + localURL + "?page=settings&subpage=media\">Media</a>");
-                    p.println("    <a href=\"" + localURL + "?page=settings&subpage=log\">Log</a>");
-                    p.println("    <a href=\"" + localURL + "?page=settings&subpage=coders\">Coders</a>");
-                    p.println("    <a href=\"" + localURL + "?page=edit\">Create/Edit</a>");
+                    p.println("    <a id=\"mi_settings_settings\" href=\"" + localURL + "?page=settings&subpage=settings\">Settings</a>");
+                    p.println("    <a id=\"mi_settings_media\" href=\"" + localURL + "?page=settings&subpage=media\">Media</a>");
+                    p.println("    <a id=\"mi_settings_log\" href=\"" + localURL + "?page=settings&subpage=log\">Log</a>");
+                    p.println("    <a id=\"mi_settings_coders\" href=\"" + localURL + "?page=settings&subpage=coders\">Coders</a>");
+                    p.println("    <a id=\"mi_settings_edit\" href=\"" + localURL + "?page=edit\">Create/Edit</a>");
                     p.println("   </div></div>");
                 } else {
                     String classString = selectedPage == pagePlugin ? " class=\"active\"" : "";
-                    p.print("   <a" + classString + " href=\"" + localURL + "?page=" + pagePlugin.getPageNameURL() + "\">");
+                    p.print("   <a" + classString + " id=\"mi_" + pagePlugin.getPageNameURL() 
+                        + "\" href=\"" + localURL + "?page=" + pagePlugin.getPageNameURL() + "\">");
                     p.print(pagePlugin.getPageName());
                     p.println("</a>");
                 }
