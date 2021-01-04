@@ -22,6 +22,11 @@ function gotoRoomEditPage() {
     location.href=newUrl;
 }
 
+$(document).ready(function () {
+    console.log("loaded");
+    setInterval(getItemValues,2000);
+});
+
 function callItemAction(item, action) {
     var url = homeManager.baseURL + "?a=ajax&name=" + escape(item) + "&action=" + escape(action);
     $.get(url, getItemValues);
