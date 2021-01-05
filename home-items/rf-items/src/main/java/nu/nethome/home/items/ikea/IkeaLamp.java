@@ -197,7 +197,7 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
         return (brightness * 254) / 100;
     }
     private int ikeaTopercent(int brightness) {
-        return (brightness * 100) / 254;
+        return (int) Math.round( (brightness * 100.0) / 254.0 );
     }
 
     protected void sendOffCommand() {
@@ -260,7 +260,7 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
     }
 
     public String getState() {
-        return isOn ? "On" : "Off";
+        return isOn ? "On " + getCurrentBrightness() + "%" : "Off";
     }
 
     public boolean isOn() {
