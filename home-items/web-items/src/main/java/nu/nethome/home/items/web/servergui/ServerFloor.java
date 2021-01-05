@@ -42,6 +42,14 @@ public class ServerFloor extends PortletPage {
         super(mLocalURL);
     }
 
+    public List<String> getJavaScriptFileNames() {
+        List<String> scripts = new ArrayList<>();
+        scripts.add("web/home/js/jquery.min.js");
+        scripts.add("web/home/serverfloor.js");
+        scripts.add("web/home/portlet.js");
+        return scripts;
+    }
+
     public String getPageName() {
         // TODO Auto-generated method stub
         return "All Items";

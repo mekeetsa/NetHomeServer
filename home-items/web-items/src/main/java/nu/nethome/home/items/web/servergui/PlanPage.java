@@ -64,6 +64,7 @@ public class PlanPage implements HomePageInterface {
         scripts.add("web/home/js/jquery.min.js");
         scripts.add("web/home/js/jquery-ui.custom.min.js");
         scripts.add("web/home/newplan.js");
+        scripts.add("web/home/portlet.js");
         return scripts;
     }
 
@@ -113,7 +114,7 @@ public class PlanPage implements HomePageInterface {
             viewedPlan.setClickAction(arguments.getName());
         }
         printPlanCustomCss(p, viewedPlan);
-        printPlanUpdateScript(p, viewedPlan, arguments.isEditMode());
+        printPlanUpdateValue(p, viewedPlan, arguments.isEditMode());
         printPlanPageStart(p, viewedPlan);
         printPlanItems(server, p, viewedPlan, arguments);
         printPlanPageEnd(p);
@@ -132,10 +133,10 @@ public class PlanPage implements HomePageInterface {
                 "</div>");
     }
 
-    private void printPlanUpdateScript(PrintWriter p, Plan viewedPlan, boolean editMode) {
+    private void printPlanUpdateValue(PrintWriter p, Plan viewedPlan, boolean editMode) {
         int updateInterval = viewedPlan.getUpdateIntervalInt() * 1000;
         if (!editMode && (updateInterval > 0)) {
-            p.println("<script type=\"text/javascript\">window.setInterval(getItemValues," + updateInterval + ");</script>");
+            p.println("<script type=\"text/javascript\">var portletUpdateInterval=" + updateInterval + ";</script>");
         }
     }
 

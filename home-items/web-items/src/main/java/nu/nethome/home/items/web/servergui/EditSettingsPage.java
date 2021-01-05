@@ -126,7 +126,7 @@ public class EditSettingsPage extends EditItemPage {
 
     protected void printItemHeading(PrintWriter p, String name, HomeItemModel model) {
         p.println("<div class=\"item_details\">");
-        p.println("<div class=\"iheader\">");
+        p.println("<div class=\"iheader thin\">");
         p.println(" <span class=\"homeiteminfo\">");
         p.println("  <ul>");
         p.println("   <li id='itemInfo'>Server Settings</li>");

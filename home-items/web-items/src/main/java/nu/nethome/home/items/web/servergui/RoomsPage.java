@@ -70,8 +70,8 @@ public class RoomsPage extends PortletPage {
     public List<String> getJavaScriptFileNames() {
         List<String> scripts = new ArrayList<>();
         scripts.add("web/home/js/jquery.min.js");
-        scripts.add("web/home/js/jquery-ui.custom.min.js");
         scripts.add("web/home/rooms.js");
+        scripts.add("web/home/portlet.js");
         return scripts;
     }
 

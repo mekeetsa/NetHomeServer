@@ -95,66 +95,6 @@ function onHover(event) {
     $(objid).fadeIn();
 }
 
-function callItemAction(item, action) {
-    var url = homeManager.baseURL + "?a=ajax&name=" + escape(item) + "&action=" + escape(action);
-    $.get(url, getItemValues);
-}
-
-function getItemValues() {
-    var valueElements = $(".itemvalue").toArray();
-    var parameter = "";
-    var separator = "";
-    var singleGuard = {};
-    var id;
-    var url = homeManager.baseURL + "?a=ajax&f=getdefatts&items="
-    for (i = 0; i < valueElements.length; i++) {
-        id = $(valueElements[i]).attr("data-item");
-        if (!singleGuard[id]) {
-            parameter = parameter + separator + id;
-            separator = "-";
-            singleGuard[id] = true;
-        }
-    }
-    url = url + parameter;
-    $.getJSON(url, updateItemValues);
-}
-
-function updateItemValues(itemMainAttributeValues) {
-    var attributeValueElements = $(".itemvalue").toArray();
-    var itemId;
-    var i;
-    var iconClassForValue;
-    var lastIconClass;
-    var attributeValue;
-
-    for (i = 0; i < attributeValueElements.length; i++) {
-        itemId = $(attributeValueElements[i]).attr("data-item");
-        if (itemMainAttributeValues[itemId]) {
-            attributeValue = itemMainAttributeValues[itemId];
-            if ($(attributeValueElements[i]).attr("data-unit")) {
-                attributeValue += " " + $(attributeValueElements[i]).attr("data-unit");
-            }
-            attributeValueElements[i].innerHTML = attributeValue;
-        }
-    }
-    var icons = $(".icon").toArray();
-    for (i = 0; i < icons.length; i++) {
-        itemId = $(icons[i]).attr("data-item");
-        if (itemId && itemMainAttributeValues[itemId]) {
-            iconClassForValue = $(icons[i]).attr("data-" + itemMainAttributeValues[itemId]);
-            lastIconClass = $(icons[i]).attr("data-lastclass");
-            if (lastIconClass) {
-                $(icons[i]).removeClass(lastIconClass);
-                $(icons[i]).removeAttr("data-lastclass");
-            }
-            if (iconClassForValue) {
-                $(icons[i]).addClass(iconClassForValue);
-                $(icons[i]).attr("data-lastclass", iconClassForValue);
-            }
-        }
-    }
-}
-
 function repositionItem(event, ui) {
     var theItem = event.target;
     var url = homeManager.baseURL + "?a=ajax&f=reposition&item=";

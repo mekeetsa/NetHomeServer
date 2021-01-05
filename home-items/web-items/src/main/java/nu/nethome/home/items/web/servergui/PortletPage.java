@@ -231,10 +231,10 @@ public abstract class PortletPage implements HomePageInterface {
         String arrowIconAttributes = "";
         String arrowIconImageClass = arrowIcon(category);
         if (category.equals("Lamps")) {
-            if (item.getAttributeValue("State").equals("On")) {
-                arrowIconImageClass = "lamp_on";
-            } else {
+            if (item.getAttributeValue("State").equals("Off")) {
                 arrowIconImageClass = "lamp_off";
+            } else {
+                arrowIconImageClass = "lamp_on";
             }
             arrowIconAttributes = " data-item=\"" + item.getAttributeValue("ID") + "\" data-On=\"lamp_on\" data-Off=\"lamp_off\" data-lastclass=\"" + arrowIconImageClass + "\"";
         } else {
@@ -252,7 +252,7 @@ public abstract class PortletPage implements HomePageInterface {
                 .addParameter("name", HomeGUI.toURL(item.getAttributeValue("ID")))
                 .addParameter("return", page).addParameterIfNotNull("returnsp", subpage);
 
-        p.println("	   <li id='itemId" + item.getAttributeValue("ID") + "'><a href=\"" + url.toString() + "\">" + item.getAttributeValue("Name") + "</a>" + (hasDefaultAttribute && !defaultAttributeValue.isEmpty() ? (": <span data-item=\"" + item.getAttributeValue("ID") + "\"" + defaultAttributeUnit + " class=\"attrvalue\">" + defaultAttributeValue + "</span>") : "") + "</li>");
+        p.println("	   <li id=\"itemId" + item.getAttributeValue("ID") + "\"><a href=\"" + url.toString() + "\">" + item.getAttributeValue("Name") + "</a>" + (hasDefaultAttribute && !defaultAttributeValue.isEmpty() ? (": <span data-item=\"" + item.getAttributeValue("ID") + "\"" + defaultAttributeUnit + " class=\"itemvalue\">" + defaultAttributeValue + "</span>") : "") + "</li>");
 
         if (includeActions) {
             printItemActions(p, item, page, subpage, model);
@@ -299,28 +299,32 @@ public abstract class PortletPage implements HomePageInterface {
     private void printItemActions(PrintWriter p, HomeItemProxy item, String page, String subpage, HomeItemModel model) {
         p.println("	   <li><span class=actions><ul>");
         if (model.getClassName().equals("Plan")) {
-            p.println("		  <li><a href=\"" + localURL + "?page=plan&subpage=" +
+            p.println("		  <li class=\"act_gotoLoc default\"><a href=\"" + localURL + "?page=plan&subpage=" +
                     item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE) + "\">Go to location...</a></li>");
         } else if (model.getCategory().equals("Infrastructure")) {
-            p.println("		  <li><a href=\"" + localURL + "?page=rooms&subpage=" +
+            p.println("		  <li class=\"act_gotoLoc default\"><a href=\"" + localURL + "?page=rooms&subpage=" +
                     item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE) + "\">Go to location...</a></li>");
         } else if (hasLogFile(item)) {
-            p.println("		  <li><a href=\"" + localURL + "?page=graphs&subpage=" +
+            p.println("		  <li class=\"act_viewGraph default\"><a href=\"" + localURL + "?page=graphs&subpage=" +
                     item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE) + "\">View graph...</a></li>");
         }
         List<Action> actions = model.getActions();
         int size = 0;
+        // First, print the default action (if any)
+        if( model.getDefaultAction().length() > 0 ) {
+            p.println("		  <li class=\"act_" + model.getDefaultAction() + " default\""
+                + "><a href=\"javascript:void(0);\" onclick=\"callItemAction('" 
+                + item.getAttributeValue("ID") + "','" + model.getDefaultAction() + "');\">" 
+                + model.getDefaultAction() + "</a></li>");
+        }
+        // Print actions which are not default
         for (Action action : actions) {
             if (size > 60) break;
-/*
-            HomeUrlBuilder actionUrl = new HomeUrlBuilder(localURL).addParameter("page", page)
-                    .addParameterIfNotNull("subpage", subpage)
-                    .addParameter("a", "perform_action")
-                    .addParameter("name", item.getAttributeValue("ID"))
-                    .addParameter("action", HomeGUI.toURL(action.getName()));
-            p.println("		  <li><a href=\"" + actionUrl + "\">" + action.getName() + "</a></li>");
-*/
-            p.println("		  <li><a href=\"javascript:void(0);\" onclick=\"callItemAction('" 
+            if( action.getName().equals( model.getDefaultAction() ) ) { 
+                continue;
+            }
+            p.println("		  <li class=\"act_" + action.getName() + "\""
+                + "><a href=\"javascript:void(0);\" onclick=\"callItemAction('" 
                 + item.getAttributeValue("ID") + "','" + action.getName() + "');\">" 
                 + action.getName() + "</a></li>");
             size += action.getName().length() + 2;
