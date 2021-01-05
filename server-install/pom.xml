@@ -10,7 +10,7 @@
     </parent>
     <artifactId>home</artifactId>
     <name>server-install</name>
-    <version>${NethomeVersion}</version>
+    <version>3.0</version>
     <url>http://maven.apache.org</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -86,17 +86,17 @@
         <dependency>
             <groupId>nu.nethome</groupId>
             <artifactId>core-items</artifactId>
-            <version>${NethomeVersion}</version>
+            <version>3.0</version>
         </dependency>
         <dependency>
             <groupId>nu.nethome</groupId>
             <artifactId>rf-items</artifactId>
-            <version>${NethomeVersion}</version>
+            <version>3.0</version>
         </dependency>
         <dependency>
             <groupId>nu.nethome</groupId>
             <artifactId>web-items</artifactId>
-            <version>${NethomeVersion}</version>
+            <version>3.0</version>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
