@@ -246,6 +246,19 @@ public abstract class PortletPage implements HomePageInterface {
             arrowIconAttributes += " onclick=\"callItemAction('"
                 + item.getAttributeValue("ID") + "','" + model.getDefaultAction() + "');\"";
         }
+        else if (model.getClassName().equals("Plan")) {
+            arrowIconImageClass += " has_href";
+            arrowIconAttributes += " onclick=\"window.open('" + localURL + "?page=plan&subpage=" +
+                    item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE) + "','_self');\"";
+        } else if (model.getCategory().equals("Infrastructure")) {
+            arrowIconImageClass += " has_href";
+            arrowIconAttributes += " onclick=\"window.open('" + localURL + "?page=rooms&subpage=" +
+                    item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE) + "','_self');\"";
+        } else if (hasLogFile(item)) {
+            arrowIconImageClass += " has_href";
+            arrowIconAttributes += " onclick=\"window.open('" + localURL + "?page=graphs&subpage=" +
+                    item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE) + "','_self');\"";
+        }
 
         p.println("   <li class=\"homeitem\">");
         p.println("	 <div id=\"icon-" + item.getAttributeValue("ID") + "\" class=\"icon " + arrowIconImageClass + "\""
