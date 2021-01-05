@@ -240,10 +240,10 @@ public class PlanPage implements HomePageInterface {
         String arrowIconAttributes = "";
         String arrowIconImageClass = arrowIcon(category);
         if (category.equals("Lamps")) {
-            if (item.getAttributeValue("State").equals("On")) {
-                arrowIconImageClass = "lamp_on";
-            } else {
+            if (item.getAttributeValue("State").equals("Off")) {
                 arrowIconImageClass = "lamp_off";
+            } else {
+                arrowIconImageClass = "lamp_on";
             }
             arrowIconAttributes = "data-item=\"" + item.getAttributeValue("ID") + "\" data-On=\"lamp_on\" data-Off=\"lamp_off\" data-lastclass=\"" + arrowIconImageClass + "\"";
         }

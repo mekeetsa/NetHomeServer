@@ -992,14 +992,18 @@ div#chart1 {
     border: 0;
   }
   #leftColserver {
-    /*width: 350px;*/
     display: block;
-    width: calc( 50% - 25px - 100px );
   }
   .itemcolumn, .itemcolumn.left {
     margin: 0;
     margin-left: 5px;
     width: calc(100%-10px);
+  }
+  .itemcolumn table {
+    margin-top: 5px;
+  }
+  .itemcolumn table td + td { /* second column */
+    width: 100%;
   }
   .itemcolumn.menu {
     display: block;
@@ -1047,6 +1051,21 @@ div#chart1 {
   }
   .actions li.default a {
     color: black;
+  }
+  .footer.thin, .itemcolumn.menu .iheader.thin {
+    display: none;
+  }
+
+  /* Settings menu */
+  div.itemcolumn.menu ul {
+    margin: 5px 0;
+  }
+  div.item_details ul li {
+    display: inline-block;
+    min-width: 20%;
+  }
+  div.item_details ul li ul li {
+    display: block;
   }
 
   /* When the screen is less than 600 pixels wide, hide all links, except the topnav icon */

@@ -51,6 +51,8 @@ $(document).ready(function () {
     } else {
         $("#plan").css("min-height","600px");
     }
+
+    // callItemAction('133', 'reportNodes'); // Ikea nodes satus update
 });
 
 
