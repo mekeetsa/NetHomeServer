@@ -5,20 +5,21 @@
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen();
-    document.getElementById("navbar-space").style.height = '2em'
-  } else {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-      document.getElementById("navbar-space").style.height = '2em'
-    }
+  } else if (document.exitFullscreen) {
+    document.exitFullscreen();
   }
 }
 
-document.addEventListener("keypress", function(e) {
+$(document).ready(function(){
+  $(document).keypress(function(e){
   if (e.keyCode == 'F'.charCodeAt(0) || e.keyCode == 'f'.charCodeAt(0)) {
     toggleFullscreen();
   }
-}, false);
+  });
+  $("body").dblclick(function(){
+    toggleFullscreen();
+  });
+});
 
 ///////////////////////////////////////////////////////////////////////////////
 // Responsive topnav 

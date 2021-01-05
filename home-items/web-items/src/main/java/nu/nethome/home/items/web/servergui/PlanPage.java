@@ -265,6 +265,9 @@ public class PlanPage implements HomePageInterface {
         } else if (!viewedPlan.isPopupOnClick() && model.getDefaultAction().length() > 0) {
             iconClass = "clickable";
             title = item.getAttributeValue("Name") + "\n<Click to " + model.getDefaultAction() + ">";
+        } else if (hasLogFile(item)) {
+            iconClass = "clickable";
+            title = item.getAttributeValue("Name") + "\n<Click to view graph...>";
         } else {
             iconClass = "poppable";
             title = item.getAttributeValue("Name") + "\n<Click for details>";
@@ -276,6 +279,8 @@ public class PlanPage implements HomePageInterface {
                 Integer.toString(planItem.getX(arguments.isIE())) + "px;\">");
         if (iconClass.equals("poppable") || iconClass.equals("draggable")) {
             p.println("    <ul class=\"itemlocation\">");
+        } else if (hasLogFile(item)) {
+            p.println("    <ul id=\"ID" + itemId + "\" class=\"itemlocation\" onclick=\"window.open('" + localURL + "?page=graphs&subpage=" + item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE) + "','_self');\" href=\"javascript:void(0)\">");
         } else {
             p.println("    <ul id=\"ID" + itemId + "\" class=\"itemlocation\" onclick=\"callItemAction('" + item.getAttributeValue("ID") + "', '" + model.getDefaultAction() + "');\" href=\"javascript:void(0)\">");
         }
