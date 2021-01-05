@@ -265,7 +265,7 @@ public class PlanPage implements HomePageInterface {
         } else if (!viewedPlan.isPopupOnClick() && model.getDefaultAction().length() > 0) {
             iconClass = "clickable";
             title = item.getAttributeValue("Name") + "\n<Click to " + model.getDefaultAction() + ">";
-        } else if (hasLogFile(item)) {
+        } else if (!viewedPlan.isPopupOnClick() && hasLogFile(item)) {
             iconClass = "clickable";
             title = item.getAttributeValue("Name") + "\n<Click to view graph...>";
         } else {
