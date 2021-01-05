@@ -241,10 +241,16 @@ public abstract class PortletPage implements HomePageInterface {
             arrowIconAttributes = " data-item=\"" + item.getAttributeValue("ID") + "\"";
         }
 
+        if( model.getDefaultAction().length() > 0 ) {
+            arrowIconImageClass += " has_href";
+            arrowIconAttributes += " onclick=\"callItemAction('"
+                + item.getAttributeValue("ID") + "','" + model.getDefaultAction() + "');\"";
+        }
+
         p.println("   <li class=\"homeitem\">");
-        // p.println("	 <img id=\"icon-" + item.getAttributeValue("ID") + "\" class=\"icon " + arrowIconImageClass + "\" src=\"" + getItemIconUrl(model, defaultAttributeValue) + "\" />");
         p.println("	 <div id=\"icon-" + item.getAttributeValue("ID") + "\" class=\"icon " + arrowIconImageClass + "\""
             + arrowIconAttributes + "></div>");
+
         p.println("	 <img class=\"hi_divider\" src=\"web/home/item_divider.png\" />");
         p.println("	 <span class=\"homeiteminfo\">");
         p.println("	  <ul>");
@@ -313,7 +319,7 @@ public abstract class PortletPage implements HomePageInterface {
         // First, print the default action (if any)
         if( model.getDefaultAction().length() > 0 ) {
             p.println("		  <li class=\"act_" + model.getDefaultAction() + " default\""
-                + "><a href=\"javascript:void(0);\" onclick=\"callItemAction('" 
+                + "><a href=\"javascript:void(0);\" onclick=\"callItemAction('"
                 + item.getAttributeValue("ID") + "','" + model.getDefaultAction() + "');\">" 
                 + model.getDefaultAction() + "</a></li>");
         }

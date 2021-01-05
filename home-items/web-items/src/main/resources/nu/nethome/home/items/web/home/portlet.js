@@ -68,4 +68,7 @@ $(document).ready(function () {
         portletUpdateInterval = 5000; // default 5 seconds
     }
     setInterval(getItemValues,portletUpdateInterval);
+    // Ikea nodes satus update
+    // TODO: make this configurable (e.g., do it only if there are Ikea items in the list)
+    callItemAction('133', 'reportNodes');
 });
