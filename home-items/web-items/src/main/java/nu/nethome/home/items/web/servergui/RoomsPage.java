@@ -76,7 +76,7 @@ public class RoomsPage extends PortletPage {
     }
 
     public String getPageName() {
-        return "Rooms";
+        return "Home";
     }
 
     public String getPageNameURL() {

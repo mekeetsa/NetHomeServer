@@ -154,8 +154,8 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
                 mediaDirectory = ((HomeWebServer) possibleWebServer).getMediaDirectory();
             }
         }
-        pages.add(new PlanPage(localURL, getDefaultPlanAccessor(), mediaDirectory));
         pages.add(new RoomsPage(localURL, getDefaultLocationAccessor()));
+        pages.add(new PlanPage(localURL, getDefaultPlanAccessor(), mediaDirectory));
         pages.add(new ServerFloor(localURL));
         pages.add(new EditItemPage(localURL, homeServer, mediaDirectory, creationEvents, getEditPermission()));
         pages.add(new SettingsBasePage(localURL, homeServer, mediaDirectory, getEditPermission()));

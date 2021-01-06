@@ -1101,9 +1101,6 @@ div#chart1 {
   #mi_rooms {
     display: block;
   }
-  #mi_rooms:after {
-    content: ' / Home';
-  }
   #mi_plan, #mi_settingsTop, #mi_serverTop, #mi_statusTop { 
     display: none; 
   }
