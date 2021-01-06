@@ -417,6 +417,9 @@ div.itemcolumn.menu ul {
 .homeiteminfo .valuedivider::after {
   content: ": ";
 }
+.homeitem .itemvalue {
+  display: none;
+}
 .homeiteminfo .itemvalue {
   color: #000;
   display: inline;
@@ -484,6 +487,7 @@ width:100px;
 
 .homeitem div.icon {
     display: inline-block;
+    float: left;
     width: 40px;
     height: 40px;
 }

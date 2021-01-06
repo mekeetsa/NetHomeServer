@@ -256,30 +256,34 @@ public abstract class PortletPage implements HomePageInterface {
                     item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE) + "','_self');\"";
         }
 
-        p.println("   <div class=\"homeitem\">");
-        p.println("	 <div id=\"icon-" + item.getAttributeValue("ID") + "\" class=\"icon " + arrowIconImageClass + "\""
-            + arrowIconAttributes + "></div>");
-
-        p.println("	 <img class=\"hi_divider\" src=\"web/home/item_divider.png\" />");
-        p.println("	 <div class=\"homeiteminfo\">");
         HomeUrlBuilder url = new HomeUrlBuilder(localURL).addParameter("page", "edit")
                 .addParameter("name", HomeGUI.toURL(item.getAttributeValue("ID")))
                 .addParameter("return", page).addParameterIfNotNull("returnsp", subpage);
 
-        p.print("	   <div class=\"homeitemli\" id=\"itemId" + item.getAttributeValue("ID") + "\">");
-        p.print("<a href=\"" + url.toString() + "\">" + item.getAttributeValue("Name") + "</a>"); 
+        p.println("   <div id=\"hi-" + item.getAttributeValue("ID")
+            + "\" class=\"homeitem\">");
+        p.println("    <img class=\"hi_divider\" src=\"web/home/item_divider.png\" />");
+        p.println("    <div class=\"homeiteminfo\">");
+        p.println("     <div class=\"homeitemli\" id=\"hili-" + item.getAttributeValue("ID") + "\">");
+        p.println("       <a href=\"" + url.toString() + "\">" + item.getAttributeValue("Name") + "</a>");
         if( hasDefaultAttribute && !defaultAttributeValue.isEmpty() ) {
-            p.print( "<div class=\"valuedivider\"></div>");
-            p.print("<div data-item=\"" + item.getAttributeValue("ID") + "\"" 
-                  + defaultAttributeUnit + " class=\"itemvalue\">" + defaultAttributeValue + "</div>");
+            p.println("       <div class=\"valuedivider\"></div>");
+            p.println("       <div data-item=\"" + item.getAttributeValue("ID") + "\""
+                + defaultAttributeUnit + " class=\"itemvalue\">" + defaultAttributeValue + "</div>");
         }
-        p.println("</div>");
-
+        p.println("     </div>");
         if (includeActions) {
             printItemActions(p, item, page, subpage, model);
         }
-        p.println("	 </div>");
-        p.println("	</div>");
+        p.println("    </div>");
+        // the icon is on the right by default (should be float left on a large display)
+        // (the reason is the z-order on a mobile device) 
+        p.println("    <div id=\"icon-" + item.getAttributeValue("ID")
+            + "\" class=\"icon " + arrowIconImageClass
+            + "\"" + arrowIconAttributes + "></div>");
+        p.println("    <div data-item=\"" + item.getAttributeValue("ID") + "\""
+            + defaultAttributeUnit + " class=\"itemvalue\">" + defaultAttributeValue + "</div>");
+        p.println("   </div>");
     }
 
     private static String arrowIcon(String itemType) {
@@ -334,18 +338,18 @@ public abstract class PortletPage implements HomePageInterface {
         if( model.getDefaultAction().length() > 0 ) {
             p.println("		  <div class=\"act_" + model.getDefaultAction() + " default\""
                 + "><a href=\"javascript:void(0);\" onclick=\"callItemAction('"
-                + item.getAttributeValue("ID") + "','" + model.getDefaultAction() + "');\">" 
+                + item.getAttributeValue("ID") + "','" + model.getDefaultAction() + "');\">"
                 + model.getDefaultAction() + "</a></div>");
         }
         // Print actions which are not default
         for (Action action : actions) {
             if (size > 60) break;
-            if( action.getName().equals( model.getDefaultAction() ) ) { 
+            if( action.getName().equals( model.getDefaultAction() ) ) {
                 continue;
             }
             p.println("		  <div class=\"act_" + action.getName() + "\""
-                + "><a href=\"javascript:void(0);\" onclick=\"callItemAction('" 
-                + item.getAttributeValue("ID") + "','" + action.getName() + "');\">" 
+                + "><a href=\"javascript:void(0);\" onclick=\"callItemAction('"
+                + item.getAttributeValue("ID") + "','" + action.getName() + "');\">"
                 + action.getName() + "</a></div>");
             size += action.getName().length() + 2;
         }

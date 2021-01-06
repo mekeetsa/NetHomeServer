@@ -235,28 +235,14 @@ div.itemcolumn.menu ul {
   cursor: pointer;
 }
 
-.homeiteminfo .valuedivider {
-  display: inline;
-}
-.homeiteminfo .valuedivider::after {
-  content: ": ";
-}
-.homeiteminfo .itemvalue {
-  color: #000;
-  display: inline;
-}
-
 .itemrows {
   list-style-image: none;
   list-style-position: outside;
   list-style-type: none;
 }
 
-.homeitem li{
-  display: block;
-  margin: 0;
-  padding: 0;
-  height: 20px;
+.hi_divider {
+  display: inline-block;
 }
 
 div.homeitem a {
@@ -270,8 +256,22 @@ div.homeitem a {
   position: absolute;
   margin-left: 3px;
 }
-.homeiteminfoli {
-  display: inline-block;
+.homeitemli {
+  display: block;
+}
+
+.homeiteminfo .valuedivider {
+  display: inline;
+}
+.homeiteminfo .valuedivider::after {
+  content: ": ";
+}
+.homeitem .itemvalue {
+  display: none;
+}
+.homeiteminfo .itemvalue {
+  color: #000;
+  display: inline;
 }
 
 #itemInfo {
@@ -315,6 +315,7 @@ div.homeitem a {
 
 .homeitem div.icon {
     display: inline-block;
+    float: left;
     width: 40px;
     height: 40px;
 }
@@ -840,7 +841,7 @@ div#chart1 {
   position: fixed; /* Make it stick/fixed */
   top: 0; /* Stay on top */
   /* transition: top 0.1s; *//* Transition effect when sliding down (and up) */
-  z-index: 1;
+  z-index: 10;
   font-size: 140%;
   width: calc( 100% - 30px );
   max-width: 1000px;
@@ -956,7 +957,7 @@ div#chart1 {
   background-color: #f9f9f9;
   min-width: 160px;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.3);
-  z-index: 1;
+  z-index: 11;
 }
 
 .dropdown-content a {
@@ -988,43 +989,47 @@ div#chart1 {
   height: 2em;
 }
 
-/* RWD adjustments ***************************************** width < 500px */
+/* RWD adjustments ***************************************** width < 640px */
 
-@media only screen and (max-width: 500px) {
+@media only screen and (max-width: 640px) {
   body { 
     font-size: 80%; 
     margin: 5px auto;
+    padding: 0;
   }
   .navbarBorder {
+    max-width: 100%;
     width: 100%;
-    font-size: 140%;
+    font-size: 160%;
   }
   .navbarBorder, .navbar {
     height: auto;
   }
   #navbar-space {
-    height: 3em;
+    height: 4em;
   }
   .portlet .content{
     border: 0;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .itemcolumn, .itemcolumn.left {
+    display: block;
+    float: left;
+  }
+  .itemcolumn.menu {
+    display: block;
+    float: left;
+    margin-bottom: 0;
   }
   #leftColserver {
     display: block;
-  }
-  .itemcolumn, .itemcolumn.left {
-    margin: 0;
-    margin-left: 5px;
-    width: calc(100%-10px);
   }
   .itemcolumn table {
     margin-top: 5px;
   }
   .itemcolumn table td + td { /* second column */
     width: 100%;
-  }
-  .itemcolumn.menu {
-    display: block;
-    float: left;
   }
   .portlet .header{
     font-size: 180%;
@@ -1049,31 +1054,48 @@ div#chart1 {
   }
   .homeitem {
     min-height: 100px;
+    clear: right;
     border: 0;
     border-radius: 6px;
     background-image: none;
     margin-top: 10px;
-    padding-top: 10px;
-    box-shadow: 0px 3px 3px 3px rgba(0,0,150,0.1);
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 25px;
+    padding-bottom: 5px;
+    box-shadow: 0px 0px 3px 3px rgba(0,0,150,0.1);
     font-size: 130%;
-    line-height:1.5;
+    line-height: 1.5;
+    z-index: 2;
   }
-  .homeitem div.icon {
-    float: right;
-    transform: translate(-5px,-5px);
+  .homeitemli {
+    display: block;
   }
-  .homeitem img{
+  .hi_divider {
     display: none;
   }
   .homeitem div{
     height: auto;
   }
-  .homeitem .homeiteminfo {
-    width: 100%;
+  .homeitem div.icon {
+    float: right;
+    transform: translate(5px,-10px);
+    z-index: 2;
+    width: 50px; height: 50px;
+  }
+  .homeitem .itemvalue {
+    display: block;
+    float: right;
+    transform: translate(-10px,0);
+    font-size: 140%;
+    font-weight: bold;
+    color: #000;
+  }
+  .homeiteminfo {
+    margin-left: 10px;
   }
   .homeiteminfo .itemvalue {
-    float: right;
-    margin-right: 80px;
+    display: none;
   }
   .homeiteminfo .valuedivider {
     display: none;
@@ -1121,6 +1143,7 @@ div#chart1 {
   .navbar a.topnavIcon {
     float: right;
     display: block;
+    margin-right: 10px;
   }
   .navbar.responsive .dropdown {
     float: none;
@@ -1166,15 +1189,20 @@ div#chart1 {
   }
 }
 
-/* RWD adjustments ***************************************** width > 650px */
+/* RWD adjustments ***************************************** width > 640px */
 
-@media only screen and (min-width: 650px) {
+@media only screen and (min-width: 641px) {
   .itemcolumn {
      max-width: 650px;
   }
   .navbar a.pref {
     display: block;
     float: right;
+  }
+  .itemcolumn.log {
+    float: left;
+    max-width: calc( 100% - 15px );
+    width: 100%;
   }
 }
 
@@ -1198,8 +1226,9 @@ div#chart1 {
     width: 80px;
   }
   .itemcolumn.log {
-    float: left;
-    width: calc( 100% - 30px - 80px );
+    float: right;
+    max-width: calc( 100% - 30px - 80px );
+    width: 100%;
   }
   .itemcolumn.edit {
     width: calc( 100% - 30px - 260px );
@@ -1220,7 +1249,5 @@ div#chart1 {
     /*width: 550px;*/
     width: calc( 50% - 25px + 100px );
   }
-  .navbarBorder {
-  }  
 }
 
