@@ -124,7 +124,7 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
                 event.getAttribute(IkeaGateway.IKEA_NODE_ID).equals(lampId)) {
             updateAttributes(event);
             return true;
-        } else if ((event.isType("MinuteEvent") && (++refreshCounter >= refreshInterval) && isActivated())) {
+        } else if (refreshInterval > 0 && (event.isType("MinuteEvent") && (++refreshCounter >= refreshInterval) && isActivated())) {
             refreshCounter = 0;
             new Thread(new Runnable() {
                 @Override
@@ -374,7 +374,7 @@ public class IkeaLamp extends HomeItemAdapter implements HomeItem {
     }
 
     public void setRefreshInterval(String refreshInterval) throws IllegalValueException {
-        this.refreshInterval = setIntAttribute(refreshInterval, 1, Integer.MAX_VALUE);
+        this.refreshInterval = setIntAttribute(refreshInterval, 0, Integer.MAX_VALUE);
     }
 }
 
