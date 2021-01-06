@@ -127,11 +127,9 @@ public class CodersPage extends PortletPage {
     protected void printCoderPanelStart(PrintWriter p, String header) {
         p.println("<div class=\"item_details\">");
         p.println("<div class=\"iheader thin\">");
-        p.println(" <span class=\"homeiteminfo\">");
-        p.println("  <ul>");
-        p.println("   <li id='itemInfo'>" + header + "</li>");
-        p.println("  </ul>");
-        p.println(" </span>");
+        p.println(" <div class=\"homeiteminfo\">");
+        p.println("   <div class=\"header\" id='itemInfo'>" + header + "</div>");
+        p.println(" </div>");
         p.println("</div>");
         p.println("<div class=\"logrows coders\">");
         p.println(" <table>");

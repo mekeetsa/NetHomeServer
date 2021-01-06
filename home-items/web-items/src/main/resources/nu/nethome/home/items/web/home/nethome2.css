@@ -136,6 +136,7 @@ div.itemcolumn.menu ul {
 
 .selected li {
   font-weight: bold;
+  color: black;
 }
 
 /*-------------- Portlet ------------*/
@@ -216,7 +217,9 @@ div.itemcolumn.menu ul {
   background-image: linear-gradient(#fff, #ddd);
   border: 1px solid; 
   border-color: #EDEDEF #A9A9AA #A9A9AA #EDEDEF;
-  height: 40px; padding-top: 3px; padding-bottom: 3px;
+  height: auto;
+  padding-left: 5px;
+  padding-top: 3px; 
   list-style-image: none;
   list-style-position: outside;
   list-style-type: none;
@@ -226,16 +229,21 @@ div.itemcolumn.menu ul {
   -webkit-border-radius: 6px;
   border-radius: 6px;
   border-radius: 6px;
-  padding-left: 5px;
 }
 
 .has_href {
   cursor: pointer;
 }
 
-
-.itemvalue {
+.homeiteminfo .valuedivider {
+  display: inline;
+}
+.homeiteminfo .valuedivider::after {
+  content: ": ";
+}
+.homeiteminfo .itemvalue {
   color: #000;
+  display: inline;
 }
 
 .itemrows {
@@ -251,7 +259,7 @@ div.itemcolumn.menu ul {
   height: 20px;
 }
 
-li.homeitem a {
+div.homeitem a {
   color: #555;
 }
 
@@ -262,13 +270,19 @@ li.homeitem a {
   position: absolute;
   margin-left: 3px;
 }
+.homeiteminfoli {
+  display: inline-block;
+}
 
 #itemInfo {
   padding-top: 2px;
   padding-left: 5px;
 }
 
-.actions li{
+.actions {
+  padding-top: 2px;
+}
+.actions div{
   font-size: 80%;
   display: inline-block;
   margin: 0;
@@ -454,6 +468,7 @@ div.panel table, div.item_details table{
   background-position: left bottom;
   height: 40px;
   padding-right: 15px;
+  padding-top: 5px;
 }
 
 .panel h5 {
@@ -540,29 +555,26 @@ div.row span.formw {
   background-image: url(web/legoatts32.png);
 }
 
-span.iactions ul {
+div.iactions {
   padding: 7px 5px;
+  padding-left: 20px;
 }
 
-span.iactions li{
+div.iactions .button{
   font-size: 150%;
   display: inline-block;
-  margin: 1px;
   padding: 2px 10px;
-  height: 1.2em;
+  height: auto;
+  margin: 2px;
   border-color: #EDEDEF #C9C9CA #C9C9CA #EDEDEF;
   border-style: solid;
   border-width: 1px;
-  border-radius: 5px;
-  box-shadow: 0px 2px 8px 0px rgba(0,0,0,0.2);
+  border-radius: 3px;
+  box-shadow: 2px 2px 4px 0px rgba(0,0,0,0.2);
 }
 
 .itemcolumn.edit .secheader {
   padding-left: 0.5em;
-}
-
-.itemcolumn.edit .iactions ul {
-  margin-left: 1em;
 }
 
 .iteminput {
@@ -1015,11 +1027,25 @@ div#chart1 {
     float: left;
   }
   .portlet .header{
-    font-size: 140%;
+    font-size: 180%;
     background-image: none;
-    background-color: #111;
+    background-color: #fff;
     border-radius: 0;
     text-align: center;
+  }
+  .portlet.mod-feat .header {
+    color: #333;
+  }
+  .portlet.mod-feat .header h3 a {
+    color: #555;
+    margin-left: 5px;
+    padding: 5px;
+    display: inline-block;
+    font-size: 100%;
+    background-color: #f8f8ff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 3px 8px;
   }
   .homeitem {
     min-height: 100px;
@@ -1027,38 +1053,50 @@ div#chart1 {
     border-radius: 6px;
     background-image: none;
     margin-top: 10px;
-    box-shadow: 0px 3px 3px 3px rgba(0,0,0,0.1);
+    padding-top: 10px;
+    box-shadow: 0px 3px 3px 3px rgba(0,0,150,0.1);
     font-size: 130%;
     line-height:1.5;
   }
   .homeitem div.icon {
     float: right;
+    transform: translate(-5px,-5px);
   }
   .homeitem img{
     display: none;
   }
-  .homeitem li{
+  .homeitem div{
     height: auto;
   }
-  .homeiteminfo .itemvalue {
-    margin-left: 10px;
+  .homeitem .homeiteminfo {
+    width: 100%;
   }
-  .actions li {
+  .homeiteminfo .itemvalue {
+    float: right;
+    margin-right: 80px;
+  }
+  .homeiteminfo .valuedivider {
     display: none;
   }
-  .actions li.default, .actions li.act_on, .actions li.act_off,
-  .actions li.act_dim, .actions li.act_bright  {
+  .actions div {
+    display: none;
+  }
+  .actions .default, .actions .act_on, .actions .act_off,
+  .actions .act_dim, .actions .act_bright  {
     display: inline-block;
     font-size: 100%;
-    background-color: #fafafa;
+    background-color: #f8f8ff;
     border: 1px solid #ddd;
     border-radius: 5px;
     padding: 1px 8px;
     margin: 0;
     margin-top: 15px;
   }
-  .actions li.default a {
-    color: black;
+  .actions div a {
+    color: #777;
+  }
+  .actions .default a {
+    color: #555;
   }
   .footer.thin, .itemcolumn.menu .iheader.thin {
     display: none;

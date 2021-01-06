@@ -47,8 +47,8 @@
     width: auto;
     /* background: url(menuback.png) top left repeat-x; */
        border-radius: 7px;
-       background-image: linear-gradient(#55f, #119);
-       background-color: #55f;
+       background-image: linear-gradient(#393, #272);
+       background-color: #272;
     padding: 0 1em;
     margin-bottom: 1em;
     height: 2.36em;
@@ -394,9 +394,11 @@ div.itemcolumn.menu ul {
 .homeitem {
     /* background-image:url(grey_back.png); */
        background-image: linear-gradient(#fff, #ddd);
-    border:1px solid; 
+    border: 1px solid; 
     border-color: #EDEDEF #A9A9AA #A9A9AA #EDEDEF;
-    height:40px; padding-top: 3px; padding-bottom: 3px;
+    height: auto;
+    padding-left: 5px;
+    padding-top: 3px; 
     list-style-image:none;
     list-style-position:outside;
     list-style-type:none;
@@ -409,8 +411,15 @@ div.itemcolumn.menu ul {
     padding-left: 5px;
 }
 
-.itemvalue {
-    color: #000;
+.homeiteminfo .valuedivider {
+  display: inline;
+}
+.homeiteminfo .valuedivider::after {
+  content: ": ";
+}
+.homeiteminfo .itemvalue {
+  color: #000;
+  display: inline;
 }
 
 .itemrows {
@@ -419,22 +428,19 @@ div.itemcolumn.menu ul {
     list-style-type:none;
 }
 
-.homeitem li{
-    display:block;
-    margin:0;
-    padding: 0;
-    height: 20px;
-}
-
-li.homeitem a {
+div.homeitem a {
     color: #555;
 }
 
 .homeiteminfo {
+    display: inline-block;
     font-size:140%;
     font-weight:bold;
     position:absolute;
     margin-left:3px;
+}
+.homiteminfoli {
+    display: inline-block;
 }
 
 #itemInfo {
@@ -442,9 +448,12 @@ li.homeitem a {
     padding-left: 0.8em;
 }
 
-.actions li{
+.actions {
+    padding-top: 2px;
+}
+.actions div{
     font-size: 80%;
-    display:inline;
+    display:inline-block;
     margin:0;
     padding: 1px 2px 1px 2px;
     height: 1.4em;
@@ -469,6 +478,60 @@ min-width:100px;
 padding:1px;
 text-align:center;
 width:100px;
+}
+
+/* Portlet items icons */
+
+.homeitem div.icon {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+}
+
+.homeitem div.icon.custom {
+    background: none;
+    text-indent:0px;
+    height: auto;
+}
+
+.homeitem div.icon.control {
+    background:url(control.png) no-repeat center;
+}
+
+.homeitem div.icon.temp {
+    background:url(thermometer.png) no-repeat center;
+}
+
+.homeitem div.icon.lamp_on {
+    background:url(lamp_on.png) no-repeat center;
+}
+
+.homeitem div.icon.lamp_off {
+    background:url(lamp_off.png) no-repeat center;
+}
+
+.homeitem div.icon.gauge {
+    background:url(gauge.png) no-repeat center;
+}
+
+.homeitem div.icon.gui {
+    background:url(gui.png) no-repeat center;
+}
+
+.homeitem div.icon.house {
+    background:url(infra.png) no-repeat center;
+}
+
+.homeitem div.icon.timer {
+    background:url(timer.png) no-repeat center;
+}
+
+.homeitem div.icon.hw {
+    background:url(hw.png) no-repeat center;
+}
+
+.homeitem div.icon.port {
+    background:url(port.png) no-repeat center;
 }
 
 
@@ -522,7 +585,8 @@ div.panel table, div.item_details table{
     /* background-image:url(_not_used_/grey_back_top.png); */
        background-image: linear-gradient(#fff, #E4E5E6);
     width:100%;
-    height:30px;
+    height:auto;
+    padding-bottom: 10px;
     font-size:130%
 }
 
@@ -553,6 +617,7 @@ div.panel table, div.item_details table{
 
 .classname {
     font-size:70%;
+    padding-left: 12px;
 }
 
 .footer {
@@ -652,13 +717,14 @@ div.row span.formw {
  background-image:url(web/legoatts32.png);
 }
 
-span.iactions ul {
+div.iactions {
     padding:7px 5px;
+    padding-left: 20px;
 }
 
-span.iactions li{
+div.iactions .button{
     font-size: 150%;
-    display:inline;
+    display:inline-block;
     margin: 1px;
     padding: 1px;
     height: 1.2em;
@@ -669,10 +735,6 @@ span.iactions li{
 
 .itemcolumn.edit .secheader {
     padding-left: 0.5em;
-}
-
-.itemcolumn.edit .iactions ul {
-    margin-left: 1em;
 }
 
 .iteminput {

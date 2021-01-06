@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2005-2013, Stefan Strömberg <stefangs@nethome.nu>
+ * Copyright (C) 2005-2013, Stefan Strömberg stefangs@nethome.nu>
  *
  * This file is part of OpenNetHome  (http://www.nethome.nu)
  *
@@ -110,13 +110,11 @@ public abstract class PortletPage implements HomePageInterface {
         }
         p.println("</h3></div>");
         p.println(" <div class=\"content\">");
-        p.println("  <ul>");
     }
 
     protected void printItemPortletEnd(PrintWriter p, String itemId, String addLink, String subpage, Map<String, CategorizedItemList> categories) throws ServletException, IOException {
         if (addLink != null) {
             String subpageArgument = subpage != null ? ("&subpage=" + subpage) : "";
-            p.println("  </ul>");
             p.println("  <form action=\"" + localURL + "?page=" + getPageNameURL() + subpageArgument + "&mode=edit\" method=\"POST\">");
             p.println("  <input type=\"hidden\" name=\"a\" value=\"move\">");
             p.println("  <input type=\"hidden\" name=\"to\" value=\"" + itemId + "\">");
@@ -141,8 +139,6 @@ public abstract class PortletPage implements HomePageInterface {
             p.println("  </div>");
             p.println("  </form>");
 
-        } else {
-            p.println("  </ul>");
         }
         p.println(" </div>");
         p.println("</div>");
@@ -260,25 +256,30 @@ public abstract class PortletPage implements HomePageInterface {
                     item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE) + "','_self');\"";
         }
 
-        p.println("   <li class=\"homeitem\">");
+        p.println("   <div class=\"homeitem\">");
         p.println("	 <div id=\"icon-" + item.getAttributeValue("ID") + "\" class=\"icon " + arrowIconImageClass + "\""
             + arrowIconAttributes + "></div>");
 
         p.println("	 <img class=\"hi_divider\" src=\"web/home/item_divider.png\" />");
-        p.println("	 <span class=\"homeiteminfo\">");
-        p.println("	  <ul>");
+        p.println("	 <div class=\"homeiteminfo\">");
         HomeUrlBuilder url = new HomeUrlBuilder(localURL).addParameter("page", "edit")
                 .addParameter("name", HomeGUI.toURL(item.getAttributeValue("ID")))
                 .addParameter("return", page).addParameterIfNotNull("returnsp", subpage);
 
-        p.println("	   <li id=\"itemId" + item.getAttributeValue("ID") + "\"><a href=\"" + url.toString() + "\">" + item.getAttributeValue("Name") + "</a>" + (hasDefaultAttribute && !defaultAttributeValue.isEmpty() ? (": <span data-item=\"" + item.getAttributeValue("ID") + "\"" + defaultAttributeUnit + " class=\"itemvalue\">" + defaultAttributeValue + "</span>") : "") + "</li>");
+        p.print("	   <div class=\"homeitemli\" id=\"itemId" + item.getAttributeValue("ID") + "\">");
+        p.print("<a href=\"" + url.toString() + "\">" + item.getAttributeValue("Name") + "</a>"); 
+        if( hasDefaultAttribute && !defaultAttributeValue.isEmpty() ) {
+            p.print( "<div class=\"valuedivider\"></div>");
+            p.print("<div data-item=\"" + item.getAttributeValue("ID") + "\"" 
+                  + defaultAttributeUnit + " class=\"itemvalue\">" + defaultAttributeValue + "</div>");
+        }
+        p.println("</div>");
 
         if (includeActions) {
             printItemActions(p, item, page, subpage, model);
         }
-        p.println("	  </ul>");
-        p.println("	 </span>");
-        p.println("	</li>");
+        p.println("	 </div>");
+        p.println("	</div>");
     }
 
     private static String arrowIcon(String itemType) {
@@ -316,25 +317,25 @@ public abstract class PortletPage implements HomePageInterface {
     }
 
     private void printItemActions(PrintWriter p, HomeItemProxy item, String page, String subpage, HomeItemModel model) {
-        p.println("	   <li><span class=actions><ul>");
+        p.println("	   <div class=actions>");
         if (model.getClassName().equals("Plan")) {
-            p.println("		  <li class=\"act_gotoLoc default\"><a href=\"" + localURL + "?page=plan&subpage=" +
-                    item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE) + "\">Go to location...</a></li>");
+            p.println("		  <div class=\"act_gotoLoc default\"><a href=\"" + localURL + "?page=plan&subpage=" +
+                    item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE) + "\">Go to location...</a></div>");
         } else if (model.getCategory().equals("Infrastructure")) {
-            p.println("		  <li class=\"act_gotoLoc default\"><a href=\"" + localURL + "?page=rooms&subpage=" +
-                    item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE) + "\">Go to location...</a></li>");
+            p.println("		  <div class=\"act_gotoLoc default\"><a href=\"" + localURL + "?page=rooms&subpage=" +
+                    item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE) + "\">Go to location...</a></div>");
         } else if (hasLogFile(item)) {
-            p.println("		  <li class=\"act_viewGraph default\"><a href=\"" + localURL + "?page=graphs&subpage=" +
-                    item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE) + "\">View graph...</a></li>");
+            p.println("		  <div class=\"act_viewGraph default\"><a href=\"" + localURL + "?page=graphs&subpage=" +
+                    item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE) + "\">View graph...</a></div>");
         }
         List<Action> actions = model.getActions();
         int size = 0;
         // First, print the default action (if any)
         if( model.getDefaultAction().length() > 0 ) {
-            p.println("		  <li class=\"act_" + model.getDefaultAction() + " default\""
+            p.println("		  <div class=\"act_" + model.getDefaultAction() + " default\""
                 + "><a href=\"javascript:void(0);\" onclick=\"callItemAction('"
                 + item.getAttributeValue("ID") + "','" + model.getDefaultAction() + "');\">" 
-                + model.getDefaultAction() + "</a></li>");
+                + model.getDefaultAction() + "</a></div>");
         }
         // Print actions which are not default
         for (Action action : actions) {
@@ -342,13 +343,13 @@ public abstract class PortletPage implements HomePageInterface {
             if( action.getName().equals( model.getDefaultAction() ) ) { 
                 continue;
             }
-            p.println("		  <li class=\"act_" + action.getName() + "\""
+            p.println("		  <div class=\"act_" + action.getName() + "\""
                 + "><a href=\"javascript:void(0);\" onclick=\"callItemAction('" 
                 + item.getAttributeValue("ID") + "','" + action.getName() + "');\">" 
-                + action.getName() + "</a></li>");
+                + action.getName() + "</a></div>");
             size += action.getName().length() + 2;
         }
-        p.println("	   </ul></span></li>");
+        p.println("	   </div>");
     }
 
     private String getItemIconUrl(HomeItemModel model, String defaultAttributeValue) {

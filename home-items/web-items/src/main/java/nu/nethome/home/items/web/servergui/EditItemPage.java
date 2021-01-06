@@ -373,15 +373,13 @@ public class EditItemPage extends PortletPage {
         p.println("<div class=\"iheader\">");
         p.println("	<img src=\"web/home/"
                 + HomeGUI.itemIcon(model.getCategory(), false) + "\" />");
-        p.println(" <span class=\"homeiteminfo\">");
-        p.println("  <ul>");
-        p.println("   <li id='itemInfo'>" + HTMLEncode.encode(name) + "</li>");
-        p.println("   <li class=\"classname\">[<a href=\"http://wiki.nethome.nu/doku.php?id="
+        p.println(" <div class=\"homeiteminfo\">");
+        p.println("   <div class=\"header\" id='itemInfo'>" + HTMLEncode.encode(name) + "</div>");
+        p.println("   <div class=\"classname\">[<a href=\"http://wiki.nethome.nu/doku.php?id="
                 + model.getClassName()
                 + "\" target=\"new_window\" >"
-                + model.getClassName() + "</a>]</li>");
-        p.println("  </ul>");
-        p.println(" </span>");
+                + model.getClassName() + "</a>]</div>");
+        p.println(" </div>");
         p.println("</div>");
         p.println("<div class=\"deviderline\"></div>");
         p.println("<br>");
@@ -447,12 +445,10 @@ public class EditItemPage extends PortletPage {
         p.println("<div class=\"item_details\">");
         p.println("<div class=\"iheader\">");
         p.println("	<img src=\"web/home/item.png\" />");
-        p.println(" <span class=\"homeiteminfo\">");
-        p.println("  <ul>");
-        p.println("   <li id='itemInfo'>Create new " + model.getClassName() + "</li>");
-        p.println("   <li class=\"classname\">Step 2: Initiate data and activate Item</li>");
-        p.println("  </ul>");
-        p.println(" </span>");
+        p.println(" <div class=\"homeiteminfo\">");
+        p.println("   <div id='itemInfo'>Create new " + model.getClassName() + "</div>");
+        p.println("   <div class=\"classname\">Step 2: Initiate data and activate Item</div>");
+        p.println(" </div>");
         p.println("</div>");
         p.println("<div class=\"deviderline\"></div>");
         p.println("<br>");
@@ -529,12 +525,10 @@ public class EditItemPage extends PortletPage {
         p.println("<div class=\"item_details\">");
         p.println("<div class=\"iheader\">");
         p.println("	<img src=\"web/home/item.png\" />");
-        p.println(" <span class=\"homeiteminfo\">");
-        p.println("  <ul>");
-        p.println("   <li id='itemInfo'>Create new Item</li>");
-        p.println("   <li class=\"classname\">Step 1: Select item type</li>");
-        p.println("  </ul>");
-        p.println(" </span>");
+        p.println(" <div class=\"homeiteminfo\">");
+        p.println("   <div class\"header\" id='itemInfo'>Create new Item</div>");
+        p.println("   <div class=\"classname\">Step 1: Select item type</div>");
+        p.println(" </div>");
         p.println("</div>");
         p.println("<div class=\"deviderline\"></div>");
         p.println("<br>");
@@ -650,8 +644,8 @@ public class EditItemPage extends PortletPage {
 
         // Print Attribute header
         p.println("<br>");
-        p.println("<div class=\"secheader\"><b>Settings</b></div>");
         p.println("<div class=\"deviderline\"></div>");
+        p.println("<div class=\"secheader\"><b>Settings</b></div>");
         p.println("<form name=\"attributes\" action=\"" + localURL
                 + "\" method=\"post\">");
         p.println("<input type=\"hidden\" name=\"a\" value=\"update_attributes\" />");
@@ -695,7 +689,6 @@ public class EditItemPage extends PortletPage {
             }
         }
         p.println("</table>");
-        p.println("<br>");
         // Print Attribute Footer
         p.println("<div class=\"footer\">");
         p.print("<input class=\"ibutton\" type=\"submit\" name=\"save_type\" value=\""
@@ -774,19 +767,19 @@ public class EditItemPage extends PortletPage {
             return;
         }
         // Print Action Header
-        p.println("<div class=\"secheader\"><b>Functions</b></div>");
         p.println("<div class=\"deviderline\"></div>");
+        p.println("<div class=\"secheader\"><b>Functions</b></div>");
 
         // Print Actions
-        p.println("<span class=\"iactions\"><ul>");
+        p.println("<div class=\"iactions\">");
         for (Action action : actions) {
             HomeUrlBuilder url = url("page", pageName).addParameter("a", "perform_action")
                     .addParameter("name", item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE))
                     .addParameter("action", action.getName().replace(" ", "%20"))
                     .preserveReturnPage(pageArguments);
-            p.print("  <li><a href=\"" + url.toString() + "\">" + action.getName() + "</a></li>");
+            p.print("  <div class=\"button\"><a href=\"" + url.toString() + "\">" + action.getName() + "</a></div>");
         }
-        p.println("</ul></span>");
+        p.println("</div>");
     }
 
     protected void printFooterSection(PrintWriter p, String name)
