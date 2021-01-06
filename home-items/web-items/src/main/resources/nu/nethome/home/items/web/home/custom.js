@@ -16,7 +16,7 @@ $(document).ready(function(){
     toggleFullscreen();
   }
   });
-  $("body").dblclick(function(){
+  $("html").dblclick(function(){
     toggleFullscreen();
   });
 });

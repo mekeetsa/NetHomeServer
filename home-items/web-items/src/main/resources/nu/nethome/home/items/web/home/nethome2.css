@@ -1040,6 +1040,9 @@ div#chart1 {
   .homeitem li{
     height: auto;
   }
+  .homeiteminfo .itemvalue {
+    margin-left: 10px;
+  }
   .actions li {
     display: none;
   }
