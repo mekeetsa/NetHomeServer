@@ -248,7 +248,7 @@ public class PlanPage implements HomePageInterface {
             arrowIconAttributes = "data-item=\"" + item.getAttributeValue("ID") + "\" data-On=\"lamp_on\" data-Off=\"lamp_off\" data-lastclass=\"" + arrowIconImageClass + "\"";
         }
         String locationClass = "icon " + arrowIconImageClass;
-        String itemName = item.getAttributeValue("Name");
+        String itemName = HTMLEncode.encode(item.getAttributeValue("Name"));
         String itemId = item.getAttributeValue("ID");
         String mainAttribute = HomeGUI.toURL(model.getDefaultAttribute() != null ? model.getDefaultAttribute().getName() : "");
         String mainAttributeValue = item.getAttributeValue(mainAttribute);
@@ -264,13 +264,13 @@ public class PlanPage implements HomePageInterface {
             title = "Drag and drop to move Item";
         } else if (!viewedPlan.isPopupOnClick() && model.getDefaultAction().length() > 0) {
             iconClass = "clickable";
-            title = item.getAttributeValue("Name") + "\n<Click to " + model.getDefaultAction() + ">";
+            title = HTMLEncode.encode(item.getAttributeValue("Name")) + "\n<Click to " + model.getDefaultAction() + ">";
         } else if (!viewedPlan.isPopupOnClick() && hasLogFile(item)) {
             iconClass = "clickable";
-            title = item.getAttributeValue("Name") + "\n<Click to view graph...>";
+            title = HTMLEncode.encode(item.getAttributeValue("Name")) + "\n<Click to view graph...>";
         } else {
             iconClass = "poppable";
-            title = item.getAttributeValue("Name") + "\n<Click for details>";
+            title = HTMLEncode.encode(item.getAttributeValue("Name")) + "\n<Click for details>";
         }
 
         p.println("<div class=\"" + iconClass + "\" data-item=\"" + itemId + "\" title=\"" + title + "\" data-plan=\"" + viewedPlan.getItemId() +
@@ -294,7 +294,7 @@ public class PlanPage implements HomePageInterface {
     }
 
     private void printItemPopup(PrintWriter p, HomeItemProxy item, Plan.PlanItem planItem, HomeGUIArguments arguments, HomeItemModel model) {
-        String itemName = item.getAttributeValue("Name");
+        String itemName = HTMLEncode.encode(item.getAttributeValue("Name"));
         String itemId = item.getAttributeValue("ID");
         String category = model.getCategory();
         String popupIconImageFileName = "web/home/" + HomeGUI.itemIcon(category, false);
