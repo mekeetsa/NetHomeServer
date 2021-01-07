@@ -37,6 +37,7 @@
                     <descriptors>
                         <descriptor>src/main/assembly/distribution.xml</descriptor>
                     </descriptors>
+                    <attach>false</attach>
                 </configuration>
             </plugin>
         </plugins>
