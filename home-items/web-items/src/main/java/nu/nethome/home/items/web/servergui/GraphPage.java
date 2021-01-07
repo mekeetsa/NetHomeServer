@@ -188,7 +188,7 @@ public class GraphPage extends PortletPage {
             String[] nameList = new String[idList.length];
             for ( int i = 0; i < idList.length; ++i) {
                 HomeItemProxy item = server.openInstance( idList[i] );
-                nameList[i] = item == null ? "" : item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE);
+                nameList[i] = item == null ? "" : HTMLEncode.encode(item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE));
                 idList[i] = item == null ? "" : item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE);
             }
 

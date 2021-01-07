@@ -451,7 +451,7 @@ public class PlanPage implements HomePageInterface {
                         result += "  <option value=\""
                                 + item.getAttributeValue("ID")
                                 + "\""
-                                + ">" + item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE)
+                                + ">" + HTMLEncode.encode(item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE))
                                 + "</option>";
                     }
                     result += "  </optgroup>";
@@ -480,7 +480,7 @@ public class PlanPage implements HomePageInterface {
                     result += "  <option value=\""
                             + item.getAttributeValue("ID")
                             + "\""
-                            + ">" + item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE)
+                            + ">" + HTMLEncode.encode(item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE))
                             + "</option>";
                 }
             }

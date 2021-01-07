@@ -129,7 +129,7 @@ public abstract class PortletPage implements HomePageInterface {
                         p.println("  <option value=\""
                                 + item.getAttributeValue("ID")
                                 + "\""
-                                + ">" + item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE)
+                                + ">" + HTMLEncode.encode(item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE))
                                 + "</option>");
                     }
                     p.println("  </optgroup>");
