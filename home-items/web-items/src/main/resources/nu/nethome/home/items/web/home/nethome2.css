@@ -217,7 +217,7 @@ div.itemcolumn.menu ul {
   background-image: linear-gradient(#fff, #ddd);
   border: 1px solid; 
   border-color: #EDEDEF #A9A9AA #A9A9AA #EDEDEF;
-  height: auto;
+  min-height: 42px;
   padding-left: 5px;
   padding-top: 3px; 
   list-style-image: none;

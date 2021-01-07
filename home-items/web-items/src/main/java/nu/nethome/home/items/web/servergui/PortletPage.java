@@ -151,7 +151,7 @@ public abstract class PortletPage implements HomePageInterface {
         if( headerLink == null ) {
             boolean hasGraph = false;
             StringBuilder url = new StringBuilder(256);
-            url.append("/home?page=graphs&subpage=");
+            url.append(localURL + "?page=graphs&subpage=");
             for (String name : itemNames) {
                 HomeItemProxy item = server.openInstance(name);
                 if (item != null && hasLogFile(item)) {
