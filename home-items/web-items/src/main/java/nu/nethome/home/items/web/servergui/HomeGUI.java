@@ -69,6 +69,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
             + "  <Attribute Name=\"LeftBanner\" Type=\"String\" Get=\"getCustomLeftBannerFile\" 	Set=\"setCustomLeftBannerFile\" />"
             + "  <Attribute Name=\"RightBanner\" Type=\"String\" Get=\"getCustomRightBannerFile\" 	Set=\"setCustomRightBannerFile\" />"
             + "  <Attribute Name=\"CustomMenuFile\" Type=\"String\" Get=\"getCustomMenuFile\" 	Set=\"setCustomMenuFile\" />"
+            + "  <Attribute Name=\"Manifest\" Type=\"String\" Get=\"getManifestFile\" 	Set=\"setManifestFile\" />"
             + "  <Attribute Name=\"PlanPage\" Type=\"Item\" Get=\"getPlanPage\" 	Set=\"setPlanPage\" />"
             + "  <Attribute Name=\"Location\" Type=\"Item\" Get=\"getDefaultLocation\" 	Set=\"setDefaultLocation\" />"
             + "  <Attribute Name=\"AllowEdit\" Type=\"Boolean\" Get=\"getAllowEdit\" 	Set=\"setAllowEdit\" />"
@@ -92,6 +93,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
     private String customLeftBannerFile = "";
     private String customRightBannerFile = "";
     private String customMenuFile = "";
+    private String manifestFile = "";
     private String defaultPlanPage = "HomePlan";
     private String defaultLocation = "";
     private String mediaDirectory = "";
@@ -209,12 +211,19 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
      * routed to this servlet.
      */
     public void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+        HomeGUIArguments arguments = new HomeGUIArguments(req);
+
+        if (arguments.isAction("manifest") && manifestFile.length() > 0) {
+            printFileContent(req, res, manifestFile, "application/manifest+json");
+            return;
+        }
+
+        PrintWriter p = res.getWriter();
         req.setCharacterEncoding("UTF-8");
         res.setCharacterEncoding("UTF-8");
         res.setStatus(HttpServletResponse.SC_OK);
         res.setContentType("text/html");
-        PrintWriter p = res.getWriter();
-        HomeGUIArguments arguments = new HomeGUIArguments(req);
 
         if (arguments.isAction("ajax")) {
             performAjax(req, res, arguments);
@@ -497,7 +506,8 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
     }
 
     protected void printHeader(PrintWriter p, HomePageInterface pagePlugin) throws ServletException, IOException {
-        p.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">");
+        // p.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">");
+        p.println("<!DOCTYPE html>");
         p.println("<html lang=\"en\"><head>");
         p.println("  <meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">");
         p.println("  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=7\"> ");
@@ -527,6 +537,11 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         } else {
             p.println("<title>NewNetHome</title>");
         }
+
+        if (manifestFile.length() > 0) {
+            p.println("  <link rel=\"manifest\" href=\"" + localURL + "?a=manifest\">");
+        }
+
         p.println("</head>");
         p.println("<body>");
         p.println("<div id=\"pageBody\">");
@@ -628,6 +643,26 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
             p.print( new String( Files.readAllBytes(path) ) );
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void printFileContent(HttpServletRequest req, HttpServletResponse res, String file, String contentType) throws IOException {
+        Path path = Paths.get(file);
+        if ( ! Files.exists(path) ) {
+            res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+         } else {
+            req.setCharacterEncoding("UTF-8");
+            res.setCharacterEncoding("UTF-8");
+            res.setStatus(HttpServletResponse.SC_OK);
+            res.setContentType(contentType);
+            try {
+                PrintWriter p = res.getWriter();
+                p.print( new String( Files.readAllBytes(path) ) );
+                p.flush();
+                p.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -851,6 +886,14 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
 
     public void setCustomMenuFile(String customMenuFile) {
         this.customMenuFile = customMenuFile;
+    }
+
+    public String getManifestFile() {
+        return manifestFile;
+    }
+
+    public void setManifestFile(String manifestFile) {
+        this.manifestFile = manifestFile;
     }
 
     public String getPlanPage() {

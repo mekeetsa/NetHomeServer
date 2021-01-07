@@ -263,7 +263,7 @@ div.homeitem a {
 .homeiteminfo .valuedivider {
   display: inline;
 }
-.homeiteminfo .valuedivider::after {
+.homeiteminfo .valuedivider:after {
   content: ": ";
 }
 .homeitem .itemvalue {

@@ -1,0 +1,14 @@
+{
+  "name": "3mbk NetHome",
+  "short_name": "NetHome",
+  "scope": "/",
+  "start_url": "/home",
+  "display": "fullscreen",
+  "icons": [
+    {
+      "src": "/web/home/manifest.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    }
+  ]
+}

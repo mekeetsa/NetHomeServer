@@ -10,17 +10,6 @@ function toggleFullscreen() {
   }
 }
 
-$(document).ready(function(){
-  $(document).keypress(function(e){
-  if (e.keyCode == 'F'.charCodeAt(0) || e.keyCode == 'f'.charCodeAt(0)) {
-    toggleFullscreen();
-  }
-  });
-  $("html").dblclick(function(){
-    toggleFullscreen();
-  });
-});
-
 ///////////////////////////////////////////////////////////////////////////////
 // Responsive topnav 
 
@@ -39,7 +28,6 @@ function topnavFunction() {
 // Keep navbar on scroll (in the case if we have a header above the navbar)
 
 /*
-
 function navbarScroller ()
 {
 // var el = document.getElementById("head");
@@ -54,5 +42,15 @@ function navbarScroller ()
 
 window.onscroll = navbarScroller;
 navbarScroller ();  
-
 */
+
+// PWA: Register service worker to control making site work offline
+//
+if('serviceWorker' in navigator) {
+  navigator.serviceWorker
+    .register('/web/home/serviceWorker.js',{scope: '/'})
+    .then(function(registration) { 
+      console.log('ServiceWorker registration successful with scope:',  registration.scope);
+    });
+}
+
