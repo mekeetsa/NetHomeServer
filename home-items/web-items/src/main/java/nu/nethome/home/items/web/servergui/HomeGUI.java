@@ -720,7 +720,9 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
             }
         }
 
-        printCustomMenuFile(p);
+        if (! arguments.isEditMode()) {
+            printCustomMenuFile(p);
+        }
 
         p.println(" </div>");
         p.println(" <div class=\"floatClear\"></div>");
