@@ -743,6 +743,11 @@ textarea.iteminput {
   font-weight: bold;
 }
 
+.logrows.coders tr td {
+  max-width:100%;
+  white-space:nowrap;
+}
+
 .medialist tr td {
   width: 1%;
   padding-left: 10px;
@@ -1100,11 +1105,15 @@ div#chart1 {
   .homeiteminfo .valuedivider {
     display: none;
   }
+  /* hide all the actions by default */
   .actions div {
     display: none;
   }
-  .actions .default, .actions .act_on, .actions .act_off,
-  .actions .act_dim, .actions .act_bright  {
+  /* show only the following actions */
+  .actions .default,
+  .actions .act_on, .actions .act_off,
+  .actions .act_dim, .actions .act_bright, 
+  .actions .act_StartTimer, .actions .act_StopTimer {
     display: inline-block;
     font-size: 100%;
     background-color: #f8f8ff;
