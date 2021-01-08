@@ -61,6 +61,21 @@ function updateItemValues(itemMainAttributeValues) {
             }
         }
     }
+
+    // handle data-items inside SVG
+    if ( svgObject !== null ) {
+        attributeValueElements = svgObject.getElementsByClassName("itemvalue");
+        for (i = 0; i < attributeValueElements.length; i++) {
+            itemId = $(attributeValueElements[i]).attr("data-item");
+            if (itemMainAttributeValues[itemId]) {
+                attributeValue = itemMainAttributeValues[itemId];
+                if ($(attributeValueElements[i]).attr("data-unit")) {
+                    attributeValue += " " + $(attributeValueElements[i]).attr("data-unit");
+                }
+                attributeValueElements[i].innerHTML = attributeValue;
+            }
+        }
+    }
 }
 
 $(document).ready(function () {

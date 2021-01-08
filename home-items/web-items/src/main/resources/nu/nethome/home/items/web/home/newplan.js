@@ -29,6 +29,8 @@ function rescalePlan() {
 
 $(window).resize(rescalePlan);
 
+var svgObject = null;
+
 $(document).ready(function () {
     $(".phomeitem").hide();
     $(".panelclose").click(function () {
@@ -44,9 +46,9 @@ $(document).ready(function () {
     // (otherwise sets the min-height of #pageBody).
     if ( $("#svgDiv").length > 0 && $("#svgObject").length > 0 ) {
         $("#svgObject")[0].addEventListener( "load", function () { 
-            var svg = this.getSVGDocument().children[0];
-            $("#svgDiv").css("width",  svg.width["baseVal"].value+'px');
-            $("#svgDiv").css("height", svg.height["baseVal"].value+'px');
+            svgObject = this.getSVGDocument().children[0];
+            $("#svgDiv").css("width",  svgObject.width["baseVal"].value+'px');
+            $("#svgDiv").css("height", svgObject.height["baseVal"].value+'px');
         }, true );
     } else {
         $("#plan").css("min-height","600px");
