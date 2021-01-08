@@ -90,8 +90,8 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
     protected String localURL = "/home";
     private String customHtmlHeader = "";
     private String customHtmlFooter = "";
-    private String customLeftBannerFile = "";
-    private String customRightBannerFile = "";
+    private String customLeftBannerFile = "web/home/left_banner.jpg";
+    private String customRightBannerFile = "web/home/right_banner.jpg";
     private String customMenuFile = "";
     private String manifestFile = "";
     private String defaultPlanPage = "HomePlan";
@@ -545,15 +545,18 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         p.println("</head>");
         p.println("<body>");
         p.println("<div id=\"pageBody\">");
-        p.println("<div id=\"logobar\">");
-        String leftBannerFileName = customLeftBannerFile.length() > 0 ? customLeftBannerFile : "web/home/left_banner.jpg";
-        String rightBannerFileName = customRightBannerFile.length() > 0 ? customRightBannerFile : "web/home/right_banner.jpg";
-        if (customLeftBannerFile.length() != 1 && customRightBannerFile.length() != 1) {
-            p.println(" <a href=\"http://opennethome.org\"><img src=\"" + leftBannerFileName + "\" class=\"primary\" title=\"NetHomeServer\"></a>");
-            p.println(" <a href=\"http://opennethome.org\"><img src=\"" + rightBannerFileName + "\" title=\"My Own Logo\" class=\"secondary\" width=\"313\" height=\"50\"></a>");
+
+        if (customLeftBannerFile.length() > 0 || customRightBannerFile.length() > 0) {
+            p.println("<div id=\"logobar\">");
+            if (customLeftBannerFile.length() > 0) {
+                p.println(" <a href=\"http://opennethome.org\"><img alt=\"NetHome Server\" src=\"" + customLeftBannerFile + "\" class=\"primary\" title=\"NetHomeServer\"></a>");
+            }
+            if (customRightBannerFile.length() > 0) {
+                p.println(" <a href=\"http://opennethome.org\"><img alt=\"OpenNetHome\" src=\"" + customRightBannerFile + "\" title=\"Logo\" class=\"secondary\"\"></a>");
+            }
+            p.println(" <div class=\"floatClear\"></div>");
+            p.println("</div>");
         }
-        p.println(" <div class=\"floatClear\"></div>");
-        p.println("</div>");
     }
 
     protected void printFooter(PrintWriter p) throws ServletException, IOException {
@@ -600,26 +603,26 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         p.println("<!-- preferences -->");
         String statusIcon = "";
         if (homeServer.getState().getCurrentAlarmCount() > 0) {
-            statusIcon = "<img src=\"web/home/warn.png\"/>";
+            statusIcon = "<img alt=\"Warning\"  src=\"web/home/warn.png\"/>";
         }
         p.println("   <li id=\"liLog\" class=\"pref\">");
         p.println(statusIcon + "&nbsp;<a href=\"" + localURL + "?page=settings&subpage=log\">Log</a>");
         p.println("   </li>");
         if (arguments.isCloudAccess()) {
             p.println("   <li class=\"pref\">");
-            p.println("     <img src=\"web/home/cloud16.png\"/>&nbsp;<a href=\"" + localURL + "?a=logout\">Logout</a>");
+            p.println("     <img alt=\"Logout\" src=\"web/home/cloud16.png\"/>&nbsp;<a href=\"" + localURL + "?a=logout\">Logout</a>");
             p.println("   </li>");
         }
         p.println("   <li id=\"liAbout\" class=\"pref\">");
-        p.println("    <img src=\"web/home/info.png\"/>&nbsp;<a href=\"http://opennethome.org\">About</a>");
+        p.println("    <img alt=\"About\" src=\"web/home/info.png\"/>&nbsp;<a href=\"http://opennethome.org\">About</a>");
         p.println("   </li>");
         if (selectedPage.supportsEdit()) {
             p.println("   <li class=\"pref\">");
             String subpageArgument = arguments.hasSubpage() ? "&subpage=" + arguments.getSubpage() : "";
             if (arguments.isEditMode()) {
-                p.println("     <img src=\"web/home/edit.png\"/>&nbsp;<a href=\"" + localURL + "?page=" + selectedPage.getPageNameURL() + subpageArgument + "\">End edit</a>");
+                p.println("     <img alt=\"Edit\" src=\"web/home/edit.png\"/>&nbsp;<a href=\"" + localURL + "?page=" + selectedPage.getPageNameURL() + subpageArgument + "\">End edit</a>");
             } else {
-                p.println("     <img src=\"web/home/edit.png\"/>&nbsp;<a href=\"" + localURL + "?page=" + selectedPage.getPageNameURL() + subpageArgument + "&mode=edit\">Edit</a>");
+                p.println("     <img alt=\"Edit\" src=\"web/home/edit.png\"/>&nbsp;<a href=\"" + localURL + "?page=" + selectedPage.getPageNameURL() + subpageArgument + "&mode=edit\">Edit</a>");
             }
             p.println("   </li>");
         }
@@ -679,7 +682,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         // Menu item: Log
         p.print("   <a id=\"mi_logTop\" class=\"pref\" href=\"" + localURL + "?page=settings&subpage=log\">");
         if (homeServer.getState().getCurrentAlarmCount() > 0) {
-            p.print("<div class=\"valign\"><img src=\"web/home/warn.png\"/>&nbsp;Log</div>");
+            p.print("<div class=\"valign\"><img alt=\"Warning\" src=\"web/home/warn.png\"/>&nbsp;Log</div>");
         } else {
             p.print("Log");
         }
@@ -688,7 +691,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         // Menu item: Logout
         if (arguments.isCloudAccess()) {
             p.print("   <a id=\"mi_logoutTop\" class=\"pref\" href=\"" + localURL + "?a=logout\">");
-            p.print("<div class=\"valign\"><img src=\"web/home/cloud16.png\"/>&nbsp;Logout</div>");
+            p.print("<div class=\"valign\"><img alt=\"Logout\" src=\"web/home/cloud16.png\"/>&nbsp;Logout</div>");
             p.println("</a>");
         }
 
@@ -698,9 +701,9 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
             String subpageArgument = arguments.hasSubpage() ? "&subpage=" + arguments.getSubpage() : "";
             p.print("href=\"" + localURL + "?page=" + selectedPage.getPageNameURL() + subpageArgument);
             if (arguments.isEditMode()) {
-                p.print("\"><div class=\"valign\"><img src=\"web/home/edit.png\"/>&nbsp;End edit</div>");
+                p.print("\"><div class=\"valign\"><img alt=\"Edit\" src=\"web/home/edit.png\"/>&nbsp;End edit</div>");
             } else {
-                p.print("&mode=edit\"><div class=\"valign\"><img src=\"web/home/edit.png\"/>&nbsp;Edit</div>");
+                p.print("&mode=edit\"><div class=\"valign\"><img alt=\"Edit\" src=\"web/home/edit.png\"/>&nbsp;Edit</div>");
             }
             p.println("</a>");
         }
@@ -957,7 +960,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         }
         ageString.append(ageSeconds).append(" Sec");
         p.println("  <tr>");
-        p.printf("   <td><img src=\"web/home/%s\" /></td>\n", (event.getWasHandled() ? "item16.png" : "item_new16.png"));
+        p.printf("   <td><img alt=\"Item\" src=\"web/home/%s\" /></td>\n", (event.getWasHandled() ? "item16.png" : "item_new16.png"));
         if (event.getContent().length() < MAX_EVENT_ID_LENGTH) {
             p.printf("   <td>%s</td>\n", event.getContent());
         } else {

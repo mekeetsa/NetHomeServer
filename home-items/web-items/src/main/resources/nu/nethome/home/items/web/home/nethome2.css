@@ -851,7 +851,7 @@ div#chart1 {
 
 .navbarBorder {
   position: fixed; /* Make it stick/fixed */
-  top: 0; left: 0; /* Stay on top */
+  top: 0px; left: 0; /* Stay on top */
   /* transition: top 0.1s; *//* Transition effect when sliding down (and up) */
   z-index: 10;
   font-size: 140%;
@@ -871,7 +871,6 @@ div#chart1 {
 .navbar {
   height: 2.2em;
   overflow: hidden;
-  background-color: #333;
 }
 
 .navbarBorder.edit {
@@ -1235,6 +1234,11 @@ div#chart1 {
     padding-left: calc( 50% - 500px + 5px );
     padding-right: calc( 50% - 500px - 5px );
     width: 1000px;
+    background-color: #eee;
+    box-shadow: none;
+  }
+  .dropdown .dropbtn, .navbar a {
+    color: black;
   }
   .itemcolumn, .itemcolumn.left {
     margin-top: 10px;
