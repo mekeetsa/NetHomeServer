@@ -47,6 +47,7 @@ html{
 
 #pageBody {
   z-index: 1;
+  height: auto;
 }
 
 body {
@@ -74,18 +75,20 @@ a {
 /*------------ Right and left item columns -----------------*/
 
 .itemcolumn {
-  float: left;
+  display: inline-block;
+  vertical-align: top;
   font-size: 95%;
   color: #555;
-  margin-top: 0px;
-  margin-bottom: 10px;
+  margin-top: 0;
+  margin-bottom: 0;
   margin-left: 5px;
   margin-right: 5px;
   width: calc( 100% - 10px );
 }
 
 .itemcolumn.left {
-  float: left;
+  display: inline-block;
+  vertical-align: top;
   margin-top: 10px;
 }
 
@@ -98,7 +101,6 @@ a {
 }
 
 .itemcolumn.edit {
-  float: left;
   margin-top: 10px;
 }
 
@@ -143,10 +145,14 @@ div.itemcolumn.menu ul {
 /*-------------- Portlet ------------*/
 
 .portlet{
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   padding: 0;
   width: 100%;
 }
+.portlet:last-child {
+  margin-bottom: 0;
+}
+
 .portlet .header{
   border-radius: 5px 5px 0px 0px;
   font-size: 120%;
@@ -453,7 +459,7 @@ div.panel table, div.item_details table{
 }
 
 .itemcolumn.menu .iheader.thin {
-  height: 0px;
+  height: 0;
 }
 
 .classname {
@@ -1025,11 +1031,9 @@ div#chart1 {
   }
   .itemcolumn, .itemcolumn.left {
     display: block;
-    float: left;
   }
   .itemcolumn.menu {
     display: block;
-    float: left;
     margin-bottom: 0;
   }
   #leftColserver {
@@ -1214,7 +1218,6 @@ div#chart1 {
     float: right;
   }
   .itemcolumn.log {
-    float: left;
     max-width: calc( 100% - 15px );
     width: 100%;
   }
@@ -1227,25 +1230,21 @@ div#chart1 {
     max-width: 1000px;
     margin-left: auto;
     margin-right: auto;
-    height: auto;
   }
   .navbarBorder {
     padding-left: calc( 50% - 500px + 5px );
     padding-right: calc( 50% - 500px - 5px );
     width: 1000px;
   }
-  .itemcolumn {
-    float: right;
+  .itemcolumn, .itemcolumn.left {
     margin-top: 10px;
-    width: calc( 50% - 15px );
+    width: calc( 50% - 12px );
   }
   .itemcolumn.menu {
-    display: block;
-    float: left;
+    display: inline-block;
     width: 80px;
   }
   .itemcolumn.log {
-    float: right;
     max-width: calc( 100% - 30px - 80px );
     width: 100%;
   }
@@ -1261,7 +1260,7 @@ div#chart1 {
   }
   #leftColserver {
     /*width: 350px;*/
-    display: block;
+    display: inline-block;
     width: calc( 50% - 25px - 100px );
   }
   #rightColserver {
