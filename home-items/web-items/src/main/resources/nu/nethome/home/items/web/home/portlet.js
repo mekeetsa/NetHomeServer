@@ -62,8 +62,8 @@ function updateItemValues(itemMainAttributeValues) {
         }
     }
 
-    // handle data-items inside SVG
-    if ( svgObject !== null ) {
+    // Handle data-items inside SVG which was embedded as <object>
+    if ( typeof svgObject !== "undefined" && svgObject !== null ) {
         attributeValueElements = svgObject.getElementsByClassName("itemvalue");
         for (i = 0; i < attributeValueElements.length; i++) {
             itemId = $(attributeValueElements[i]).attr("data-item");

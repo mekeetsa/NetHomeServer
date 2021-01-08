@@ -42,8 +42,9 @@ $(document).ready(function () {
 
     rescalePlan ();
 
-    // In the case of SVG, set the size #svgDiv according to the size of #svgObject
+    // In the case of SVG embedded as an <object>, set the size #svgDiv according to the size of #svgObject
     // (otherwise sets the min-height of #pageBody).
+    // Note that  if we include svg as a part of html, svg will automatically rescale horizontally.
     if ( $("#svgDiv").length > 0 && $("#svgObject").length > 0 ) {
         $("#svgObject")[0].addEventListener( "load", function () { 
             svgObject = this.getSVGDocument().children[0];

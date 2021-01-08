@@ -34,6 +34,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.Files;
 
 public class PlanPage implements HomePageInterface {
 
@@ -152,7 +155,16 @@ public class PlanPage implements HomePageInterface {
         if ( viewedPlan.getImageFile().endsWith(".svg") ) {
             p.println("<div id=\"plan\" class=\"plan\" data-item=\"" + viewedPlan.getItemId() + "\">");
             p.println("  <div id=\"svgDiv\" class=\"plan-svg\">");
-            p.println("    <object id=\"svgObject\" type=\"image/svg+xml\" data=\"" + viewedPlan.getImageFile() + "\" width=\"100%\" height=\"100%\"></object>");
+            // p.println("    <object id=\"svgObject\" type=\"image/svg+xml\" data=\"" + viewedPlan.getImageFile() + "\" width=\"100%\" height=\"100%\"></object>");
+            // Instead of loading as <object>, rather include SVG
+            Path path = Paths.get("/etc/opt/nethome/" + viewedPlan.getImageFile());
+            if ( Files.exists(path) ) {
+                try {
+                    p.print( new String( Files.readAllBytes(path) ) );
+                } catch (Exception e) {
+                   e.printStackTrace();
+                }
+            }
             p.println("  </div>");
         } else {
             p.println("<div id=\"plan\" class=\"plan\" data-item=\"" + viewedPlan.getItemId() + "\" style=\"background:url(" + viewedPlan.getImageFile() + ") no-repeat;\">");
