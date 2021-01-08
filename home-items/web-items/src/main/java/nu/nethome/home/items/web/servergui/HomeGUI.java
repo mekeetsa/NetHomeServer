@@ -726,7 +726,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
                 if (pagePlugin.getPageNameURL().equals("server")) {
                     String classString = selectedPage == pagePlugin ? " active" : "";
                     p.println("   <div id=\"mi_serverDiv\" class=\"dropdown" + classString + "\"><a id=\"mi_serverTop\" class=\"dropbtn\""
-                         + " href =\"javascript:void(0);\">"
+                         + " href=\"" + localURL + "?page=" + pagePlugin.getPageNameURL() + "\">"
                          + pagePlugin.getPageName()
                          + "&nbsp;<i class=\"fa fa-caret-down\"></i></a><div class=\"dropdown-content\">");
                     for (String category : HomeItemModel.HOME_ITEM_CATEGORIES) {
@@ -738,7 +738,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
                 } else if (pagePlugin.getPageNameURL().equals("settings")) {
                     String classString = selectedPage == pagePlugin ? " active" : "";
                     p.println("   <div id=\"mi_settingsDiv\" class=\"dropdown" + classString + "\"><a id=\"mi_settingsTop\" class=\"dropbtn\""
-                         + " href =\"javascript:void(0);\">" // " href=\"" + localURL + "?page=" + pagePlugin.getPageNameURL() + "\">"
+                         + " href=\"" + localURL + "?page=" + pagePlugin.getPageNameURL() + "\">"
                          + pagePlugin.getPageName()
                          + "&nbsp;<i class=\"fa fa-caret-down\"></i></a><div class=\"dropdown-content\">");
                     // TODO: this should be automated (one should call a PortletPage method instead)

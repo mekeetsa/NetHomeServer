@@ -1173,13 +1173,13 @@ div#chart1 {
     position: relative;
     transform: none;
   }
-  .navbar.responsive .pref, .navbar.responsive .dropdown-content a:not(:first-child) {
+  .navbar.responsive .pref, .navbar.responsive .dropdown-content a /*:not(:first-child)*/ {
     display: none;
   }
   #mi_rooms {
     display: block;
   }
-  #mi_plan, #mi_settingsTop, #mi_serverTop, #mi_statusTop { 
+  #mi_plan, #mi_settingsTop .fa, #mi_serverTop .fa, #mi_statusTop { 
     display: none; 
   }
   #mi_statusDiv .dropdown-content a{
