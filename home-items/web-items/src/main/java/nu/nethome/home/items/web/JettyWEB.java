@@ -63,6 +63,18 @@ public class JettyWEB extends HomeItemAdapter implements HomeItem, HomeWebServer
         }
     }
 
+    public static class RedirectServlet extends HttpServlet {
+        String newURL;
+        public RedirectServlet( String newURL ) {
+            this.newURL = newURL;
+        }
+        protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+            // response.sendRedirect(newURL);
+            response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+            response.setHeader("Location", response.encodeRedirectURL(newURL));
+        }
+    }
+
     protected class Registration {
         public Registration(String url, Servlet s) {
             URL = url;
@@ -78,6 +90,7 @@ public class JettyWEB extends HomeItemAdapter implements HomeItem, HomeWebServer
             + "  <Attribute Name=\"Port\" Type=\"String\" Get=\"getPort\" 	Set=\"setPort\" Default=\"true\" />"
             + "  <Attribute Name=\"MediaDirectory\" Type=\"String\" Get=\"getMediaDirectory\" 	Set=\"setMediaDirectory\" />"
             + "  <Attribute Name=\"WebDirectory\" Type=\"String\" Get=\"getWebDirectory\" 	Set=\"setWebDirectory\" />"
+            + "  <Attribute Name=\"RootRedirect\" Type=\"String\" Get=\"getRootRedirect\" 	Set=\"setRootRedirect\" />"
             + "</HomeItem> ");
 
     private static Logger logger = Logger.getLogger(JettyWEB.class.getName());
@@ -86,6 +99,7 @@ public class JettyWEB extends HomeItemAdapter implements HomeItem, HomeWebServer
     protected boolean isRunning = false;
     private String mediaDirectory = "../media";
     private String webDirectory = "";
+    private String rootRedirect = "";
     Context applicationsContext;
 
     // Public attributes
@@ -124,6 +138,12 @@ public class JettyWEB extends HomeItemAdapter implements HomeItem, HomeWebServer
             // Create an application Servlet context and add the test servlet
             applicationsContext = new Context(contexts, "/", Context.SESSIONS);
             applicationsContext.addServlet(new ServletHolder(new HelloServlet()), "/test/*");
+
+            // Add the top-level redirect servlet
+            if ( ! rootRedirect.isEmpty () ) {
+                logger.log(Level.INFO, "Redirecting / to " + rootRedirect );
+                applicationsContext.addServlet(new ServletHolder(new RedirectServlet(rootRedirect)), "/");
+            }
 
             // Create the resource servlet which supplies files
             if ( webDirectory.isEmpty () ) {
@@ -211,6 +231,14 @@ public class JettyWEB extends HomeItemAdapter implements HomeItem, HomeWebServer
 
     public void setWebDirectory(String webDirectory) {
         this.webDirectory = webDirectory;
+    }
+
+    public String getRootRedirect() {
+        return rootRedirect;
+    }
+
+    public void setRootRedirect(String rootRedirect) {
+        this.rootRedirect = rootRedirect;
     }
 }
 
