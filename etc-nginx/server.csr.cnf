@@ -8,8 +8,8 @@ distinguished_name = dn
 C=SE
 ST=Sweden
 L=Stockholm
-O=3mbk
-OU=NetHome
-emailAddress=m@3mbk.se
+O=NetHome Org
+OU=NetHome Unit
+emailAddress=myemail@nethome.org
 CN = nethome
 

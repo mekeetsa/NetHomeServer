@@ -11,4 +11,4 @@ openssl x509 -req -in server.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateseria
 
 sudo cp -a server.crt server.key /etc/nginx/
 
-sudo systmctl restart nginx
+sudo systemctl restart nginx

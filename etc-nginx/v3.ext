@@ -6,3 +6,4 @@ subjectAltName = @alt_names
 [alt_names]
 DNS.1 = nethome
 DNS.2 = nethome.local
+DNS.3 = nh.nethome.org
