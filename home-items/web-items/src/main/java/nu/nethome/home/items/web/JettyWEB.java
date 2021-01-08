@@ -63,15 +63,26 @@ public class JettyWEB extends HomeItemAdapter implements HomeItem, HomeWebServer
         }
     }
 
-    public static class RedirectServlet extends HttpServlet {
+    public static class RootDirServlet extends HttpServlet {
         String newURL;
-        public RedirectServlet( String newURL ) {
+        public RootDirServlet( String newURL ) {
             this.newURL = newURL;
         }
         protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-            // response.sendRedirect(newURL);
-            response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-            response.setHeader("Location", response.encodeRedirectURL(newURL));
+            if (request.getRequestURI().equals( "/robots.txt" )) {
+                response.setContentType("text/plain");
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().println( "User-agent: *" );
+                response.getWriter().println( "Disallow: /" );
+            } else if ( !newURL.isEmpty () && request.getRequestURI().equals("/") ) {
+                // response.sendRedirect(newURL);
+                response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
+                response.setHeader("Location", response.encodeRedirectURL(newURL));
+            } else {
+                response.setContentType("text/plain");
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                response.getWriter().println( "Not found: " + request.getRequestURI() );
+            }
         }
     }
 
@@ -139,11 +150,8 @@ public class JettyWEB extends HomeItemAdapter implements HomeItem, HomeWebServer
             applicationsContext = new Context(contexts, "/", Context.SESSIONS);
             applicationsContext.addServlet(new ServletHolder(new HelloServlet()), "/test/*");
 
-            // Add the top-level redirect servlet
-            if ( ! rootRedirect.isEmpty () ) {
-                logger.log(Level.INFO, "Redirecting / to " + rootRedirect );
-                applicationsContext.addServlet(new ServletHolder(new RedirectServlet(rootRedirect)), "/");
-            }
+            // Add the top-level robots.txt and redirect servlet
+            applicationsContext.addServlet(new ServletHolder(new RootDirServlet(rootRedirect)), "/");
 
             // Create the resource servlet which supplies files
             if ( webDirectory.isEmpty () ) {
