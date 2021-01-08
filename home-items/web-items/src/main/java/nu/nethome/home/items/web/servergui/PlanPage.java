@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.lang.String;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.Files;
@@ -157,7 +158,9 @@ public class PlanPage implements HomePageInterface {
             p.println("  <div id=\"svgDiv\" class=\"plan-svg\">");
             // p.println("    <object id=\"svgObject\" type=\"image/svg+xml\" data=\"" + viewedPlan.getImageFile() + "\" width=\"100%\" height=\"100%\"></object>");
             // Instead of loading as <object>, rather include SVG
-            Path path = Paths.get("/etc/opt/nethome/" + viewedPlan.getImageFile());
+            String mediaFile = viewedPlan.getImageFile();
+            mediaFile = mediaFile.startsWith("media/") ? mediaFile.substring(6) : mediaFile;
+            Path path = Paths.get(mediaDirectory + "/" + mediaFile);
             if ( Files.exists(path) ) {
                 try {
                     p.print( new String( Files.readAllBytes(path) ) );
