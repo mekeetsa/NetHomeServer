@@ -8,4 +8,10 @@ cd lib
 PID=`ps -ef | grep ${SCRIPTFILE} | head -n1 |  awk ' {print $2;} '`
 echo ${PID} > ${PID_FILE}
 chmod a+w ${PID_FILE}
-exec java -Djava.library.path=. -jar home.jar -l$LOG_ROOT "$@" $CONFIGURATION_ROOT/config.xml
+
+
+# https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
+# Disable the perfdata feature (preventing write to /tmp/hsperfdata_username)
+XXOPT=-XX:-UsePerfData
+
+exec java $XXOPT -Djava.library.path=. -jar home.jar -l$LOG_ROOT "$@" $CONFIGURATION_ROOT/config.xml
