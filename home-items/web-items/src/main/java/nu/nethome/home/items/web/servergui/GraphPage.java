@@ -176,8 +176,8 @@ public class GraphPage extends PortletPage {
         res.setContentType("text/html");
         PrintWriter p = res.getWriter();
         GraphPageArguments pageArguments = new GraphPageArguments(req);
-        p.println("<!--[if IE]><script language=\"javascript\" type=\"text/javascript\" src=\"web/home/js/excanvas.min.js\"></script><![endif]-->");
-        p.println("<script type=\"text/javascript\" src=\"web/home/graph.js\"></script>");
+        p.println("<!--[if IE]><script language=\"javascript\" type=\"text/javascript\" src=\"web/home/js/excanvas.min.js\" defer></script><![endif]-->");
+        p.println("<script type=\"text/javascript\" src=\"web/home/graph.js\" defer></script>");
         if (pageArguments.hasName()) {
             p.println("<div id=\"chart1\">Loading graph data, please wait...</div>");
             String itemIds = pageArguments.getName();

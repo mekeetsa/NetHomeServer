@@ -529,7 +529,7 @@ public class HomeGUI extends HttpServlet implements FinalEventListener, HomeItem
         List<String> scripts = pagePlugin.getJavaScriptFileNames();
         if (scripts != null) {
             for (String script : scripts) {
-                p.println("	 <script type=\"text/javascript\" src=\"" + script + "\"></script>");
+                p.println("	 <script type=\"text/javascript\" src=\"" + script + "\" defer></script>");
             }
         }
         if (customHtmlHeader.length() > 0) {
