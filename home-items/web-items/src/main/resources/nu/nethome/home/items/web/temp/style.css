@@ -25,6 +25,8 @@
 }
 .main
 {
+    max-width: 220px;
+    margin: 5px auto;
     background-color: #ffffff;
 }
 .panel
