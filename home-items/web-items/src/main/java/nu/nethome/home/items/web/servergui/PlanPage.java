@@ -336,8 +336,8 @@ public class PlanPage implements HomePageInterface {
                 Integer.toString(planItem.getX(false)) + "px;\">");
         p.println(" <ul>");
         p.println("  <li class=\"close\"><img class=\"closebutton\" src=\"web/home/close.png\"></li>");
-        p.println("  <li><img src=\"" + popupIconImageFileName + "\"></li>");
-        p.println("  <li><img class=\"dividerimg\" src=\"web/home/pitem_divider.png\"></li>");
+        p.println("  <li class=\"popupIcon\"><img src=\"" + popupIconImageFileName + "\"></li>");
+        p.println("  <li class=\"dividerimg\"></li>");
         p.println("  <li>");
         p.println("   <ul>");
         p.println("    <li><a href=\"" + localURL + "?page=edit&name=" + itemId + "&return=" + this.getPageNameURL() +

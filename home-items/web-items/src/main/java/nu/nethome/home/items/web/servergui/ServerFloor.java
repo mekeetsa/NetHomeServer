@@ -93,7 +93,7 @@ public class ServerFloor extends PortletPage {
         for (String category : HomeItemModel.HOME_ITEM_CATEGORIES) {
             isSelected = category.equals(selectedCategory) ? " selected" : "";
             p.println("<tr class=\"catlink" + isSelected + "\">");
-            p.print("	 <td><img src=\"web/home/" + HomeGUI.itemIcon(category, false) + "\" /></td>" +
+            p.print("	 <td><img alt=\"" + category + "\" src=\"web/home/" + HomeGUI.itemIcon(category, false) + "\" /></td>" +
                     "<td><a href=\"" + localURL + "?page=server&subpage=" + category + "\">" + category + "</a></td>");
             p.println("</tr>");
         }

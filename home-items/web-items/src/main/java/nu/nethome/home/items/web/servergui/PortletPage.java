@@ -262,7 +262,7 @@ public abstract class PortletPage implements HomePageInterface {
 
         p.println("   <div id=\"hi-" + item.getAttributeValue("ID")
             + "\" class=\"homeitem\">");
-        p.println("    <img class=\"hi_divider\" src=\"web/home/item_divider.png\" alt=\"|\"/>");
+        p.println("    <div class=\"hi_divider\"></div>");
         p.println("    <div class=\"homeiteminfo\">");
         p.println("     <div class=\"homeitemli\" id=\"hili-" + item.getAttributeValue("ID") + "\">");
         p.println("       <a href=\"" + url.toString() + "\">" + HTMLEncode.encode(item.getAttributeValue("Name")) + "</a>");

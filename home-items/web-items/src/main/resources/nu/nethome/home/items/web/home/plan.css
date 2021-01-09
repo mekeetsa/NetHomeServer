@@ -28,16 +28,13 @@ li.close img {
 
 .phomeitem
 {
+    font-size: 90%;
     width:250px;
-    background:url(tooltip-bg.png);
+    background-color: rgb(64,64,64,0.8);
     z-index:11;
-    /* font-size:1em; */
     color:#FFF;
     border:none;
-    height:42px;
-    list-style-image:none;
-    list-style-position:outside;
-    list-style-type:none;
+    height:45px;
     -moz-border-radius:6px;
     -moz-border-radius:6px;
     -webkit-border-radius:6px;
@@ -54,59 +51,57 @@ li.close img {
     height:62px;
 }
 
-.phomeitem.row2 img.dividerimg {
+.phomeitem li.dividerimg {
+    margin-top: 2px;
+    min-height:40px;
+    width:1px;
+    background-color: none;
+    border-left: 1px solid rgb(0,0,0,0.2);
+    border-right: 1px solid rgb(255,255,255,0.1);
+}
+
+.phomeitem.row2 li.dividerimg {
     height:62px;
-    width:3px;
 }
 
 .phomeitem.row3 {
     height:82px;
 }
 
-.phomeitem.row3 img.dividerimg {
+.phomeitem.row3 li.dividerimg {
     height:82px;
-    width:3px;
 }
 
 .phomeitem.row4 {
     height:102px;
 }
 
-.phomeitem.row4 img.dividerimg {
+.phomeitem.row4 li.dividerimg {
     height:102px;
-    width:3px;
 }
 
 .phomeitem.row5 {
     height:124px;
 }
 
-.phomeitem.row5 img.dividerimg {
+.phomeitem.row5 li.dividerimg {
     height:124px;
-    width:3px;
 }
 
 .phomeitem.row6 {
     height:146px;
 }
 
-.phomeitem.row6 img.dividerimg {
+.phomeitem.row6 li.dividerimg {
     height:146px;
-    width:3px;
 }
 
 .phomeitem.row9 {
     height:230px;
 }
 
-.phomeitem.row9 img.dividerimg {
+.phomeitem.row9 li.dividerimg {
     height:230px;
-    width:3px;
-}
-
-.phomeitem img
-{
- vertical-align: middle;
 }
 
 .phomeitem ul {
@@ -115,11 +110,14 @@ li.close img {
  list-style:none inside none;
  display: inline;
  font-size:120%;
- /* width: 295px; */
 }
 
 .phomeitem li {
  display: inline;
+}
+
+.phomeitem li.popupIcon, .phomeitem li.dividerimg {
+ display: inline-block;
 }
 
 .phomeitem li li{
@@ -129,8 +127,12 @@ li.close img {
 }
 
 .phomeitem li ul{
+ padding-top: 5px;
  position: absolute;
- /* width: 190px; */ /* PeLa 100% */  /* 250px - 60px */
+}
+
+.phomeitem li ul ul  {
+ padding: 0;
 }
 
 .phomeitem li li li{
@@ -145,35 +147,30 @@ li.close img {
 }
 
 .draggable {
-    /* width: 100px; */
     min-width: 32px;
     max-width: 100px;
     position: absolute;
 }
 
 .poppable {
-    /* width: 100px; */
     min-width: 32px;
     max-width: 100px;
     position: absolute;
 }
 
 .planlink {
-    /* width: 100px; */
     min-width: 32px;
     max-width: 100px;
     position: absolute;
  }
 
 .actionbutton {
-    /* width: 100px; */
     min-width: 32px;
     max-width: 100px;
     position: absolute;
  }
 
 .clickable {
-    /* width: 100px; */
     min-width: 32px;
     max-width: 100px;
     position: absolute;
@@ -261,7 +258,6 @@ li.close img {
 }
 
 .phomeitem a {
-    /* color:#003399; */
     color:#fffff0;
     outline-color:-moz-use-text-color;
     outline-style:none;
@@ -293,7 +289,6 @@ div.plan {
     background:url(tooltip-bg.png);
 
     z-index:11;
-    /* font-size:1em; */
     color:#000000;
     padding:20px;
     border:none;

@@ -250,6 +250,10 @@ div.itemcolumn.menu ul {
 
 .hi_divider {
   display: inline-block;
+  height: 40px;
+  width: 0px;
+  border-right: 1px #fff solid;
+  border-left: 1px #ccc solid;
 }
 
 div.homeitem a {
