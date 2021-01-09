@@ -182,9 +182,9 @@ public class TempWEB extends HttpServlet implements HomeItem {
      * @throws java.io.IOException
      */
     protected void printHeader(ServletOutputStream p, boolean refresh) throws ServletException, IOException {
-        p.println("<html>");
-        p.println("<html lang=\"en\"><head>");
+        p.println("<html lang=\"en\">");
         p.println("	<title>Weather data</title>");
+        p.println("     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">");
         p.println("     <meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">");
         p.println("	<link rel=\"stylesheet\" type=\"text/css\" href=\"web/temp/style.css\" />");
         if (refresh) {
