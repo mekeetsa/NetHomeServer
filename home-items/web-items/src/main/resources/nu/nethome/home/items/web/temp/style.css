@@ -17,8 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+html {
+    background-color: black;
+}
+
 .top
 {
+    display: none;
     background-color: #ffffff;
     margin-bottom: -4px;
     margin-top: 0px;
@@ -27,14 +32,22 @@
 {
     max-width: 220px;
     margin: 5px auto;
-    background-color: #ffffff;
+    margin-top: 20px;
+    background-color: black;
+}
+.main.graph
+{
+    max-width: 852px;
+    margin: 5px auto;
+    margin-top: 20px;
+    background-color: black;
 }
 .panel
 {
 	width: 180px;
 	border: none;
 	padding: 20px 20px 20px 20px;
-	background-color: #050505;
+	background-color: black;
 	color: #ffffff;
 	font-family: sans-serif;
 	font-weight: bold;
@@ -45,7 +58,7 @@
 	width: 812px;
 	border: none;
 	padding: 20px 20px 20px 20px;
-	background-color: #050505;
+	background-color: black;
 	color: #ffffff;
 	font-family: sans-serif;
 	font-weight: bold;
@@ -61,13 +74,16 @@
 	font-family: sans-serif;
 	font-weight: bold;
 	font-size: small;
+        margin-top: 3px;
+        padding-top: 3px;
+        padding-bottom: 3px;
 }
 .graphdisplay
 {
 	width: 750px;
 	height: 450px;
 	border: thin solid #000000;
-	background-color: #9D8140;
+	background-color: #777;
 	color: #000000;
 	text-align: center;
 	font-family: sans-serif;
@@ -85,18 +101,14 @@
 	font-weight: normal;
 	font-size: x-small;
 }
-.devider
+.divider
 {
-	width: auto;
-	background-color: #000000;
-	height:2px;
-	font-size:1px;
 }
 .buttoncolumn
 {
 	border: none;
 	padding: 15px 15px 15px 15px;
-	background-color: #050505;
+	background-color: black;
 	color: #ffffff;
 	font-family: sans-serif;
 	font-weight: bold;

@@ -208,23 +208,28 @@ public class GraphServlet extends HttpServlet {
 			String heading = localFormat.format(startTime) + " - " + localFormat.format(stopTime);
 			chart = ChartFactory.createTimeSeriesChart(heading, null, null, data, false, false, false);
 
-			Paint background = new Color(0x9D8140);
+			// Paint background = new Color(0x9D8140);
+			Paint background = new Color(0xFFFFFF);
 			chart.setBackgroundPaint(background);
 			TextTitle title = chart.getTitle(); // fix title
 			Font titleFont = title.getFont();
 			titleFont = titleFont.deriveFont(Font.PLAIN, (float) 14.0);
 			title.setFont(titleFont);
-			title.setPaint(Color.darkGray);
+			// title.setPaint(Color.darkGray);
+			title.setPaint(Color.black);
 			XYPlot plot = chart.getXYPlot();
 			plot.setBackgroundPaint(background);
-			plot.setDomainGridlinePaint(Color.darkGray);
+			// plot.setDomainGridlinePaint(Color.darkGray);
+			plot.setDomainGridlinePaint(Color.black);
 			ValueAxis timeAxis = plot.getDomainAxis();
 			timeAxis.setAxisLineVisible(false);
 			ValueAxis valueAxis = plot.getRangeAxis(0);
 			valueAxis.setAxisLineVisible(false);
-			plot.setRangeGridlinePaint(Color.darkGray);
+			// plot.setRangeGridlinePaint(Color.darkGray);
+			plot.setRangeGridlinePaint(Color.black);
 			XYItemRenderer renderer = plot.getRenderer(0);
-			renderer.setSeriesPaint(0, Color.darkGray);
+			// renderer.setSeriesPaint(0, Color.darkGray);
+			renderer.setSeriesPaint(0, new Color(0x000080)); // dark blue
 			xSize = 750;
 			ySize = 450;
 		}

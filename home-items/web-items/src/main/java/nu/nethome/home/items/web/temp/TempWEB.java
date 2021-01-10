@@ -23,6 +23,7 @@ import nu.nethome.home.item.HomeItem;
 import nu.nethome.home.item.HomeItemProxy;
 import nu.nethome.home.item.HomeItemType;
 import nu.nethome.home.items.web.HomeWebServer;
+import nu.nethome.home.items.web.servergui.HTMLEncode;
 import nu.nethome.home.system.Event;
 import nu.nethome.home.system.HomeService;
 import nu.nethome.util.plugin.Plugin;
@@ -162,8 +163,10 @@ public class TempWEB extends HttpServlet implements HomeItem {
         printHeader(p, isPopup);
 
         if ((action != null) && action.equals("graph")) {
+            p.println("<body class=\"main graph\">");
             printGraphPage(p, req);
         } else {
+            p.println("<body class=\"main\">");
             printTempPage(p, isPopup);
         }
 
@@ -191,7 +194,6 @@ public class TempWEB extends HttpServlet implements HomeItem {
             p.println("	<meta http-equiv=\"refresh\" content=\"10\" />");
         }
         p.println("</head>");
-        p.println("<body class=\"main\">");
     }
 
     /**
@@ -280,7 +282,7 @@ public class TempWEB extends HttpServlet implements HomeItem {
         for (String itemId : names) {
             HomeItemProxy item = server.openInstance(itemId);
             if (item != null) {
-                p.print(item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE));
+                p.print(HTMLEncode.encode(item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE)));
                 p.println("  <a href=\"" + toGraphLink(item.getAttributeValue(HomeItemProxy.ID_ATTRIBUTE), stopTime, windowString) + "\">" + buttonImage(thermometer.equals(itemId)) + "</a>");
             }
         }
@@ -356,7 +358,7 @@ public class TempWEB extends HttpServlet implements HomeItem {
                 isDisplay = false;
             }
             // Print thermometer name
-            p.println(item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE));
+            p.println(HTMLEncode.encode(item.getAttributeValue(HomeItemProxy.NAME_ATTRIBUTE)));
             if (!isDisplay) {
                 p.println("<div class=\"display\">");
                 isDisplay = true;
@@ -365,14 +367,14 @@ public class TempWEB extends HttpServlet implements HomeItem {
             if (stringTemp.length() != 0) {
                 float temp = Float.parseFloat(stringTemp);
                 p.println("CH" + Integer.toString(i + 1) + " " + convertString(String.format("% 5.1fC", temp)));
-                p.println("<div class=\"devider\"></div>");
+                p.println("<div class=\"divider\"></div>");
                 foundValueToDisplay = true;
             }
             // If the thermometer has a valid humidity value - print that
             if (stringHum.length() != 0) {
                 float hum = Float.parseFloat(stringHum);
                 p.println("CH" + Integer.toString(i + 1) + " " + convertString(String.format("% 5.1fP", hum)));
-                p.println("<div class=\"devider\"></div>");
+                p.println("<div class=\"divider\"></div>");
                 foundValueToDisplay = true;
             }
 
@@ -380,7 +382,7 @@ public class TempWEB extends HttpServlet implements HomeItem {
             if (stringRain.length() != 0) {
                 float rainF = Float.parseFloat(stringRain);
                 p.println("CH" + Integer.toString(i + 1) + " " + convertString(String.format("% 5.1fR", rainF)));
-                p.println("<div class=\"devider\"></div>");
+                p.println("<div class=\"divider\"></div>");
                 foundValueToDisplay = true;
             }
 
@@ -388,7 +390,7 @@ public class TempWEB extends HttpServlet implements HomeItem {
             if (stringWindSpeed.length() != 0) {
                 float windS = Float.parseFloat(stringWindSpeed);
                 p.println("CH" + Integer.toString(i + 1) + " " + convertString(String.format("% 5.1fV", windS)));
-                p.println("<div class=\"devider\"></div>");
+                p.println("<div class=\"divider\"></div>");
                 foundValueToDisplay = true;
             }
 
@@ -396,14 +398,14 @@ public class TempWEB extends HttpServlet implements HomeItem {
             if (stringWindDir.length() != 0) {
                 float windD = Float.parseFloat(stringWindDir);
                 p.println("CH" + Integer.toString(i + 1) + " " + convertWindDir(windD));
-                p.println("<div class=\"devider\"></div>");
+                p.println("<div class=\"divider\"></div>");
                 foundValueToDisplay = true;
             }
 
             if (!foundValueToDisplay) {
                 // If we have found no valid value to display, print an empty display
                 p.println("CH" + Integer.toString(i + 1) + " " + convertString(" --,-"));
-                p.println("<div class=\"devider\"></div>");
+                p.println("<div class=\"divider\"></div>");
             }
         }
         if (!foundItemToDisplay) {
@@ -414,12 +416,12 @@ public class TempWEB extends HttpServlet implements HomeItem {
         p.println("</div>"); // Display
         p.println("<br>");
         p.println("<div class=\"buttonrow\">");
-        p.println("Graph  <a href=\"javascript: void(0)\" onclick=\"window.open('" + localURL + "?a=graph', 'graph', 'left=100, top=100, width=870,height=570, location=no, menubar=no, resizable=yes, scrollbars=no, status=no, titlebar=no, toolbar=no'); return false;\">");
+        p.println("Graph  <a href=\"javascript: void(0)\" onclick=\"window.open('" + localURL + "?a=graph', 'graph', 'left=' + ( (screen.width/2) - 475 ) + ', top=' + ( (screen.height/2) - 325 ) + ', width=950,height=650, location=no, menubar=no, resizable=yes, scrollbars=no, status=no, titlebar=no, toolbar=no'); return false;\">");
         p.println("<img class=\"button\" src=\"web/temp/buttonSilver.png\"></a>");
         p.println("</div>");
         if (!isPopup) {
             p.println("<div class=\"buttonrow\">");
-            p.println("Popup  <a href=\"javascript: void(0)\" onclick=\"window.open('" + localURL + "?p=popup', 'one', 'left=100, top=100, width=240,height=300, location=no, menubar=no, resizable=yes, scrollbars=no, status=no, titlebar=no, toolbar=no'); return false;\">");
+            p.println("Popup  <a href=\"javascript: void(0)\" onclick=\"window.open('" + localURL + "?p=popup', 'one', 'left=' + ( (screen.width/2) - 150 ) + ', top=' + ( (screen.height/2) - 250 ) + ', width=300,height=500, location=no, menubar=no, resizable=yes, scrollbars=no, status=no, titlebar=no, toolbar=no'); return false;\">");
             p.println("<img class=\"button\" src=\"web/temp/buttonSilver.png\"></a>");
             p.println("</div>");
         }
