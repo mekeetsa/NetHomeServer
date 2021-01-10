@@ -84,8 +84,9 @@ public class Plan extends HomeItemAdapter implements HomeItem {
             + "  <Attribute Name=\"CustomCSS\" Type=\"MediaFile\" Get=\"getCustomCSS\" 	Set=\"setCustomCSS\" />"
             + "  <Attribute Name=\"ItemLocations\" Type=\"String\" Get=\"getItemLocations\" 	Set=\"setItemLocations\" />"
             + "  <Attribute Name=\"UpdateInterval\" Type=\"String\" Get=\"getUpdateInterval\" 	Set=\"setUpdateInterval\" />"
-			+ "  <Attribute Name=\"ClickAction\" Type=\"StringList\" Get=\"getClickAction\" 	Set=\"setClickAction\">"
-			+ "  <item>Popup</item><item>DefaultAction</item></Attribute>"
+            + "  <Attribute Name=\"ClickAction\" Type=\"StringList\" Get=\"getClickAction\" 	Set=\"setClickAction\">"
+            + "  <item>Popup</item><item>DefaultAction</item></Attribute>"
+            + "  <Attribute Name=\"EmbedSVG\" Type=\"Boolean\" Get=\"getEmbedSVG\" 	Set=\"setEmbedSVG\" />"
             + "</HomeItem> ");
 
     private Map<String, PlanItem> planItems = null;
@@ -97,6 +98,7 @@ public class Plan extends HomeItemAdapter implements HomeItem {
     protected String itemLocations = "";
     protected int updateInterval = 2;
     private boolean popupOnClick = false;
+    private boolean embedSVG = false;
 
     public Plan() {
     }
@@ -301,5 +303,17 @@ public class Plan extends HomeItemAdapter implements HomeItem {
 
     public void setCustomCSS(String customCSS) {
         this.customCSS = customCSS;
+    }
+
+    public boolean isEmbedSVG() {
+        return embedSVG;
+    }
+
+    public String getEmbedSVG() {
+        return embedSVG ? "Yes" : "No";
+    }
+
+    public void setEmbedSVG(String embedSVG) {
+        this.embedSVG = embedSVG.equalsIgnoreCase("Yes") || embedSVG.equalsIgnoreCase("True");
     }
 }

@@ -156,16 +156,20 @@ public class PlanPage implements HomePageInterface {
         if ( viewedPlan.getImageFile().endsWith(".svg") ) {
             p.println("<div id=\"plan\" class=\"plan\" data-item=\"" + viewedPlan.getItemId() + "\">");
             p.println("  <div id=\"svgDiv\" class=\"plan-svg\">");
-            // p.println("    <object id=\"svgObject\" type=\"image/svg+xml\" data=\"" + viewedPlan.getImageFile() + "\" width=\"100%\" height=\"100%\"></object>");
-            // Instead of loading as <object>, rather include SVG
-            String mediaFile = viewedPlan.getImageFile();
-            mediaFile = mediaFile.startsWith("media/") ? mediaFile.substring(6) : mediaFile;
-            Path path = Paths.get(mediaDirectory + "/" + mediaFile);
-            if ( Files.exists(path) ) {
-                try {
-                    p.print( new String( Files.readAllBytes(path) ) );
-                } catch (Exception e) {
-                   e.printStackTrace();
+
+            if ( ! viewedPlan.isEmbedSVG() ) {
+                p.println("    <object id=\"svgObject\" type=\"image/svg+xml\" data=\"" + viewedPlan.getImageFile() + "\" width=\"100%\" height=\"100%\"></object>");
+            } else {
+                // Instead of loading it as an <object>, rather embed the SVG image
+                String mediaFile = viewedPlan.getImageFile();
+                mediaFile = mediaFile.startsWith("media/") ? mediaFile.substring(6) : mediaFile;
+                Path path = Paths.get(mediaDirectory + "/" + mediaFile);
+                if ( Files.exists(path) ) {
+                    try {
+                        p.print( new String( Files.readAllBytes(path) ) );
+                    } catch (Exception e) {
+                       e.printStackTrace();
+                    }
                 }
             }
             p.println("  </div>");
