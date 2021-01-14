@@ -5,6 +5,14 @@ Welcome to the NetHomeServer project. NetHomeServer is the core of OpenNetHome,
 which is an open home automation project. For more details, see the project home page:
 http://opennethome.org/
 
+Release Notes
+-------------
+
+The rxtx library 2.2pre1
+exhibits high-cpu usage on Raspberry Pi.  
+Use `librxtxSerial.so`from here: 
+https://github.com/mekeetsa/rxtx-2.2pre2
+
 Development Environment
 -----------------------
 
