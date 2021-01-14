@@ -618,7 +618,7 @@ textarea.iteminput {
   width: 30px;
 }
 
-.iteminputrows {
+.actions div.iteminputrows {
   background: none repeat scroll 0 0 white;
   border-color: #C9C9CA #EDEDEF #EDEDEF #C9C9CA;
   border-style: solid;
@@ -1183,10 +1183,10 @@ div#chart1 {
   #mi_rooms {
     display: block;
   }
-  #mi_plan, #mi_settingsTop .fa, #mi_serverTop .fa, #mi_statusTop { 
+  #mi_plan, #mi_settingsTop .fa, #mi_serverTop .fa, #mi_myroomsTop, #mi_statusTop { 
     display: none; 
   }
-  #mi_statusDiv .dropdown-content a{
+  #mi_statusDiv .dropdown-content a, #mi_myroomsDiv .dropdown-content a {
     display: block;
   }
   .dropdown-content, .dropdown-content a {
