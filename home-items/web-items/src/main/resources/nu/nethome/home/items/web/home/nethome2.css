@@ -1277,3 +1277,7 @@ div#chart1 {
   }
 }
 
+@-moz-document url-prefix() {
+  .fa.fa-caret-down:after { font-style: normal; content: "\25BC"; }
+  .fa.fa-bars:after { font-style: normal; content: "\2630"; }
+}
