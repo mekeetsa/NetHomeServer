@@ -29,6 +29,8 @@ import nu.nethome.home.items.web.servergui.PortletPage;
 import javax.servlet.http.HttpServletRequest;
 import java.io.PrintWriter;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 /**
  * An attribute printer for the common "String" attribute type
  *
@@ -66,7 +68,7 @@ public class StringAttributePrinter implements AttributeTypePrinterInterface {
      * @return the attribute value in a form adopted for applying to the item
      */
     protected String inputToAttributeValue(String value) {
-        return PortletPage.fromURL(value);
+        return StringEscapeUtils.unescapeHtml4(PortletPage.fromURL(value));
     }
 
     public boolean printAttributeValue(PrintWriter p, Attribute attribute,

@@ -31,6 +31,8 @@ import nu.nethome.home.system.HomeService;
 import java.io.PrintWriter;
 import java.util.*;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 /**
  * An attribute printer for Item attribute type
  *
@@ -93,7 +95,7 @@ public class ItemAttributePrinter extends StringAttributePrinter {
                 for (HomeItemProxy instance : itemsInCategory.getItems()) {
                     String instanceId = instance.getAttributeValue("ID");
                     p.println("      <li> <input type=\"checkbox\" value=\"" + identity +
-                            "\" " + (refs.contains(instanceId) ? "checked=\"checked\" " : "") + " class=\"" + getListItemClass() + "\">" + instance.getAttributeValue("Name") + "</li>");
+                            "\" " + (refs.contains(instanceId) ? "checked=\"checked\" " : "") + " class=\"" + getListItemClass() + "\">" + HTMLEncode.encode(instance.getAttributeValue("Name")) + "</li>");
                 }
             }
         }
@@ -121,6 +123,7 @@ public class ItemAttributePrinter extends StringAttributePrinter {
             return value;
         }
         String reference = trimQuotations(value.trim());
+        reference = StringEscapeUtils.unescapeHtml4(reference);
         HomeItemProxy item = server.openInstance(reference);
         if (item != null) {
             return item.getAttributeValue("ID");

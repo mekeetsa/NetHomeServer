@@ -1,6 +1,7 @@
 package nu.nethome.home.items.web.servergui;
 
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 /**
 * Created by Stefan 2013-12-08
@@ -18,7 +19,7 @@ class EditItemArguments extends HomeGUIArguments {
 
     public EditItemArguments(HttpServletRequest req) {
         super(req);
-        newName = PortletPage.fromURL(req.getParameter("new_name"));
+        newName = StringEscapeUtils.unescapeHtml4(PortletPage.fromURL(req.getParameter("new_name")));
         className = PortletPage.fromURL(req.getParameter("class_name"));
         delete = req.getParameter("delete");
         move = req.getParameter("move");
