@@ -406,7 +406,7 @@ public class PlanPage implements HomePageInterface {
         if (item.getAttributeValue("ClickSound").length() > 0) {
             playSound = "playSound('" + item.getAttributeValue("ClickSound") + "');";
         }
-        p.println("    <ul class=\"itemlocation\" onclick=\"" + playSound + "callItemAction('" + item.getAttributeValue("ID") + "', 'pushAction');\" href=\"javascript:void(0)\">");
+        p.println("    <ul class=\"itemlocation\" onclick=\"" + playSound + "callItemAction('" + item.getAttributeValue("ID") + "', 'pushToggle');\" href=\"javascript:void(0)\">");
         String mouseDown = "";
         if (item.getAttributeValue("ClickIcon").length() > 0) {
             mouseDown = " onmousedown=\"this.src='" + item.getAttributeValue("ClickIcon") +

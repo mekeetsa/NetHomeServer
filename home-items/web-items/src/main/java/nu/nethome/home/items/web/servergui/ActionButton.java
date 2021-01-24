@@ -42,20 +42,26 @@ public class ActionButton extends HomeItemAdapter implements HomeItem {
 
 	private static final String MODEL = ("<?xml version = \"1.0\"?> \n"
 			+ "<HomeItem Class=\"ActionButton\" Category=\"GUI\" >"
+			+ "  <Attribute Name=\"State\" Type=\"String\" Get=\"getState\" Default=\"true\"/>"
 			+ "  <Attribute Name=\"PushAction\" Type=\"Command\" Get=\"getPushAction\" 	Set=\"setPushAction\" />"
+			+ "  <Attribute Name=\"PushAction2\" Type=\"Command\" Get=\"getPushAction2\" 	Set=\"setPushAction2\" />"
 			+ "  <Attribute Name=\"Icon\" Type=\"MediaFile\" Get=\"getIcon\" 	Set=\"setIcon\" />"
 			+ "  <Attribute Name=\"ClickIcon\" Type=\"MediaFile\" Get=\"getClickIcon\" 	Set=\"setClickIcon\" />"
 			+ "  <Attribute Name=\"ClickSound\" Type=\"MediaFile\" Get=\"getClickSound\" 	Set=\"setClickSound\" />"
 			+ "  <Attribute Name=\"Text\" Type=\"String\" Get=\"getText\" 	Set=\"setText\" />"
 			+ "  <Attribute Name=\"Title\" Type=\"String\" Get=\"getTitle\" 	Set=\"setTitle\" />"
+            + "  <Action Name=\"pushToggle\" 	Method=\"performPushToggle\" Default=\"true\" />"
             + "  <Action Name=\"pushAction\" 	Method=\"performPushAction\" />"
+            + "  <Action Name=\"pushAction2\" 	Method=\"performPushAction2\" />"
 			+ "</HomeItem> ");
 
 	private static Logger logger = Logger.getLogger(ActionButton.class.getName());
     private CommandLineExecutor executor;
 
 	// Public attributes
+        private boolean state = false;
 	private String pushAction = "";
+	private String pushAction2 = "";
 	private String icon = "media/button_icon.png";
 	private String clickIcon = "media/button_icon_down.png";
 	private String clickSound = "";
@@ -71,8 +77,23 @@ public class ActionButton extends HomeItemAdapter implements HomeItem {
    		executor = new CommandLineExecutor(server, true);
    	}
 
+    public String getState() {
+        return state ? "On" : "Off";
+    }
+
+    public void performPushToggle() {
+        executor.executeCommandLine( state ? pushAction2 : pushAction );
+        state = ! state;
+    }
+
     public void performPushAction() {
         executor.executeCommandLine(pushAction);
+        state = true;
+    }
+
+    public void performPushAction2() {
+        executor.executeCommandLine(pushAction2);
+        state = false;
     }
 
     public String getPushAction() {
@@ -81,6 +102,14 @@ public class ActionButton extends HomeItemAdapter implements HomeItem {
 
     public void setPushAction(String pushAction) {
         this.pushAction = pushAction;
+    }
+
+    public String getPushAction2() {
+        return pushAction2;
+    }
+
+    public void setPushAction2(String pushAction2) {
+        this.pushAction2 = pushAction2;
     }
 
     public String getIcon() {
